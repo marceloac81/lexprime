@@ -4,6 +4,7 @@ import { useStore } from '../context/Store';
 import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
+import { formatCurrency, maskCurrency, parseCurrency } from '../utils/currencyUtils';
 
 export const Cases: React.FC = () => {
     const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading } = useStore();
@@ -711,13 +712,19 @@ export const Cases: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor da Causa</label>
-                                            <input
-                                                type="number"
-                                                placeholder="0,00"
-                                                value={newCase.value || ''}
-                                                onChange={e => setNewCase({ ...newCase, value: Number(e.target.value) })}
-                                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
-                                            />
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="0,00"
+                                                    value={newCase.value !== undefined ? maskCurrency(newCase.value.toFixed(2).replace('.', '')) : ''}
+                                                    onChange={e => {
+                                                        const masked = maskCurrency(e.target.value);
+                                                        setNewCase({ ...newCase, value: parseCurrency(masked) });
+                                                    }}
+                                                    className="w-full pl-10 pr-3 py-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data do Valor</label>
@@ -1012,7 +1019,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 uppercase">Valor da Causa</p>
-                                        <p className="font-medium">{c.value ? c.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}</p>
+                                        <p className="font-medium">{c.value ? formatCurrency(c.value) : '-'}</p>
                                     </div>
                                 </div>
                             </div>
