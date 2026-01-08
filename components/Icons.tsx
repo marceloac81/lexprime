@@ -49,8 +49,10 @@ import {
   Check,
   Scale,
   Lock,
-  ArrowRight
+  ArrowRight,
+  RotateCcw
 } from 'lucide-react';
+
 
 export {
   LayoutDashboard,
@@ -102,5 +104,6 @@ export {
   Check,
   Scale,
   Lock,
-  ArrowRight
+  ArrowRight,
+  RotateCcw
 };

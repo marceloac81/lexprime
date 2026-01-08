@@ -1143,16 +1143,62 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const importHolidays = (newHolidays: Holiday[]) => {
     setHolidays(prev => {
       const existingDates = new Set(prev.map(h => h.date));
+      // Filter out existing dates to avoid duplicates
       const toAdd = newHolidays.filter(h => !existingDates.has(h.date));
+
+      // If we are importing, we should trust the incoming names if they likely have better quality than "Feriado Importado"
+      // However, for simplicity in this flow, we just add new ones. 
+      // The Reset function is the primary fix for bad data.
+
       const updated = [...prev, ...toAdd].sort((a, b) => a.date.localeCompare(b.date));
-      addNotification(`${toAdd.length} feriados importados.`, 'success');
+
+      if (toAdd.length > 0) {
+        addNotification(`${toAdd.length} feriados importados.`, 'success');
+        // Trigger generic sync to save these to cloud if needed, 
+        // but typically imports are followed by a sync or auto-save in this architecture.
+        // For now, let's rely on the manual sync or the next auto-sync cycle if implemented.
+      } else {
+        addNotification('Nenhum feriado novo para importar.', 'info');
+      }
       return updated;
     });
   };
 
-  const resetHolidays = () => {
-    setHolidays(DEFAULT_HOLIDAYS);
-    addNotification('Feriados restaurados.', 'warning');
+  const resetHolidays = async () => {
+    if (!window.confirm('Tem certeza? Isso apagará todos os feriados personalizados e restaurará a lista padrão do sistema.')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // 1. Clear local
+      setHolidays(DEFAULT_HOLIDAYS);
+
+      // 2. Clear Supabase
+      const { error: deleteError } = await supabase.from('holidays').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      if (deleteError) throw deleteError;
+
+      // 3. Re-insert defaults
+      const payload = DEFAULT_HOLIDAYS.map(h => ({
+        id: crypto.randomUUID(), // Generate new IDs
+        holiday_date: h.date,
+        name: h.name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+
+      const { error: insertError } = await supabase.from('holidays').insert(payload);
+      if (insertError) throw insertError;
+
+      addNotification('Feriados restaurados com sucesso!', 'success');
+    } catch (err: any) {
+      console.error('Erro ao restaurar feriados:', err);
+      addNotification(`Erro ao restaurar: ${err.message}`, 'warning');
+      // Revert to local default just in case to allow work to continue
+      setHolidays(DEFAULT_HOLIDAYS);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);

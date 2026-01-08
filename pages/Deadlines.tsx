@@ -8,7 +8,7 @@ import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
 
 export const Deadlines: React.FC = () => {
-    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, pendingAction, setPendingAction, addNotification, isDarkMode } = useStore();
+    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode } = useStore();
 
     // State
     const [showCalculator, setShowCalculator] = useState(false);

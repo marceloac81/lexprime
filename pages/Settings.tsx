@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon } from '../components/Icons';
+import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon, RotateCcw } from '../components/Icons';
 import { Holiday, Case, Client, Deadline, TeamMember } from '../types';
 import {
     generateContactsCSV, generateCasesCSV, generateDeadlinesCSV, generateTeamCSV, generateHolidaysCSV, downloadCSV,
@@ -177,6 +177,15 @@ export const Settings: React.FC = () => {
                                     >
                                         <Download size={18} />
                                     </button>
+                                    {item.label === 'Feriados' && (
+                                        <button
+                                            onClick={resetHolidays}
+                                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                            title="Restaurar Feriados Padrão"
+                                        >
+                                            <RotateCcw size={18} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

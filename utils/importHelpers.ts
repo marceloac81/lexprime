@@ -263,11 +263,23 @@ export const parseHolidaysCSV = (text: string): any[] => {
             }
         }
 
+        // Try multiple column name variations for the holiday name
+        let holidayName = cols[map['NOME DO FERIADO']] ||
+            cols[map['NOME']] ||
+            cols[map['FERIADO']] ||
+            cols[map['NOME_DO_FERIADO']] ||
+            '';
+
+        // Only use fallback if the name is truly empty
+        if (!holidayName || holidayName.trim() === '') {
+            holidayName = 'Feriado Importado';
+        }
+
         if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
             parsedHolidays.push({
                 id: crypto.randomUUID(),
                 date: dateStr,
-                name: cols[map['NOME']] || 'Feriado Importado'
+                name: holidayName.trim()
             });
         }
     }

@@ -23,17 +23,17 @@ export const DEFAULT_HOLIDAYS: Holiday[] = [
 export const formatDate = (dateStr: string): string => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  
+
   if (isNaN(date.getTime())) return 'Data Inválida';
 
   // Fix timezone offset issue for display by using UTC methods if string is YYYY-MM-DD
-  if(dateStr.length === 10 && dateStr.includes('-')) {
-     const parts = dateStr.split('-');
-     if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-     }
+  if (dateStr.length === 10 && dateStr.includes('-')) {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
   }
-  
+
   try {
     return new Intl.DateTimeFormat('pt-BR').format(date);
   } catch (e) {
@@ -51,68 +51,83 @@ export const isWeekend = (date: Date): boolean => {
 export const isHoliday = (date: Date, customHolidays: Holiday[] = DEFAULT_HOLIDAYS): string | null => {
   if (isNaN(date.getTime())) return null;
   const dateString = date.toISOString().split('T')[0];
+
+  // REMOVED HARDCODED RECESSO FORENSE LOGIC
+  // The user wants strict adherence to the holiday list. 
+  // If Recesso applies, it must be present in the customHolidays array.
+
   const holiday = customHolidays.find(h => h.date === dateString);
   return holiday ? holiday.name : null;
 };
 
+// Helper to get day name
+const getDayName = (date: Date): string => {
+  // Use UTC to avoid timezone shift (e.g. 2026-01-24 UTC midnight is Friday 21:00 in Brazil)
+  return new Intl.DateTimeFormat('pt-BR', { weekday: 'long', timeZone: 'UTC' }).format(date);
+};
+
 // Modified to accept custom holidays list
 export const calculateDeadline = (
-    startDateStr: string, 
-    days: number, 
-    type: 'business' | 'calendar',
-    customHolidays: Holiday[] = DEFAULT_HOLIDAYS
+  startDateStr: string,
+  days: number,
+  type: 'business' | 'calendar',
+  customHolidays: Holiday[] = DEFAULT_HOLIDAYS
 ): { date: Date, logs: string[] } => {
-  
+
   // Allow 0 days, check for NaN only
   if (!startDateStr || isNaN(days)) {
     return { date: new Date(), logs: ['Aguardando dados válidos...'] };
   }
-  
+
   const parts = startDateStr.split('-');
   if (parts.length !== 3) {
-     return { date: new Date(), logs: ['Formato de data inválido'] };
+    return { date: new Date(), logs: ['Formato de data inválido'] };
   }
-  
+
   const [y, m, d] = parts.map(Number);
   if (isNaN(y) || isNaN(m) || isNaN(d)) {
     return { date: new Date(), logs: ['Data inválida'] };
   }
 
   let current = new Date(Date.UTC(y, m - 1, d));
-  
+
   if (isNaN(current.getTime())) {
     return { date: new Date(), logs: ['Data inválida'] };
   }
-  
-  const logs: string[] = [`Data de publicação/intimação: ${formatDate(startDateStr)}`];
+
+  const formattedStart = formatDate(startDateStr);
+  const startDayName = getDayName(current);
+  const logs: string[] = [`Data de publicação/intimação: ${formattedStart} (${startDayName})`];
 
   // If 0 days, return immediately without CPC rule
   if (days === 0) {
-      logs.push('Prazo de 0 dias: A data final é igual à data inicial.');
-      return { date: current, logs };
+    logs.push('Prazo de 0 dias: A data final é igual à data inicial.');
+    return { date: current, logs };
   }
 
   // CPC Rule: Exclude start day (Day 0)
-  logs.push(`Dia de início (excluído): ${formatDate(current.toISOString().split('T')[0])}`);
+  logs.push(`Dia de início (excluído): ${formattedStart} (${startDayName})`);
   current.setDate(current.getDate() + 1);
-  
+
   let count = 0;
 
   if (type === 'business') {
     while (count < days) {
       const dateStr = current.toISOString().split('T')[0];
+      const formattedDate = formatDate(dateStr);
+      const dayName = getDayName(current);
       const holidayName = isHoliday(current, customHolidays);
       const weekend = isWeekend(current);
 
       if (holidayName) {
-        logs.push(`${formatDate(dateStr)}: Feriado (${holidayName}) - Não contado`);
+        logs.push(`${formattedDate} (${dayName}): Feriado (${holidayName}) - Não contado`);
       } else if (weekend) {
-        logs.push(`${formatDate(dateStr)}: Final de semana - Não contado`);
+        logs.push(`${formattedDate} (${dayName}): Final de semana - Não contado`);
       } else {
         count++;
-        logs.push(`${formatDate(dateStr)}: Dia útil ${count}/${days}`);
+        logs.push(`${formattedDate} (${dayName}): Dia útil ${count}/${days}`);
       }
-      
+
       // Move to next day if we haven't finished counting
       if (count < days) {
         current.setDate(current.getDate() + 1);
@@ -121,10 +136,13 @@ export const calculateDeadline = (
   } else {
     // Calendar days
     for (let i = 0; i < days; i++) {
-        const dateStr = current.toISOString().split('T')[0];
-        count++;
-        logs.push(`${formatDate(dateStr)}: Dia corrido ${count}/${days}`);
-        if (count < days) current.setDate(current.getDate() + 1);
+      const dateStr = current.toISOString().split('T')[0];
+      const formattedDate = formatDate(dateStr);
+      const dayName = getDayName(current);
+
+      count++;
+      logs.push(`${formattedDate} (${dayName}): Dia corrido ${count}/${days}`);
+      if (count < days) current.setDate(current.getDate() + 1);
     }
   }
 
@@ -134,18 +152,22 @@ export const calculateDeadline = (
   while (extensionNeeded && safeCounter < 365) {
     safeCounter++;
     const dateStr = current.toISOString().split('T')[0];
+    const formattedDate = formatDate(dateStr);
+    const dayName = getDayName(current);
     const holidayName = isHoliday(current, customHolidays);
     const weekend = isWeekend(current);
 
     if (holidayName || weekend) {
-       logs.push(`${formatDate(dateStr)}: Vencimento em dia não útil (${holidayName || 'Fim de semana'}). Prorrogando para o próximo dia útil...`);
-       current.setDate(current.getDate() + 1);
+      logs.push(`${formattedDate} (${dayName}) Vencimento em dia não útil (${holidayName || 'Fim de semana'}). Prorrogando para o próximo dia útil...`);
+      current.setDate(current.getDate() + 1);
     } else {
-       extensionNeeded = false;
+      extensionNeeded = false;
     }
   }
 
-  logs.push(`Vencimento final: ${formatDate(current.toISOString().split('T')[0])}`);
+  const finalDateStr = current.toISOString().split('T')[0];
+  const finalDayName = getDayName(current);
+  logs.push(`Vencimento final: ${formatDate(finalDateStr)} (${finalDayName})`);
 
   return { date: current, logs };
 };
