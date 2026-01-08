@@ -69,7 +69,7 @@ export const Dashboard: React.FC = () => {
   const upcomingDeadlines = deadlines
     .filter(d => !d.isDone && d.status !== 'Canceled' && d.dueDate >= today)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 5);
+    .slice(0, 8);
 
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]
@@ -82,7 +82,6 @@ export const Dashboard: React.FC = () => {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Visão geral do escritório de {currentUser?.name}</p>
         </div>
         <div className="text-right hidden md:block">
           <p className="text-sm text-slate-500 dark:text-slate-400">Hoje</p>
