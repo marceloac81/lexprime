@@ -8,7 +8,7 @@ import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
 
 export const Deadlines: React.FC = () => {
-    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, pendingAction, setPendingAction, addNotification } = useStore();
+    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, pendingAction, setPendingAction, addNotification, isDarkMode } = useStore();
 
     // State
     const [showCalculator, setShowCalculator] = useState(false);
@@ -115,31 +115,54 @@ export const Deadlines: React.FC = () => {
 
     const dates = Object.keys(groupedDeadlines).sort();
 
+    // Helper to get color based on day of week for Light Mode
+    const getDayColor = (dateStr: string) => {
+        if (!dateStr || isDarkMode) return "transparent";
+        if (dateStr === todayStr) return "#FFE699";
+
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const [y, m, d] = parts.map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            const day = dateObj.getDay();
+
+            switch (day) {
+                case 1: return "#D6DCE4"; // Segunda-feira
+                case 2: return "#D9E1F2"; // Terça-feira
+                case 3: return "#FCE4D6"; // Quarta-feira
+                case 4: return "#EDEDED"; // Quinta-feira
+                case 5: return "#FFF2CC"; // Sexta-feira
+                default: return "transparent";
+            }
+        }
+        return "transparent";
+    };
+
+    // Helper to get color for Headers in Light Mode (now matches row colors except for today)
+    const getHeaderColor = (dateStr: string) => {
+        if (!dateStr || isDarkMode) return "transparent";
+        if (dateStr === todayStr) return "#FFE699"; // Maintain yellow for today
+        return getDayColor(dateStr);
+    };
+
     // Styles - Updated for Better Dark Mode Contrast
     const getDateStyle = (dateStr: string) => {
         if (!dateStr) return "";
         // Today: Amber (Light: Bright / Dark: Deep & Visible)
         if (dateStr === todayStr) return "bg-amber-400 border-amber-500 text-black shadow-sm dark:bg-amber-600 dark:text-white dark:border-amber-700";
 
-        // Everything else: Neutral
-        return "bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
+        // Everything else: Use getHeaderColor inline for light mode
+        return "text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-700";
     };
 
     const getRowStyle = (dateStr: string) => {
         if (!dateStr) return "";
         // Today Row
-        if (dateStr === todayStr) return "bg-amber-100 hover:bg-amber-200 text-slate-900 font-bold border-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:border-amber-900";
+        if (dateStr === todayStr) return "hover:bg-amber-200/80 hover:brightness-90 text-slate-900 font-bold border-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:border-amber-900";
 
-        // Everything else: Neutral Alternate
-        // Use filtered index instead? Or just date based.
-        // Let's keep it simple neutral.
-        const parts = dateStr.split('-');
-        if (parts.length === 3) {
-            const dayNum = parseInt(parts[2]);
-            if (dayNum % 2 === 0) return "bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-dark-900 dark:text-slate-300 dark:hover:bg-dark-800";
-        }
-
-        return "bg-white hover:bg-slate-50 text-slate-700 dark:bg-dark-800/50 dark:text-slate-300 dark:hover:bg-dark-800";
+        // For other days, we'll use inline style for background in light mode
+        // Added hover:brightness-95 for light mode effect on top of inline bg
+        return "hover:brightness-95 dark:hover:brightness-110 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600";
     };
 
     const handleEditClick = (d: Deadline) => {
@@ -254,7 +277,6 @@ export const Deadlines: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Gerencie seus prazos e atividades.</p>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
 
@@ -380,8 +402,9 @@ export const Deadlines: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {dates.map(dateStr => {
+                        {dates.map((dateStr, idx) => {
                             const groupItems = groupedDeadlines[dateStr];
+                            const isAltGroup = idx % 2 !== 0;
                             const parts = dateStr.split('-');
                             let formattedDate = dateStr;
                             let weekday = '';
@@ -398,7 +421,10 @@ export const Deadlines: React.FC = () => {
 
                             return (
                                 <React.Fragment key={dateStr}>
-                                    <tr className={`${getDateStyle(dateStr)} border-b-2`}>
+                                    <tr
+                                        className={`${getDateStyle(dateStr)} border-b-2 ${!isToday ? 'border-t-2 border-t-slate-400/50' : ''} ${isDarkMode && !isToday ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                        style={!isToday && !isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
+                                    >
                                         <td colSpan={7} className="py-2 px-4">
                                             <div className="flex items-center gap-3">
                                                 <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
@@ -422,7 +448,8 @@ export const Deadlines: React.FC = () => {
                                             <tr
                                                 key={d.id}
                                                 onClick={() => handleEditClick(d)}
-                                                className={`${getRowStyle(dateStr)} border-b border-slate-300 dark:border-slate-600 transition-colors cursor-pointer group`}
+                                                className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode && !isToday ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                                style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
                                                 title="Clique para editar"
                                             >
                                                 <td className={`p-4 text-sm font-bold ${textStyle}`}>
@@ -435,14 +462,22 @@ export const Deadlines: React.FC = () => {
                                                     {relatedCase?.number || '-'}
                                                 </td>
                                                 <td className="p-4">
-                                                    <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium max-w-[200px] truncate ${isFinished
-                                                        ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
-                                                        : 'bg-white/80 border-slate-200 text-slate-700 shadow-sm dark:bg-dark-800/80 dark:border-slate-600 dark:text-slate-200'
-                                                        }`}>
-                                                        {displayCustomer}
+                                                    <div className="flex flex-col gap-0.5 max-w-[200px]">
+                                                        <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium truncate ${isFinished
+                                                            ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
+                                                            : 'bg-white/80 border-slate-200 text-slate-700 shadow-sm dark:bg-dark-800/80 dark:border-slate-600 dark:text-slate-200'
+                                                            }`}>
+                                                            {displayCustomer}
+                                                        </div>
+                                                        {relatedCase?.opposingParty && (
+                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none">
+                                                                <span className="opacity-75">vs</span>
+                                                                <span className="truncate" title={relatedCase.opposingParty}>{relatedCase.opposingParty}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td className={`p-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`} title={displayCourt}>
+                                                <td className={`p-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
                                                     {displayCourt}
                                                 </td>
                                                 <td className={`p-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
@@ -533,7 +568,15 @@ export const Deadlines: React.FC = () => {
                                                 </div>
                                             )}
                                             <div className="text-sm text-slate-600 dark:text-slate-400 flex flex-col gap-1">
-                                                <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
+                                                    {relatedCase?.opposingParty && (
+                                                        <div className={`text-[10px] text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${textStyle}`}>
+                                                            <span className="opacity-75">vs</span>
+                                                            <span className="truncate">{relatedCase.opposingParty}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <span className={`${textStyle}`}>{displayCourt} {displayCity && `• ${displayCity}`}</span>
                                             </div>
                                         </div>
