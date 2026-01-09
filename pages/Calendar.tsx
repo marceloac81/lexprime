@@ -239,26 +239,28 @@ export const Calendar: React.FC = () => {
                             </div>
                         ) : (
                             <>
-                                {selectedDeadlines.map(deadline => (
-                                    <div key={deadline.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${deadline.priority === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-primary-500 transition-colors">{deadline.startTime || 'O dia todo'}</span>
-                                                    <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${deadline.priority === 'High' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'}`}>
-                                                        {deadline.type}
-                                                    </span>
+                                {selectedDeadlines
+                                    .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
+                                    .map(deadline => (
+                                        <div key={deadline.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${deadline.priority === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-primary-500 transition-colors">{(deadline.startTime || 'O dia todo').slice(0, 5)}</span>
+                                                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${deadline.priority === 'High' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'}`}>
+                                                            {deadline.type?.toUpperCase() === 'PRAZO PROCESSUAL' ? 'PRAZO' : deadline.type}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-1">{deadline.title}</h4>
+                                                    <p className="text-xs text-slate-500 line-clamp-1">{deadline.caseTitle || deadline.customerName || 'Sem processo'}</p>
                                                 </div>
-                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-1">{deadline.title}</h4>
-                                                <p className="text-xs text-slate-500 line-clamp-1">{deadline.caseTitle || deadline.customerName || 'Sem processo'}</p>
+                                                <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1"> {/* Changed to existing handleEditDeadline */}
+                                                    <Edit size={16} />
+                                                </button>
                                             </div>
-                                            <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1"> {/* Changed to existing handleEditDeadline */}
-                                                <Edit size={16} />
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
 
                                 {selectedAppointments.map(appointment => (
                                     <div key={appointment.id} className="bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">

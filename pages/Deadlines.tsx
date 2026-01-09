@@ -103,7 +103,13 @@ export const Deadlines: React.FC = () => {
         return true;
     });
 
-    filteredDeadlines.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    filteredDeadlines.sort((a, b) => {
+        const dateA = new Date(a.dueDate).getTime();
+        const dateB = new Date(b.dueDate).getTime();
+        if (dateA !== dateB) return dateA - dateB;
+        if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime);
+        return 0;
+    });
 
     const groupedDeadlines: { [date: string]: Deadline[] } = {};
     filteredDeadlines.forEach(d => {

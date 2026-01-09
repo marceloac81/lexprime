@@ -54,7 +54,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
   };
 
   // Calculate badges
-  const today = new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const pendingDeadlinesToday = deadlines.filter(d => d.dueDate === today && (!d.status || d.status === 'Pending') && !d.isDone).length;
   const todayAppointments = appointments.filter(a => a.date && a.date.startsWith(today)).length;
   const agendaBadgeCount = pendingDeadlinesToday + todayAppointments;
@@ -81,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
         md:relative md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        ${collapsed ? 'w-20' : 'w-72'}
+        ${collapsed ? 'w-20' : 'w-64'}
     `}>
       <div className={`p-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} mb-2 relative`}>
         <div className="flex items-center gap-3 overflow-hidden">
@@ -134,12 +135,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
       <div className={`p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className={`bg-slate-50 dark:bg-dark-800 rounded-xl p-3 flex items-center gap-3 border border-slate-100 dark:border-slate-700 ${collapsed ? 'justify-center p-2' : ''}`}>
-          <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-white dark:bg-dark-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-lg shadow-sm">
+          <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center text-primary-700 dark:text-slate-200 font-bold text-lg shadow-sm">
             {currentUser?.name.charAt(0)}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{currentUser?.name}</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white break-words leading-tight">{currentUser?.name}</p>
               <p className="text-xs text-slate-500 truncate">{currentUser?.role}</p>
             </div>
           )}
