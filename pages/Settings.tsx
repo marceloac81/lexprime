@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
 import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon, RotateCcw } from '../components/Icons';
 import { Holiday, Case, Client, Deadline, TeamMember } from '../types';
@@ -19,6 +19,30 @@ export const Settings: React.FC = () => {
     const deadlinesInputRef = useRef<HTMLInputElement>(null);
     const teamInputRef = useRef<HTMLInputElement>(null);
     const holidayInputRef = useRef<HTMLInputElement>(null);
+
+    // Track when import is complete and needs sync
+    const [pendingSync, setPendingSync] = useState<{ type: string; expectedCount: number } | null>(null);
+
+    // Trigger sync after state update is complete
+    useEffect(() => {
+        if (pendingSync) {
+            // Verify state was updated before syncing
+            let currentCount = 0;
+            switch (pendingSync.type) {
+                case 'clients': currentCount = clients.length; break;
+                case 'cases': currentCount = cases.length; break;
+                case 'deadlines': currentCount = deadlines.length; break;
+                case 'team': currentCount = teamMembers.length; break;
+                case 'holidays': currentCount = holidays.length; break;
+            }
+
+            // Only sync if we have the expected count (state update completed)
+            if (currentCount >= pendingSync.expectedCount) {
+                syncData();
+                setPendingSync(null);
+            }
+        }
+    }, [clients, cases, deadlines, teamMembers, holidays, pendingSync, syncData]);
 
     const handleImport = (type: 'clients' | 'cases' | 'deadlines' | 'team' | 'holidays') => async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -63,8 +87,13 @@ export const Settings: React.FC = () => {
 
                 if (count > 0) {
                     addNotification(`${count} registros carregados. Iniciando sincronização...`, 'info');
-                    // We wait a bit for state to update before syncing
-                    setTimeout(() => syncData(), 500);
+                    // Set pending sync to trigger after state update
+                    const currentCount = type === 'clients' ? clients.length :
+                        type === 'cases' ? cases.length :
+                            type === 'deadlines' ? deadlines.length :
+                                type === 'team' ? teamMembers.length :
+                                    holidays.length;
+                    setPendingSync({ type, expectedCount: currentCount + count });
                 }
             } catch (err) {
                 addNotification("Erro ao processar arquivo.", "warning");
