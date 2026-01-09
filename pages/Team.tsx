@@ -179,11 +179,11 @@ export const Team: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 h-full flex flex-col animate-fade-in relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="p-2 md:p-8 h-full flex flex-col animate-fade-in relative">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 md:mb-6 gap-2 md:gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Equipe</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                    <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white">Equipe</h1>
+                    <p className="text-xs md:text-base text-slate-500 dark:text-slate-400 mt-1">
                         {teamMembers.length === 0 ? "Nenhum membro cadastrado." :
                             filteredMembers.length === teamMembers.length ?
                                 `Total de ${teamMembers.length} ${teamMembers.length === 1 ? 'membro' : 'membros'}.` :
@@ -192,13 +192,13 @@ export const Team: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="flex gap-3 w-full md:w-auto">
-                    <button onClick={clearTeamMembers} className="p-2.5 bg-white dark:bg-dark-800 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/10" title="Limpar Toda a Equipe">
-                        <Trash2 size={20} />
+                <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+                    <button onClick={clearTeamMembers} className="p-2 md:p-2.5 bg-white dark:bg-dark-800 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/10" title="Limpar Toda a Equipe">
+                        <Trash2 size={18} md:size={20} />
                     </button>
                     <button
                         onClick={handleOpenNew}
-                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95"
+                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95"
                     >
                         <Plus size={20} /> <span className="hidden md:inline">Novo Membro</span><span className="md:hidden">Novo</span>
                     </button>
@@ -206,12 +206,12 @@ export const Team: React.FC = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-6 flex gap-4 shadow-sm">
+            <div className="bg-white dark:bg-dark-800 p-2 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 md:mb-6 flex gap-2 md:gap-4 shadow-sm">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} md:size={20} />
                     <input
                         placeholder="Buscar por nome, cargo ou email..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all"
+                        className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all text-sm"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />

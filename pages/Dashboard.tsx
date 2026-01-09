@@ -69,7 +69,7 @@ export const Dashboard: React.FC = () => {
   const upcomingDeadlines = deadlines
     .filter(d => !d.isDone && d.status !== 'Canceled' && d.dueDate >= today)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 8);
+    .slice(0, 9);
 
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]

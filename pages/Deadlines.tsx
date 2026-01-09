@@ -273,19 +273,20 @@ export const Deadlines: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 h-full flex flex-col animate-fade-in relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+        <div className="p-2 md:p-8 h-full flex flex-col animate-fade-in relative">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-3 md:mb-6 gap-2 md:gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+                    <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
                 </div>
-                <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
+                <div className="flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto">
 
+                    {/* Search bar - full width on mobile */}
                     <div className="relative group w-full md:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
                         <input
                             type="text"
                             placeholder="Pesquisar..."
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200"
+                            className="pl-9 pr-4 py-1.5 md:py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
@@ -296,91 +297,94 @@ export const Deadlines: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Custom Date Picker Dropdown */}
-                    <div className="relative" ref={datePickerRef}>
-                        <button
-                            onClick={() => setShowDatePicker(!showDatePicker)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${filterDate
-                                ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
-                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
-                                }`}
-                        >
-                            <CalendarIcon size={16} />
-                            {filterDate ? formatDate(filterDate) : 'Filtrar Data'}
-                            {filterDate && (
-                                <div
-                                    onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
-                                    className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
-                                >
-                                    <X size={12} />
+                    {/* Action buttons row - Data, Print, Delete in same line on mobile */}
+                    <div className="flex gap-2 w-full md:w-auto">
+                        {/* Custom Date Picker Dropdown */}
+                        <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
+                            <button
+                                onClick={() => setShowDatePicker(!showDatePicker)}
+                                className={`w-full flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 rounded-lg border text-sm transition-all ${filterDate
+                                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
+                                    : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
+                                    }`}
+                            >
+                                <CalendarIcon size={16} />
+                                <span className="hidden md:inline">{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
+                                <span className="md:hidden">{filterDate ? formatDate(filterDate) : 'Data'}</span>
+                                {filterDate && (
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
+                                        className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
+                                    >
+                                        <X size={12} />
+                                    </div>
+                                )}
+                            </button>
+
+                            {showDatePicker && (
+                                <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
+                                        <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
+                                    </div>
+
+                                    <div className="grid grid-cols-7 gap-1 mb-2">
+                                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
+                                            <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
+                                        ))}
+                                    </div>
+
+                                    <div className="grid grid-cols-7 gap-1">
+                                        {pickerDays.map((d, i) => {
+                                            if (d === null) return <div key={i} />;
+                                            const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                                            const isSelected = dateStr === filterDate;
+                                            const isToday = dateStr === todayStr;
+
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => selectDate(d)}
+                                                    className={`
+                                            h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
+                                            ${isSelected
+                                                            ? 'bg-primary-600 text-white shadow-md'
+                                                            : isToday
+                                                                ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
+                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                                        }
+                                        `}
+                                                >
+                                                    {d}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
-                        </button>
+                        </div>
 
-                        {showDatePicker && (
-                            <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
-                                <div className="flex items-center justify-between mb-4">
-                                    <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
-                                    <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
-                                </div>
-
-                                <div className="grid grid-cols-7 gap-1 mb-2">
-                                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                                        <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
-                                    ))}
-                                </div>
-
-                                <div className="grid grid-cols-7 gap-1">
-                                    {pickerDays.map((d, i) => {
-                                        if (d === null) return <div key={i} />;
-                                        const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                                        const isSelected = dateStr === filterDate;
-                                        const isToday = dateStr === todayStr;
-
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => selectDate(d)}
-                                                className={`
-                                        h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
-                                        ${isSelected
-                                                        ? 'bg-primary-600 text-white shadow-md'
-                                                        : isToday
-                                                            ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
-                                                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
-                                                    }
-                                    `}
-                                            >
-                                                {d}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex gap-2 w-full md:w-auto">
                         <button
                             onClick={() => setShowPrintModal(true)}
-                            className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
+                            className="p-2 md:p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
                             title="Imprimir Prazos"
                         >
-                            <Printer size={20} />
+                            <Printer size={18} md:size={20} />
                         </button>
                         <button
                             onClick={clearDeadlines}
-                            className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
+                            className="p-2 md:p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
                             title="Limpar Base"
                         >
-                            <Trash2 size={20} />
+                            <Trash2 size={18} md:size={20} />
                         </button>
                     </div>
 
+                    {/* New deadline button - full width on mobile */}
                     <button
                         onClick={() => setShowCalculator(true)}
-                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all"
+                        className="w-full md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all"
                     >
                         <Plus size={20} /> Novo Prazo
                     </button>
