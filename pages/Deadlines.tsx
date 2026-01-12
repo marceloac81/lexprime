@@ -164,7 +164,7 @@ export const Deadlines: React.FC = () => {
     const getRowStyle = (dateStr: string) => {
         if (!dateStr) return "";
         // Today Row
-        if (dateStr === todayStr) return "hover:bg-amber-200/80 hover:brightness-90 text-slate-900 font-bold border-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:border-amber-900";
+        if (dateStr === todayStr) return "hover:bg-amber-200/80 hover:brightness-90 text-slate-900 font-bold border-amber-300/70 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:border-amber-900";
 
         // For other days, we'll use inline style for background in light mode
         // Added hover:brightness-95 for light mode effect on top of inline bg
@@ -408,13 +408,13 @@ export const Deadlines: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                     <thead className="sticky top-0 z-20 bg-dark-900 text-white shadow-md">
                         <tr>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider w-48">Processo</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider">Local</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
-                            <th className="p-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-48">Processo</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
+                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -468,16 +468,17 @@ export const Deadlines: React.FC = () => {
                                                 style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
                                                 title="Clique para editar"
                                             >
-                                                <td className={`p-4 text-sm font-bold ${textStyle}`}>
+                                                <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
                                                     {(d.startTime || '09:00').substring(0, 5)}
                                                 </td>
-                                                <td className={`p-4 text-sm font-bold leading-snug ${textStyle}`}>
+                                                <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
                                                     {d.title}
                                                 </td>
-                                                <td className={`p-4 text-sm font-bold whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
-                                                    {relatedCase?.number || '-'}
+                                                <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
+                                                    <div className="text-sm font-bold">{relatedCase?.number || '-'}</div>
+                                                    {relatedCase?.area && <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">{relatedCase.area}</div>}
                                                 </td>
-                                                <td className="p-4">
+                                                <td className="py-2 px-4">
                                                     <div className="flex flex-col gap-0.5 max-w-[200px]">
                                                         <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium truncate ${isFinished
                                                             ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
@@ -486,20 +487,20 @@ export const Deadlines: React.FC = () => {
                                                             {displayCustomer}
                                                         </div>
                                                         {relatedCase?.opposingParty && (
-                                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none">
+                                                            <div className="text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none">
                                                                 <span className="opacity-75">vs</span>
                                                                 <span className="truncate" title={relatedCase.opposingParty}>{relatedCase.opposingParty}</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className={`p-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
+                                                <td className={`py-2 px-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
                                                     {displayCourt}
                                                 </td>
-                                                <td className={`p-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
+                                                <td className={`py-2 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
                                                     {displayCity}
                                                 </td>
-                                                <td className="p-4 text-center">
+                                                <td className="py-2 px-4 text-center">
                                                     <StatusDropdown
                                                         id={d.id}
                                                         currentStatus={status}
@@ -577,17 +578,18 @@ export const Deadlines: React.FC = () => {
                                             </div>
                                             <h3 className={`font-bold mb-2 text-lg leading-tight text-slate-900 dark:text-white ${textStyle}`}>{d.title}</h3>
                                             {relatedCase && (
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1">
+                                                <div className="flex flex-col gap-1 mb-3">
+                                                    <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1 w-fit">
                                                         <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
                                                     </div>
+                                                    {relatedCase.area && <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">{relatedCase.area}</p>}
                                                 </div>
                                             )}
                                             <div className="text-sm text-slate-600 dark:text-slate-400 flex flex-col gap-1">
                                                 <div className="flex flex-col gap-0.5">
                                                     <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
                                                     {relatedCase?.opposingParty && (
-                                                        <div className={`text-[10px] text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${textStyle}`}>
+                                                        <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${textStyle}`}>
                                                             <span className="opacity-75">vs</span>
                                                             <span className="truncate">{relatedCase.opposingParty}</span>
                                                         </div>
