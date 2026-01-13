@@ -13,7 +13,6 @@ export const Deadlines: React.FC = () => {
     // State
     const [showCalculator, setShowCalculator] = useState(false);
     const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
-    const [openStatusId, setOpenStatusId] = useState<string | null>(null);
 
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -35,13 +34,9 @@ export const Deadlines: React.FC = () => {
     const [showPrintModal, setShowPrintModal] = useState(false);
     const [printRange, setPrintRange] = useState({ start: todayStr, end: getFutureDate(30) });
 
-    // Click Outside to close status menu and DatePicker
+    // Click Outside to close DatePicker
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // Close Status Menu
-            if (openStatusId && !(event.target as Element).closest('.status-trigger')) {
-                setOpenStatusId(null);
-            }
             // Close Date Picker
             if (showDatePicker && datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
                 setShowDatePicker(false);
@@ -49,7 +44,7 @@ export const Deadlines: React.FC = () => {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [openStatusId, showDatePicker]);
+    }, [showDatePicker]);
 
     // Helper to get case details inside filter
     const getCaseDetails = (caseId?: string) => {

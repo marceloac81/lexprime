@@ -37,6 +37,8 @@ export const Cases: React.FC = () => {
     const [showParentDropdown, setShowParentDropdown] = useState(false);
     const [areaSearch, setAreaSearch] = useState('');
     const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+    const [clientSearch, setClientSearch] = useState('');
+    const [showClientDropdown, setShowClientDropdown] = useState(false);
 
     // List of common legal areas
     const DEFAULT_AREAS = [
@@ -110,6 +112,7 @@ export const Cases: React.FC = () => {
             court: '', uf: '', city: '', area: '', folderNumber: '', value: undefined, valueDate: '',
             status: CaseStatus.Active, parentId: '', relatedType: ''
         });
+        setClientSearch('');
         setFormErrors([]);
         setShowNewCaseModal(true);
     };
@@ -117,6 +120,7 @@ export const Cases: React.FC = () => {
     const handleOpenEdit = (c: Case) => {
         setIsEditing(true);
         setNewCase({ ...c });
+        setClientSearch(c.clientName || '');
         setSelectedCase(null); // Close detail modal
         setFormErrors([]);
         setShowNewCaseModal(true);
@@ -660,14 +664,60 @@ export const Cases: React.FC = () => {
                                         {/* Client */}
                                         <div className="md:col-span-8">
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome do Cliente <span className="text-rose-500">*</span></label>
-                                            <select
-                                                value={newCase.clientName}
-                                                onChange={e => setNewCase({ ...newCase, clientName: e.target.value })}
-                                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
-                                            >
-                                                <option value="">Selecione um cliente cadastrado...</option>
-                                                {clients.map(cli => <option key={cli.id} value={cli.name}>{cli.name}</option>)}
-                                            </select>
+                                            <div className="relative">
+                                                <input
+                                                    placeholder="Digite o nome para buscar..."
+                                                    value={clientSearch}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        setClientSearch(val);
+                                                        setShowClientDropdown(true);
+                                                        // Sync even if not selected yet
+                                                        setNewCase({ ...newCase, clientName: val });
+                                                    }}
+                                                    onFocus={() => setShowClientDropdown(true)}
+                                                    className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white transition-all focus:ring-2 focus:ring-primary-500"
+                                                />
+                                                {showClientDropdown && (
+                                                    <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+                                                        {clients
+                                                            .filter(cli => cli.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                                            .map(cli => (
+                                                                <button
+                                                                    key={cli.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setNewCase({
+                                                                            ...newCase,
+                                                                            clientName: cli.name,
+                                                                            clientId: cli.id
+                                                                        });
+                                                                        setClientSearch(cli.name);
+                                                                        setShowClientDropdown(false);
+                                                                    }}
+                                                                    className="w-full p-3 text-left hover:bg-slate-50 dark:hover:bg-dark-700 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors text-sm text-slate-900 dark:text-slate-200 font-medium"
+                                                                >
+                                                                    {cli.name}
+                                                                </button>
+                                                            ))}
+                                                        {clientSearch && !clients.some(c => c.name.toLowerCase() === clientSearch.toLowerCase()) && (
+                                                            <div className="p-3 text-xs text-slate-400 italic bg-slate-50/50 dark:bg-dark-900/50 border-t border-slate-100 dark:border-slate-700">
+                                                                Cadastre como novo cliente digitando o nome completo.
+                                                            </div>
+                                                        )}
+                                                        {clients.length === 0 && (
+                                                            <div className="p-4 text-center text-sm text-slate-400 italic">Nenhum cliente cadastrado.</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {showClientDropdown && (
+                                                    <div
+                                                        className="fixed inset-0 z-[55]"
+                                                        onClick={() => setShowClientDropdown(false)}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* Position */}
