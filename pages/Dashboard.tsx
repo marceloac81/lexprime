@@ -69,7 +69,7 @@ export const Dashboard: React.FC = () => {
   const upcomingDeadlines = deadlines
     .filter(d => !d.isDone && d.status !== 'Canceled' && d.dueDate >= today)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 9);
+    .slice(0, 7);
 
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]
@@ -308,10 +308,16 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{c.title}</p>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        {c.clientName} vs {c.opposingParty}
+                      </p>
                       <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">{new Date(c.lastUpdate).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">Processo: {c.number}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate flex items-center gap-1.5">
+                      <span>Processo: {c.number}</span>
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                      <span>{c.court}</span>
+                    </p>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-dark-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{c.area}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded border ${c.status === 'Ativo' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' :
@@ -354,25 +360,45 @@ export const Dashboard: React.FC = () => {
                   const isUrgent = deadline.priority === 'High';
                   const isToday = deadline.dueDate === today;
 
+                  const associatedCase = cases.find(c => c.id === deadline.caseId);
+                  const clientName = associatedCase ? associatedCase.clientName : (deadline.customerName || 'Avulso');
+                  const processNumber = associatedCase ? associatedCase.number : '';
+
                   return (
                     <div
                       key={deadline.id}
                       onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                      className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-dark-900/50 border border-slate-100 dark:border-slate-700/50 group hover:border-primary-500/30 transition-colors cursor-pointer hover:shadow-sm"
+                      className={`flex items-start gap-3 p-4 rounded-lg transition-colors cursor-pointer hover:shadow-sm group border ${isToday
+                          ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                          : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30'
+                        }`}
                     >
                       <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : 'bg-amber-500'}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <p className="text-sm font-medium text-slate-900 dark:text-white truncate pr-2 group-hover:text-primary-500">{deadline.title}</p>
-                          {isToday && <span className="text-[9px] font-bold text-rose-500 bg-rose-100 dark:bg-rose-900/30 px-1.5 py-0.5 rounded flex-shrink-0">HOJE</span>}
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 group-hover:text-primary-500" title={deadline.title}>
+                            {deadline.title}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-500 truncate mt-0.5" title={deadline.caseTitle || deadline.customerName}>
-                          {deadline.caseTitle || deadline.customerName || 'Avulso'}
+                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-1 line-clamp-2" title={clientName}>
+                          {clientName}
                         </p>
+                        {processNumber && (
+                          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                            Nº {processNumber}
+                          </p>
+                        )}
                       </div>
-                      <div className="text-right min-w-[40px] flex-shrink-0">
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{d}/{m}</p>
-                        <p className="text-[10px] text-slate-400">{deadline.startTime || '09:00'}</p>
+                      <div className="text-right flex flex-col items-end min-w-[42px] flex-shrink-0 ml-1">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          {isToday && (
+                            <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm shadow-amber-500/20">
+                              Hoje
+                            </span>
+                          )}
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{d}/{m}</p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium">{(deadline.startTime || '09:00').slice(0, 5)}</p>
                       </div>
                     </div>
                   );
