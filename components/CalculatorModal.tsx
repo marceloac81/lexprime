@@ -18,8 +18,8 @@ interface CalculatorModalProps {
 export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, holidays, onDelete }) => {
     // Default Initialization
     const [startDate, setStartDate] = useState(initialData?.startDate || initialDate || new Date().toISOString().split('T')[0]);
-    const [startTime, setStartTime] = useState(initialData?.startTime || '09:00');
-    const [days, setDays] = useState(initialData?.days !== undefined ? initialData.days : 15);
+    const [startTime, setStartTime] = useState(initialData?.startTime || '18:00');
+    const [days, setDays] = useState(initialData?.days !== undefined ? initialData.days : 5);
     const [type, setType] = useState<'business' | 'calendar'>(initialData?.countType || 'business');
 
     const [title, setTitle] = useState(initialData?.title || '');
@@ -320,7 +320,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     value={startDate} onChange={e => setStartDate(e.target.value)} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hora Inicial</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hora</label>
                                 <input type="time" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={startTime} onChange={e => setStartTime(e.target.value)} />
                             </div>
