@@ -681,6 +681,7 @@ export const Clients: React.FC = () => {
                                                     <option value="Solteiro(a)">Solteiro(a)</option>
                                                     <option value="Casado(a)">Casado(a)</option>
                                                     <option value="Divorciado(a)">Divorciado(a)</option>
+                                                    <option value="Separado(a) Judicialmente">Separado(a) Judicialmente</option>
                                                     <option value="Viúvo(a)">Viúvo(a)</option>
                                                     <option value="União Estável">União Estável</option>
                                                 </select>

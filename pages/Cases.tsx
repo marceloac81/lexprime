@@ -520,6 +520,9 @@ export const Cases: React.FC = () => {
                                                         className="w-full p-3 rounded-lg bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                                     >
                                                         <option value="Agravo de Instrumento" > Agravo de Instrumento </option>
+                                                        <option value="Processo Administrativo"> Processo Administrativo </option>
+                                                        <option value="Recurso Extraordinário"> Recurso Extraordinário </option>
+                                                        <option value="Agravo Interno / Agravo Regimental"> Agravo Interno / Agravo Regimental </option>
                                                         < option value="Carta Precatória" > Carta Precatória </option>
                                                         < option value="Cumprimento de Sentença" > Cumprimento de Sentença </option>
                                                         < option value="Recurso Inominado" > Recurso Inominado </option>
