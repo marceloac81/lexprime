@@ -119,7 +119,7 @@ export const Deadlines: React.FC = () => {
     // Helper to get color based on day of week for Light Mode
     const getDayColor = (dateStr: string) => {
         if (!dateStr || isDarkMode) return "transparent";
-        if (dateStr === todayStr) return "#FFE699";
+        if (dateStr === todayStr) return "#FEF3C7"; // Subtle Amber 100
 
         const parts = dateStr.split('-');
         if (parts.length === 3) {
@@ -139,27 +139,26 @@ export const Deadlines: React.FC = () => {
         return "transparent";
     };
 
-    // Helper to get color for Headers in Light Mode (now matches row colors except for today)
+    // Helper to get color for Headers in Light Mode (now matches row colors)
     const getHeaderColor = (dateStr: string) => {
         if (!dateStr || isDarkMode) return "transparent";
-        if (dateStr === todayStr) return "#FFE699"; // Maintain yellow for today
         return getDayColor(dateStr);
     };
 
     // Styles - Updated for Better Dark Mode Contrast
     const getDateStyle = (dateStr: string) => {
         if (!dateStr) return "";
-        // Today: Amber (Light: Bright / Dark: Deep & Visible)
-        if (dateStr === todayStr) return "bg-amber-400 border-amber-500 text-black shadow-sm dark:bg-amber-600 dark:text-white dark:border-amber-700";
+        // Today Style
+        if (dateStr === todayStr) return "text-slate-900 dark:text-amber-400 font-bold border-gray-300 dark:border-slate-700";
 
-        // Everything else: Use getHeaderColor inline for light mode
+        // Everything else
         return "text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-700";
     };
 
     const getRowStyle = (dateStr: string) => {
         if (!dateStr) return "";
         // Today Row
-        if (dateStr === todayStr) return "hover:bg-amber-200/80 hover:brightness-90 text-slate-900 font-bold border-amber-300/70 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:border-amber-900";
+        if (dateStr === todayStr) return "hover:bg-amber-200/80 hover:brightness-95 text-slate-900 font-bold border-gray-300 dark:text-white dark:hover:bg-slate-800/30 dark:border-slate-700";
 
         // For other days, we'll use inline style for background in light mode
         // Added hover:brightness-95 for light mode effect on top of inline bg
@@ -170,11 +169,7 @@ export const Deadlines: React.FC = () => {
         setEditingDeadline(d);
     };
 
-    const handleStatusClick = (e: React.MouseEvent, id: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setOpenStatusId(prev => prev === id ? null : id);
-    };
+
 
     const handleSaveDeadline = (d: Deadline) => {
         if (editingDeadline) {
@@ -398,10 +393,9 @@ export const Deadlines: React.FC = () => {
                 </div>
             </div>
 
-            {/* DESKTOP TABLE VIEW */}
             <div className="hidden md:block flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <table className="w-full text-left border-collapse">
-                    <thead className="sticky top-0 z-20 bg-dark-900 text-white shadow-md">
+                    <thead className="sticky top-0 z-20 bg-slate-800 dark:bg-dark-950 text-white shadow-md">
                         <tr>
                             <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
                             <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
@@ -433,8 +427,8 @@ export const Deadlines: React.FC = () => {
                             return (
                                 <React.Fragment key={dateStr}>
                                     <tr
-                                        className={`${getDateStyle(dateStr)} border-b-2 ${!isToday ? 'border-t-2 border-t-slate-400/50' : ''} ${isDarkMode && !isToday ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
-                                        style={!isToday && !isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
+                                        className={`${getDateStyle(dateStr)} border-b-2 border-t-2 border-t-slate-800 dark:border-t-slate-400 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                        style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
                                     >
                                         <td colSpan={7} className="py-2 px-4">
                                             <div className="flex items-center gap-3">
@@ -459,7 +453,7 @@ export const Deadlines: React.FC = () => {
                                             <tr
                                                 key={d.id}
                                                 onClick={() => handleEditClick(d)}
-                                                className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode && !isToday ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                                className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                                 style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
                                                 title="Clique para editar"
                                             >
@@ -482,7 +476,7 @@ export const Deadlines: React.FC = () => {
                                                             {displayCustomer}
                                                         </div>
                                                         {relatedCase?.opposingParty && (
-                                                            <div className="text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none">
+                                                            <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none ${isFinished ? 'line-through opacity-70' : ''}`}>
                                                                 <span className="opacity-75">vs</span>
                                                                 <span className="truncate" title={relatedCase.opposingParty}>{relatedCase.opposingParty}</span>
                                                             </div>
@@ -539,7 +533,7 @@ export const Deadlines: React.FC = () => {
                     }
 
                     return (
-                        <div key={dateStr}>
+                        <div key={dateStr} className={`${!isToday ? 'border-t-4 border-slate-800 dark:border-slate-500 pt-4 mt-4' : ''}`}>
                             <div className={`sticky top-0 z-10 px-4 py-2 mb-2 rounded-lg shadow-sm flex items-center justify-between
                         ${isToday ? 'bg-amber-400 text-slate-900 border-b-2 border-amber-500' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}
                     `}>
@@ -584,7 +578,7 @@ export const Deadlines: React.FC = () => {
                                                 <div className="flex flex-col gap-0.5">
                                                     <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
                                                     {relatedCase?.opposingParty && (
-                                                        <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${textStyle}`}>
+                                                        <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${isFinished ? 'line-through opacity-70' : ''}`}>
                                                             <span className="opacity-75">vs</span>
                                                             <span className="truncate">{relatedCase.opposingParty}</span>
                                                         </div>
