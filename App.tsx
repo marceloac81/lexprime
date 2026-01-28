@@ -62,7 +62,7 @@ const AppContent: React.FC = () => {
       case 'clients': return <Clients />;
       case 'settings': return <Settings />;
       case 'team': return <Team />;
-      case 'publications': return <Publications />;
+      case 'publications': return <Publications setPage={setCurrentPage} />;
       default: return <Dashboard />;
     }
   };

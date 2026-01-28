@@ -1,28 +1,105 @@
-import React, { useState } from 'react';
-import { Search, Loader2, AlertCircle, FileText, Calendar as CalendarIcon, ExternalLink, ChevronLeft, ChevronRight, User, Hash } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Loader2, AlertCircle, FileText, Calendar as CalendarIcon, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check } from 'lucide-react';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
+import { useStore } from '../context/Store';
+import { CalculatorModal } from '../components/CalculatorModal';
 
-export const Publications: React.FC = () => {
+interface PublicationsProps {
+    setPage: (page: string) => void;
+}
+
+export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
+    const { teamMembers, cases, addDeadline, holidays } = useStore();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<DJENItem[]>([]);
     const [totalCount, setTotalCount] = useState(0);
 
     // Filters
-    const [oab, setOab] = useState('');
-    const [uf, setUf] = useState('SP'); // Default UF
+    const [selectedOabs, setSelectedOabs] = useState<string[]>(['5173']);
+    const [uf, setUf] = useState('RJ');
     const [processo, setProcesso] = useState('');
-    const [startDate, setStartDate] = useState('');
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState('');
 
     // Pagination
-    const [page, setPage] = useState(1);
+    const [pageNumber, setPageNumber] = useState(1);
     const itemsPerPage = 10;
 
-    const handleSearch = async (newPage = 1) => {
-        // Basic validation
-        if (!oab && !processo && (!startDate || !endDate)) {
+    // Modal State
+    const [showDeadlineModal, setShowDeadlineModal] = useState(false);
+    const [pendingProcessNumber, setPendingProcessNumber] = useState('');
+
+    // Dropdown State
+    const [isOabDropdownOpen, setIsOabDropdownOpen] = useState(false);
+    const [manualOab, setManualOab] = useState('');
+    const oabDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Sanitization Helper
+    const cleanOab = (val: string) => {
+        if (!val) return '';
+        const trimmed = val.trim();
+        const upper = trimmed.toUpperCase();
+        if (upper === '5173D') return '5173D';
+        return trimmed.replace(/\D/g, '');
+    };
+
+    // Load from LocalStorage
+    useEffect(() => {
+        const savedData = localStorage.getItem('lexprime_publications_state');
+        if (savedData) {
+            try {
+                const { filters, results: savedResults, totalCount: savedTotal, page: savedPage } = JSON.parse(savedData);
+                if (filters.selectedOabs) setSelectedOabs(filters.selectedOabs);
+                if (filters.uf) setUf(filters.uf);
+                if (filters.processo) setProcesso(filters.processo);
+                if (filters.startDate) setStartDate(filters.startDate);
+                if (filters.endDate) setEndDate(filters.endDate);
+                if (savedResults) setResults(savedResults);
+                if (savedTotal) setTotalCount(savedTotal);
+                if (savedPage) setPageNumber(savedPage);
+            } catch (e) {
+                console.error("Error loading publications state", e);
+            }
+        }
+    }, []);
+
+    // Save to LocalStorage
+    useEffect(() => {
+        const stateToSave = {
+            filters: { selectedOabs, uf, processo, startDate, endDate },
+            results,
+            totalCount,
+            page: pageNumber
+        };
+        localStorage.setItem('lexprime_publications_state', JSON.stringify(stateToSave));
+    }, [selectedOabs, uf, processo, startDate, endDate, results, totalCount, pageNumber]);
+
+    // OAB Options from team, cleaned
+    const oabOptions = Array.from(new Set([
+        '5173',
+        '5173D',
+        ...teamMembers.map(m => {
+            const raw = m.oab?.split('/')[0] || '';
+            return cleanOab(raw);
+        }).filter(Boolean) as string[],
+        ...selectedOabs // Ensure manually added ones currently selected also appear
+    ])).sort();
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (oabDropdownRef.current && !oabDropdownRef.current.contains(event.target as Node)) {
+                setIsOabDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSearch = async (targetPage = 1) => {
+        if (selectedOabs.length === 0 && !processo && (!startDate || !endDate)) {
             setError('Preencha pelo menos um critério de busca (OAB, Processo ou Período).');
             return;
         }
@@ -30,9 +107,7 @@ export const Publications: React.FC = () => {
         if (startDate && endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
-            const diffTime = Math.abs(end.getTime() - start.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+            const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
             if (diffDays > 30) {
                 setError('O intervalo de datas não pode ser superior a 30 dias.');
                 return;
@@ -41,22 +116,53 @@ export const Publications: React.FC = () => {
 
         setLoading(true);
         setError(null);
-        setResults([]); // Clear previous results while loading
 
         try {
-            const response = await fetchPublications({
-                numeroOab: oab || undefined,
-                ufOab: oab ? uf : undefined,
-                numeroProcesso: processo || undefined,
-                dataDisponibilizacaoInicio: startDate || undefined,
-                dataDisponibilizacaoFim: endDate || undefined,
-                pagina: newPage,
-                itensPorPagina: itemsPerPage
-            });
+            let allItems: DJENItem[] = [];
+            let combinedCount = 0;
 
-            setResults(response.items || []);
-            setTotalCount(response.count || 0);
-            setPage(newPage);
+            if (selectedOabs.length > 0) {
+                const searchPromises = selectedOabs.map(oabVal =>
+                    fetchPublications({
+                        numeroOab: oabVal,
+                        ufOab: uf,
+                        numeroProcesso: processo || undefined,
+                        dataDisponibilizacaoInicio: startDate || undefined,
+                        dataDisponibilizacaoFim: endDate || undefined,
+                        pagina: targetPage,
+                        itensPorPagina: itemsPerPage
+                    })
+                );
+
+                const responses = await Promise.all(searchPromises);
+
+                const seenIds = new Set();
+                responses.forEach(resp => {
+                    (resp.items || []).forEach(item => {
+                        if (!seenIds.has(item.id)) {
+                            allItems.push(item);
+                            seenIds.add(item.id);
+                        }
+                    });
+                    combinedCount += resp.count || 0;
+                });
+
+                allItems.sort((a, b) => new Date(b.data_disponibilizacao).getTime() - new Date(a.data_disponibilizacao).getTime());
+            } else if (processo) {
+                const response = await fetchPublications({
+                    numeroProcesso: processo.replace(/\D/g, ''),
+                    dataDisponibilizacaoInicio: startDate || undefined,
+                    dataDisponibilizacaoFim: endDate || undefined,
+                    pagina: targetPage,
+                    itensPorPagina: itemsPerPage
+                });
+                allItems = response.items || [];
+                combinedCount = response.count || 0;
+            }
+
+            setResults(allItems);
+            setTotalCount(combinedCount);
+            setPageNumber(targetPage);
         } catch (err: any) {
             setError(err.message || 'Erro ao buscar publicações.');
         } finally {
@@ -64,14 +170,36 @@ export const Publications: React.FC = () => {
         }
     };
 
-    const handlePageChange = (newPage: number) => {
-        handleSearch(newPage);
+    const toggleOab = (val: string) => {
+        const cleaned = cleanOab(val);
+        if (!cleaned) return;
+        setSelectedOabs(prev =>
+            prev.includes(cleaned) ? prev.filter(o => o !== cleaned) : [...prev, cleaned]
+        );
     };
 
-    // Helper to format date
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('pt-BR');
+    const handleAddManualOab = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && manualOab.trim()) {
+            const cleaned = cleanOab(manualOab);
+            if (cleaned && !selectedOabs.includes(cleaned)) {
+                setSelectedOabs(prev => [...prev, cleaned]);
+            }
+            setManualOab('');
+        }
+    };
+
+    const handleCreateDeadline = (processNumber: string) => {
+        setPendingProcessNumber(processNumber);
+        setShowDeadlineModal(true);
+    };
+
+    const isTeamLawyer = (name: string) => {
+        if (!name) return false;
+        const cleanName = name.toUpperCase().replace(/\./g, '');
+        return teamMembers.some(member => {
+            const memberCleanName = member.name.toUpperCase();
+            return cleanName.includes(memberCleanName) || memberCleanName.includes(cleanName);
+        });
     };
 
     const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -91,75 +219,106 @@ export const Publications: React.FC = () => {
             </div>
 
             {/* Filters Card */}
-            <div className="bg-white dark:bg-dark-900 rounded-xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-6">
+                <div className="flex flex-wrap lg:flex-nowrap gap-6">
 
-                    {/* OAB + UF */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            OAB
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                placeholder="Nº OAB"
-                                value={oab}
-                                onChange={(e) => setOab(e.target.value)}
-                                className="flex-1 rounded-lg border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100"
-                            />
-                            <select
-                                value={uf}
-                                onChange={(e) => setUf(e.target.value)}
-                                className="w-20 rounded-lg border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100"
-                            >
-                                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(state => (
-                                    <option key={state} value={state}>{state}</option>
-                                ))}
-                            </select>
+                    {/* Multi-select OAB Dropdown with Manual Entry */}
+                    <div className="flex-1 min-w-[300px] flex flex-col gap-1.5" ref={oabDropdownRef}>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">OABs da Equipe</span>
+                        <div className="relative">
+                            <div className="w-full flex items-center pl-4 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all min-h-[46px]">
+                                <User className="h-4 w-4 text-slate-400 shrink-0 mr-2" />
+                                <div className="flex flex-wrap gap-1 flex-1 overflow-hidden">
+                                    {selectedOabs.map(o => (
+                                        <span key={o} className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1">
+                                            {o}
+                                            <X size={10} className="cursor-pointer hover:text-blue-600" onClick={() => toggleOab(o)} />
+                                        </span>
+                                    ))}
+                                    <input
+                                        type="text"
+                                        placeholder={selectedOabs.length === 0 ? "Digitar OAB ou selecionar..." : ""}
+                                        value={manualOab}
+                                        onChange={(e) => setManualOab(e.target.value)}
+                                        onKeyDown={handleAddManualOab}
+                                        onFocus={() => setIsOabDropdownOpen(true)}
+                                        className="bg-transparent border-none outline-none text-sm placeholder:text-slate-400 flex-1 min-w-[80px]"
+                                    />
+                                </div>
+                                <ChevronDown
+                                    className={`h-4 w-4 text-slate-400 cursor-pointer transition-transform ${isOabDropdownOpen ? 'rotate-180' : ''}`}
+                                    onClick={() => setIsOabDropdownOpen(!isOabDropdownOpen)}
+                                />
+                            </div>
+
+                            {isOabDropdownOpen && (
+                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-xl shadow-2xl z-50 p-2 py-2 animate-scale-in max-h-60 overflow-y-auto custom-scrollbar">
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase px-3 py-1.5 mb-1 border-b border-slate-100 dark:border-dark-700 pb-1">Sugestões e Equipe</p>
+                                    {oabOptions.map(o => (
+                                        <label key={o} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-dark-700 rounded-lg cursor-pointer transition-colors group">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedOabs.includes(o)}
+                                                onChange={() => toggleOab(o)}
+                                                className="hidden"
+                                            />
+                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selectedOabs.includes(o) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600 group-hover:border-blue-400'}`}>
+                                                {selectedOabs.includes(o) && <Check size={12} className="text-white" />}
+                                            </div>
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{o}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Processo */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <Hash className="h-4 w-4" />
-                            Processo
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Número do Processo"
-                            value={processo}
-                            onChange={(e) => setProcesso(e.target.value)}
-                            className="w-full rounded-lg border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100"
-                        />
+                    {/* UF Selection - Narrowed */}
+                    <div className="w-24 shrink-0 flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">UF</span>
+                        <select
+                            value={uf}
+                            onChange={(e) => setUf(e.target.value)}
+                            className="w-full px-2 py-2.5 rounded-xl border border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium h-[46px]"
+                        >
+                            {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(state => (
+                                <option key={state} value={state}>{state}</option>
+                            ))}
+                        </select>
                     </div>
 
-                    {/* Data Inicio */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <CalendarIcon className="h-4 w-4" />
-                            Data Início
-                        </label>
+                    {/* Processo - Expanded */}
+                    <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Processo</span>
+                        <div className="relative">
+                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Número CNJ"
+                                value={processo}
+                                onChange={(e) => setProcesso(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-[46px] font-mono"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Datas */}
+                    <div className="w-40 shrink-0 flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Disp. Início</span>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full rounded-lg border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-[46px]"
                         />
                     </div>
-
-                    {/* Data Fim */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                            <CalendarIcon className="h-4 w-4" />
-                            Data Fim
-                        </label>
+                    <div className="w-40 shrink-0 flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Disp. Fim</span>
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full rounded-lg border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-700 bg-slate-50 dark:bg-dark-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-[46px]"
                         />
                     </div>
                 </div>
@@ -168,15 +327,15 @@ export const Publications: React.FC = () => {
                     <button
                         onClick={() => handleSearch(1)}
                         disabled={loading}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-sm shadow-blue-500/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/25 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5 opacity-80 group-hover:opacity-100" />}
                         Buscar Publicações
                     </button>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg flex items-center gap-3 border border-red-100 dark:border-red-900/50">
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-3 border border-red-100 dark:border-red-900/50">
                         <AlertCircle className="h-5 w-5 shrink-0" />
                         <p className="text-sm font-medium">{error}</p>
                     </div>
@@ -188,25 +347,24 @@ export const Publications: React.FC = () => {
                 {results.length > 0 ? (
                     <>
                         <div className="flex justify-between items-center px-2">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">
-                                Total de {totalCount} resultado(s) encontrado(s)
+                            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                Total de {totalCount} resultado(s) encontrados
                             </span>
 
-                            {/* Pagination Controls */}
                             {totalPages > 1 && (
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => handlePageChange(page - 1)}
-                                        disabled={page === 1 || loading}
-                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-dark-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                                        onClick={() => handleSearch(pageNumber - 1)}
+                                        disabled={pageNumber === 1 || loading}
+                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
                                     >
                                         <ChevronLeft className="h-5 w-5" />
                                     </button>
-                                    <span className="text-sm font-medium">{page} / {totalPages}</span>
+                                    <span className="text-sm font-bold w-12 text-center text-slate-700 dark:text-slate-300">{pageNumber} / {totalPages}</span>
                                     <button
-                                        onClick={() => handlePageChange(page + 1)}
-                                        disabled={page === totalPages || loading}
-                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-dark-700 disabled:opacity-30 disabled:hover:bg-transparent"
+                                        onClick={() => handleSearch(pageNumber + 1)}
+                                        disabled={pageNumber === totalPages || loading}
+                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
                                     >
                                         <ChevronRight className="h-5 w-5" />
                                     </button>
@@ -217,93 +375,103 @@ export const Publications: React.FC = () => {
                         {results.map((item) => (
                             <div
                                 key={item.id}
-                                className="group bg-white dark:bg-dark-900 rounded-xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm hover:shadow-md transition-all hover:border-slate-300 dark:hover:border-dark-700"
+                                className="group bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:border-blue-200 dark:hover:border-dark-700 relative"
                             >
                                 <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4">
                                     <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
                                                 {item.siglaTribunal}
                                             </span>
-                                            <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                                <CalendarIcon className="h-3 w-3" />
-                                                {formatDate(item.data_disponibilizacao)}
+                                            <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                                                <CalendarIcon className="h-3.5 w-3.5" />
+                                                {new Date(item.data_disponibilizacao).toLocaleDateString('pt-BR')}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
                                             {item.nomeOrgao}
                                         </h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-mono mt-1">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-mono mt-1.5">
                                             {item.numero_processo}
                                         </p>
                                     </div>
 
-                                    {item.link && (
-                                        <a
-                                            href={item.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <button
+                                            onClick={() => handleCreateDeadline(item.numero_processo)}
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
                                         >
-                                            <FileText className="h-4 w-4" />
-                                            Ver Original
-                                            <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                    )}
+                                            <Plus className="h-3.5 w-3.5" />
+                                            Criar Prazo
+                                        </button>
+
+                                        {item.link && (
+                                            <a
+                                                href={item.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-50 dark:bg-dark-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-dark-700 hover:bg-slate-900 hover:text-white transition-all"
+                                            >
+                                                <FileText className="h-3.5 w-3.5" />
+                                                Ver Original
+                                                <ExternalLink className="h-3 w-3 opacity-50" />
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div className="bg-slate-50 dark:bg-dark-950/50 p-4 rounded-lg border border-slate-100 dark:border-dark-800 mb-4">
+                                <div className="bg-slate-50/50 dark:bg-dark-950/40 p-5 rounded-2xl border border-slate-100 dark:border-dark-800 mb-4 transition-colors group-hover:bg-white dark:group-hover:bg-dark-950/70 border-dashed">
                                     <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed line-clamp-6 group-hover:line-clamp-none transition-all">
                                         {item.texto}
                                     </p>
                                 </div>
 
                                 {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
-                                    <div className="border-t border-slate-100 dark:border-dark-800 pt-3">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Advogados Intimados</p>
+                                    <div className="border-t border-slate-100 dark:border-dark-800 pt-4">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Advogados Intimados</p>
                                         <div className="flex flex-wrap gap-2">
-                                            {item.destinatarioadvogados.map((adv) => (
-                                                <span key={adv.id} className="text-xs px-2 py-1 bg-slate-100 dark:bg-dark-800 rounded text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-dark-700">
-                                                    {adv.advogado.nome} ({adv.advogado.numero_oab}/{adv.advogado.uf_oab})
-                                                </span>
-                                            ))}
+                                            {item.destinatarioadvogados.map((adv) => {
+                                                const isTeam = isTeamLawyer(adv.advogado.nome);
+                                                return (
+                                                    <span
+                                                        key={adv.id}
+                                                        className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${isTeam
+                                                            ? 'bg-blue-600 text-white font-bold border-blue-700 shadow-lg shadow-blue-500/30 scale-105 z-10'
+                                                            : 'bg-white dark:bg-dark-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-dark-750'
+                                                            }`}
+                                                    >
+                                                        {adv.advogado.nome} ({adv.advogado.numero_oab}/{adv.advogado.uf_oab})
+                                                    </span>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
                             </div>
                         ))}
-
-                        {/* Pagination Bottom */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center mt-6">
-                                <div className="flex items-center gap-2 bg-white dark:bg-dark-900 p-2 rounded-lg border border-slate-200 dark:border-dark-800 shadow-sm">
-                                    <button
-                                        onClick={() => handlePageChange(page - 1)}
-                                        disabled={page === 1 || loading}
-                                        className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-dark-700 disabled:opacity-30 disabled:hover:bg-transparent"
-                                    >
-                                        <ChevronLeft className="h-5 w-5" />
-                                    </button>
-                                    <span className="text-sm font-medium px-4">{page} de {totalPages}</span>
-                                    <button
-                                        onClick={() => handlePageChange(page + 1)}
-                                        disabled={page === totalPages || loading}
-                                        className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-dark-700 disabled:opacity-30 disabled:hover:bg-transparent"
-                                    >
-                                        <ChevronRight className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </>
                 ) : (
-                    !loading && <div className="text-center py-20 text-slate-400">
-                        <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                        <p className="text-lg">Nenhuma publicação encontrada</p>
-                        <p className="text-sm">Utilize os filtros acima para realizar uma busca.</p>
+                    !loading && <div className="text-center py-24 text-slate-400 animate-fade-in">
+                        <Search className="h-16 w-16 mx-auto mb-6 opacity-10" />
+                        <h4 className="text-xl font-bold text-slate-300 dark:text-slate-700 mb-2">Pronto para pesquisar</h4>
+                        <p className="text-sm max-w-xs mx-auto">Utilize os filtros acima para consultar publicações e criar prazos sem sair da página.</p>
                     </div>
                 )}
             </div>
+
+            {/* In-page Deadline Modal */}
+            {showDeadlineModal && (
+                <CalculatorModal
+                    onClose={() => setShowDeadlineModal(false)}
+                    cases={cases}
+                    onSave={(d) => {
+                        addDeadline(d);
+                        setShowDeadlineModal(false);
+                    }}
+                    initialCaseSearch={pendingProcessNumber}
+                    holidays={holidays}
+                />
+            )}
         </div>
     );
 };

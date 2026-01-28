@@ -13,6 +13,7 @@ export const Deadlines: React.FC = () => {
     // State
     const [showCalculator, setShowCalculator] = useState(false);
     const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
+    const [pendingProcessNumber, setPendingProcessNumber] = useState<string | null>(null);
 
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -57,7 +58,16 @@ export const Deadlines: React.FC = () => {
 
     // Handle Quick Action
     useEffect(() => {
-        if (pendingAction === 'newDeadline') {
+        if (pendingAction === 'newDeadline' || pendingAction?.startsWith('newDeadline:')) {
+            if (pendingAction.startsWith('newDeadline:')) {
+                const processNumber = pendingAction.split(':')[1];
+                // I need to trigger the calculator with this process number.
+                // Looking at CalculatorModal, I should probably pass initialData or something.
+                // But for now, let's just show the calculator. 
+                // Wait, if I want to pre-fill the process number, I should probably use the same logic as editDeadline.
+                // Or modify Deadlines state to pass it to CalculatorModal.
+                setPendingProcessNumber(processNumber);
+            }
             setShowCalculator(true);
             setPendingAction(null);
         } else if (pendingAction?.startsWith('editDeadline:')) {
@@ -605,6 +615,7 @@ export const Deadlines: React.FC = () => {
                     cases={cases}
                     onSave={handleSaveDeadline}
                     initialData={editingDeadline}
+                    initialCaseSearch={pendingProcessNumber || undefined}
                     holidays={holidays}
                     onDelete={deleteDeadline}
                 />

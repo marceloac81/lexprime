@@ -11,11 +11,12 @@ interface CalculatorModalProps {
     onSave: (d: Deadline) => void;
     initialDate?: string;
     initialData?: Deadline | null;
+    initialCaseSearch?: string;
     holidays: Holiday[];
     onDelete?: (id: string) => void;
 }
 
-export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, holidays, onDelete }) => {
+export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete }) => {
     // Default Initialization
     const [startDate, setStartDate] = useState(initialData?.startDate || initialDate || new Date().toISOString().split('T')[0]);
     const [startTime, setStartTime] = useState(initialData?.startTime || '18:00');
@@ -32,10 +33,17 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const [city, setCity] = useState(initialData?.city || '');
     const [uf, setUf] = useState(initialData?.uf || '');
 
-    // Auto-fill Case search if editing
+    // Auto-fill Case search if editing or passed from publications
     const initialCase = initialData?.caseId ? cases.find(c => c.id === initialData.caseId) : null;
-    const [caseSearch, setCaseSearch] = useState(initialCase ? initialCase.number : '');
+    const [caseSearch, setCaseSearch] = useState(initialCase ? initialCase.number : (initialCaseSearch || ''));
     const [info, setInfo] = useState('');
+
+    // Effect to open dropdown if initialCaseSearch is provided but not yet selected
+    useEffect(() => {
+        if (initialCaseSearch && !selectedCaseId) {
+            setIsCaseDropdownOpen(true);
+        }
+    }, [initialCaseSearch, selectedCaseId]);
 
     const [isCaseDropdownOpen, setIsCaseDropdownOpen] = useState(false);
     const [result, setResult] = useState<{ date: Date, logs: string[] } | null>(null);
