@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard, Briefcase, Clock, CalendarIcon, Users,
-  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight
+  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText
 } from './Icons';
 import { useStore } from '../context/Store';
 
@@ -124,6 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
         <NavItem collapsed={collapsed} page="calendar" icon={CalendarIcon} label="Agenda" active={activePage === 'calendar'} onClick={handleNavClick} count={agendaBadgeCount} />
+        <NavItem collapsed={collapsed} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
 
         {!collapsed && <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-8 px-4 whitespace-nowrap">Administrativo</div>}
         {collapsed && <div className="my-4 h-px w-full bg-slate-200 dark:bg-slate-800" />}

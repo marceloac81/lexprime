@@ -186,3 +186,54 @@ export interface Holiday {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// DJEN API Types
+export interface DJENAdvogado {
+  id: number;
+  comunicacao_id: number;
+  advogado_id: number;
+  created_at: string;
+  updated_at: string;
+  advogado: {
+    id: number;
+    nome: string;
+    numero_oab: string;
+    uf_oab: string;
+  };
+}
+
+export interface DJENDestinatario {
+  nome: string;
+  polo: string;
+  comunicacao_id: number;
+}
+
+export interface DJENItem {
+  id: number;
+  data_disponibilizacao: string;
+  siglaTribunal: string;
+  tipoComunicacao: string;
+  nomeOrgao: string;
+  texto: string;
+  numero_processo: string;
+  meio: string;
+  link: string;
+  tipoDocumento: string;
+  nomeClasse: string;
+  codigoClasse: string;
+  numeroComunicacao: number;
+  ativo: boolean;
+  hash: string;
+  datadisponibilizacao: string;
+  meiocompleto: string;
+  numeroprocessocommascara: string;
+  destinatarios: DJENDestinatario[];
+  destinatarioadvogados: DJENAdvogado[];
+}
+
+export interface DJENResponse {
+  status: string;
+  message: string;
+  count: number;
+  items: DJENItem[];
+}

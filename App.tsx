@@ -12,11 +12,14 @@ import { Calendar } from './pages/Calendar';
 import { Clients } from './pages/Clients';
 import { Settings } from './pages/Settings';
 import { Team } from './pages/Team';
+import { Publications } from './pages/Publications';
 import { SplashScreen } from './components/SplashScreen';
 
 const AppContent: React.FC = () => {
   const { currentUser, pendingAction } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
+
+
   const [showSearch, setShowSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -59,6 +62,7 @@ const AppContent: React.FC = () => {
       case 'clients': return <Clients />;
       case 'settings': return <Settings />;
       case 'team': return <Team />;
+      case 'publications': return <Publications />;
       default: return <Dashboard />;
     }
   };
