@@ -207,13 +207,6 @@ export const Cases: React.FC = () => {
                     >
                         <Plus size={20} /> Novo Processo
                     </button>
-                    <button
-                        onClick={clearCases}
-                        className="p-2 md:p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
-                        title="Limpar Base"
-                    >
-                        <Trash2 size={20} md:size={22} />
-                    </button>
                 </div>
             </div>
 

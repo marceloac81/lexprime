@@ -397,9 +397,6 @@ export const Clients: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex gap-2 md:gap-3 w-full md:w-auto flex-wrap">
-                    <button onClick={clearClients} className="flex-1 md:flex-none justify-center bg-white dark:bg-dark-800 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 px-3 md:px-4 py-2 md:py-2.5 rounded-lg text-sm font-medium shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/10 flex items-center gap-2 transition-all">
-                        <Trash2 size={16} md:size={18} /> <span className="hidden md:inline">Limpar Base</span><span className="md:hidden">Limpar</span>
-                    </button>
                     <button onClick={handleOpenNew} className="flex-1 md:flex-none justify-center bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center gap-2 transform active:scale-95 transition-all">
                         <Plus size={20} /> <span className="hidden md:inline">Novo Contato</span><span className="md:hidden">Novo</span>
                     </button>

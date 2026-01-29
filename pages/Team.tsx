@@ -193,9 +193,6 @@ export const Team: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2 md:gap-3 w-full md:w-auto">
-                    <button onClick={clearTeamMembers} className="p-2 md:p-2.5 bg-white dark:bg-dark-800 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/10" title="Limpar Toda a Equipe">
-                        <Trash2 size={18} md:size={20} />
-                    </button>
                     <button
                         onClick={handleOpenNew}
                         className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95"

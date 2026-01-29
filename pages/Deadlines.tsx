@@ -142,7 +142,7 @@ export const Deadlines: React.FC = () => {
                 case 2: return "#D9E1F2"; // Terça-feira
                 case 3: return "#FCE4D6"; // Quarta-feira
                 case 4: return "#EDEDED"; // Quinta-feira
-                case 5: return "#FFF2CC"; // Sexta-feira
+                case 5: return "#F0FDF4"; // Sexta-feira (Light Green)
                 default: return "transparent";
             }
         }
@@ -382,13 +382,6 @@ export const Deadlines: React.FC = () => {
                                 title="Imprimir Prazos"
                             >
                                 <Printer size={18} md:size={20} />
-                            </button>
-                            <button
-                                onClick={clearDeadlines}
-                                className="p-2 md:p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
-                                title="Limpar Base"
-                            >
-                                <Trash2 size={18} md:size={20} />
                             </button>
                         </div>
                     </div>
