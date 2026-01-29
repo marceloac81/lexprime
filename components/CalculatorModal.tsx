@@ -4,6 +4,7 @@ import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
 import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
+import { sanitizeCNJ } from '../utils/cnjUtils';
 
 interface CalculatorModalProps {
     onClose: () => void;
@@ -73,8 +74,29 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const filteredCases = cases.filter(c => {
         if (!caseSearch) return true;
         const searchLower = caseSearch.toLowerCase();
-        return c.number.includes(searchLower) || c.title.toLowerCase().includes(searchLower) || c.clientName.toLowerCase().includes(searchLower);
+        const searchSanitized = sanitizeCNJ(searchLower);
+        const caseNumberSanitized = sanitizeCNJ(c.number);
+
+        return (
+            (searchSanitized && caseNumberSanitized.includes(searchSanitized)) ||
+            c.number.includes(searchLower) ||
+            c.title.toLowerCase().includes(searchLower) ||
+            c.clientName.toLowerCase().includes(searchLower)
+        );
     });
+
+    // Auto-fill effect when search matches exactly one case (sanitized)
+    useEffect(() => {
+        if (!initialData?.caseId && !selectedCaseId && caseSearch) {
+            const searchSanitized = sanitizeCNJ(caseSearch);
+            if (searchSanitized.length >= 10) { // Only auto-fill if we have a significant portion of CNJ
+                const exactMatches = cases.filter(c => sanitizeCNJ(c.number) === searchSanitized);
+                if (exactMatches.length === 1) {
+                    handleSelectCase(exactMatches[0]);
+                }
+            }
+        }
+    }, [caseSearch, cases, initialData, selectedCaseId]);
 
     const handleSelectCase = (c: Case) => {
         setSelectedCaseId(c.id);

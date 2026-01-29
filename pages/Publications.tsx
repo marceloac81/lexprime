@@ -4,13 +4,15 @@ import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
 import { CalculatorModal } from '../components/CalculatorModal';
+import { CaseModal } from '../components/CaseModal';
+import { sanitizeCNJ } from '../utils/cnjUtils';
 
 interface PublicationsProps {
     setPage: (page: string) => void;
 }
 
 export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
-    const { teamMembers, cases, addDeadline, holidays } = useStore();
+    const { teamMembers, cases, addDeadline, holidays, addCase, clients } = useStore();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<DJENItem[]>([]);
@@ -29,6 +31,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
     // Modal State
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
+    const [showCaseModal, setShowCaseModal] = useState(false);
     const [pendingProcessNumber, setPendingProcessNumber] = useState('');
 
     // Dropdown State
@@ -200,6 +203,12 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             const memberCleanName = member.name.toUpperCase();
             return cleanName.includes(memberCleanName) || memberCleanName.includes(cleanName);
         });
+    };
+
+    const findProcessInDatabase = (processNumber: string) => {
+        if (!processNumber) return null;
+        const sanitized = sanitizeCNJ(processNumber);
+        return cases.find(c => sanitizeCNJ(c.number) === sanitized);
     };
 
     const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -397,13 +406,33 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <button
-                                            onClick={() => handleCreateDeadline(item.numero_processo)}
-                                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
-                                        >
-                                            <Plus className="h-3.5 w-3.5" />
-                                            Criar Prazo
-                                        </button>
+                                        {(() => {
+                                            const existingCase = findProcessInDatabase(item.numero_processo);
+                                            if (existingCase) {
+                                                return (
+                                                    <button
+                                                        onClick={() => handleCreateDeadline(item.numero_processo)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
+                                                    >
+                                                        <Plus className="h-3.5 w-3.5" />
+                                                        Criar Prazo
+                                                    </button>
+                                                );
+                                            } else {
+                                                return (
+                                                    <button
+                                                        onClick={() => {
+                                                            setPendingProcessNumber(item.numero_processo);
+                                                            setShowCaseModal(true);
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                                                    >
+                                                        <Plus className="h-3.5 w-3.5" />
+                                                        Cadastrar Processo
+                                                    </button>
+                                                );
+                                            }
+                                        })()}
 
                                         {item.link && (
                                             <a
@@ -470,6 +499,19 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     }}
                     initialCaseSearch={pendingProcessNumber}
                     holidays={holidays}
+                />
+            )}
+            {/* Case Registration Modal */}
+            {showCaseModal && (
+                <CaseModal
+                    onClose={() => setShowCaseModal(false)}
+                    onSave={(caseData) => {
+                        addCase(caseData);
+                        setShowCaseModal(false);
+                    }}
+                    clients={clients}
+                    cases={cases}
+                    initialNumber={pendingProcessNumber}
                 />
             )}
         </div>
