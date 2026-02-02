@@ -539,7 +539,7 @@ export const Clients: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {sortedClients.map(client => (
-                                    <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group" onClick={() => handleOpenDetails(client)}>
+                                    <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group" onDoubleClick={() => handleOpenDetails(client)} title="Clique duplo para ver detalhes">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">

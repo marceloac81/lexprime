@@ -269,8 +269,9 @@ export const Cases: React.FC = () => {
                             {filteredCases.map(c => (
                                 <tr
                                     key={c.id}
-                                    onClick={() => setSelectedCase(c)}
+                                    onDoubleClick={() => setSelectedCase(c)}
                                     className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
+                                    title="Clique duplo para ver detalhes"
                                 >
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">
@@ -328,8 +329,9 @@ export const Cases: React.FC = () => {
                     {filteredCases.map(c => (
                         <div
                             key={c.id}
-                            onClick={() => setSelectedCase(c)}
+                            onDoubleClick={() => setSelectedCase(c)}
                             className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-transform"
+                            title="Clique duplo para ver detalhes"
                         >
                             {/* Header: Number & Status */}
                             <div className="flex justify-between items-start mb-3">
