@@ -49,6 +49,10 @@ export const CaseModal: React.FC<CaseModalProps> = ({
     const [showAreaDropdown, setShowAreaDropdown] = useState(false);
     const [clientSearch, setClientSearch] = useState(initialData?.clientName || '');
     const [showClientDropdown, setShowClientDropdown] = useState(false);
+    const [citySearch, setCitySearch] = useState('');
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const [courtSearch, setCourtSearch] = useState('');
+    const [showCourtDropdown, setShowCourtDropdown] = useState(false);
 
     const DEFAULT_AREAS = [
         'Civil', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
@@ -102,7 +106,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden transform transition-all scale-100 max-h-[90vh] flex flex-col">
+            <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all scale-100 max-h-[95vh] flex flex-col">
                 <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-dark-900/50 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg text-primary-600">
@@ -230,6 +234,22 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                             )}
                         </div>
 
+                        {/* Section 1: Identification - MOVED UP */}
+                        <section className="space-y-4">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <FileText size={14} /> 1. Identificação do Processo
+                            </h3>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número do Processo (CNJ ou Admin) <span className="text-rose-500">*</span></label>
+                                <input
+                                    placeholder="0000000-00.0000.0.00.0000"
+                                    value={newCase.number}
+                                    onChange={e => setNewCase({ ...newCase, number: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white font-mono tracking-wide focus:ring-2 focus:ring-primary-500"
+                                />
+                            </div>
+                        </section>
+
                         {/* Section 1: Localization */}
                         <section>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -249,22 +269,80 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                 </div>
                                 <div className="md:col-span-9">
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Município <span className="text-rose-500">*</span></label>
-                                    <input
-                                        placeholder={newCase.uf ? `Digite a cidade de ${newCase.uf}...` : "Selecione a UF primeiro"}
-                                        value={newCase.city}
-                                        disabled={!newCase.uf}
-                                        onChange={e => setNewCase({ ...newCase, city: e.target.value })}
-                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            placeholder={newCase.uf ? `Selecione ou digite a cidade...` : "Selecione a UF primeiro"}
+                                            value={newCase.city}
+                                            disabled={!newCase.uf}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCase({ ...newCase, city: val });
+                                                setCitySearch(val);
+                                                setShowCityDropdown(true);
+                                            }}
+                                            onFocus={() => setShowCityDropdown(true)}
+                                            className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:ring-2 focus:ring-primary-500"
+                                        />
+                                        {showCityDropdown && newCase.uf && (
+                                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar animate-fade-in">
+                                                {Array.from(new Set(cases.filter(c => c.uf === newCase.uf && c.city).map(c => c.city)))
+                                                    .filter(city => city.toLowerCase().includes(citySearch.toLowerCase()))
+                                                    .sort()
+                                                    .map(city => (
+                                                        <button
+                                                            key={city}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setNewCase({ ...newCase, city });
+                                                                setCitySearch('');
+                                                                setShowCityDropdown(false);
+                                                            }}
+                                                            className="w-full p-3 text-left hover:bg-slate-50 dark:hover:bg-dark-700 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors text-sm text-slate-700 dark:text-slate-300"
+                                                        >
+                                                            {city}
+                                                        </button>
+                                                    ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="md:col-span-8">
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vara / Local <span className="text-rose-500">*</span></label>
-                                    <input
-                                        placeholder="Ex: 5ª Vara Cível, Procon, Delegacia..."
-                                        value={newCase.court}
-                                        onChange={e => setNewCase({ ...newCase, court: e.target.value })}
-                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            placeholder="Ex: 5ª Vara Cível, Procon, Delegacia..."
+                                            value={newCase.court}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCase({ ...newCase, court: val });
+                                                setCourtSearch(val);
+                                                setShowCourtDropdown(true);
+                                            }}
+                                            onFocus={() => setShowCourtDropdown(true)}
+                                            className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white transition-all focus:ring-2 focus:ring-primary-500"
+                                        />
+                                        {showCourtDropdown && (
+                                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar animate-fade-in">
+                                                {Array.from(new Set(cases.filter(c => (!newCase.city || c.city === newCase.city) && c.court).map(c => c.court)))
+                                                    .filter(court => court.toLowerCase().includes(courtSearch.toLowerCase()))
+                                                    .sort()
+                                                    .map(court => (
+                                                        <button
+                                                            key={court}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setNewCase({ ...newCase, court });
+                                                                setCourtSearch('');
+                                                                setShowCourtDropdown(false);
+                                                            }}
+                                                            className="w-full p-3 text-left hover:bg-slate-50 dark:hover:bg-dark-700 border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors text-sm text-slate-700 dark:text-slate-300"
+                                                        >
+                                                            {court}
+                                                        </button>
+                                                    ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="md:col-span-4">
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Área <span className="text-rose-500">*</span></label>
@@ -307,7 +385,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                 <div className="md:col-span-12">
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nº Pasta Física / Interna (Opcional)</label>
                                     <input
-                                        placeholder="Ex: ARQ-2024-001"
+                                        placeholder="Ex: 1234/001"
                                         value={newCase.folderNumber}
                                         onChange={e => setNewCase({ ...newCase, folderNumber: e.target.value })}
                                         className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
@@ -316,23 +394,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                             </div>
                         </section>
 
-                        {/* Section 2: Identification */}
-                        <section>
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <FileText size={14} /> 2. Identificação do Processo
-                            </h3>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número do Processo (CNJ ou Admin) <span className="text-rose-500">*</span></label>
-                                <input
-                                    placeholder="0000000-00.0000.0.00.0000"
-                                    value={newCase.number}
-                                    onChange={e => setNewCase({ ...newCase, number: e.target.value })}
-                                    className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white font-mono tracking-wide focus:ring-2 focus:ring-primary-500"
-                                />
-                            </div>
-                        </section>
-
-                        {/* Section 3: Parties */}
+                        {/* Section 4: Parties (was 3) */}
                         <section>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <UserIcon size={14} /> 3. Envolvimento das Partes
@@ -400,7 +462,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                     </div>
                                 </div>
                                 <div className="md:col-span-12">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parte Contrária <span className="text-rose-500">*</span></label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parte Contrária Principal <span className="text-rose-500">*</span></label>
                                     <input
                                         placeholder="Nome da parte adversa"
                                         value={newCase.opposingParty}
@@ -411,10 +473,10 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                             </div>
                         </section>
 
-                        {/* Section 4: Finance */}
+                        {/* Section 5: Finance (was 4) */}
                         <section className="pb-4">
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <span className="text-base">R$</span> 4. Dados Financeiros (Opcional)
+                                <span className="text-base">R$</span> 5. Dados Financeiros (Opcional)
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

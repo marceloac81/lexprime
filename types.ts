@@ -187,6 +187,14 @@ export interface Holiday {
   updatedAt?: string;
 }
 
+export interface SimulationStep {
+  date: string;
+  label: string;
+  isCounted: boolean;
+  count?: number;
+  reason: 'start' | 'business' | 'weekend' | 'holiday' | 'calendar';
+}
+
 // DJEN API Types
 export interface DJENAdvogado {
   id: number;

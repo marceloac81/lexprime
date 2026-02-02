@@ -82,6 +82,7 @@ export const Clients: React.FC = () => {
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loadingCep, setLoadingCep] = useState(false);
+    const [loadingCnpj, setLoadingCnpj] = useState(false);
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
 
@@ -291,6 +292,77 @@ export const Clients: React.FC = () => {
             addNotification('Erro na busca. Preencha manualmente.', 'warning');
         } finally {
             setLoadingCep(false);
+        }
+    };
+
+    const handleCnpjSearch = async () => {
+        const cnpj = removeMask(formData.document || '');
+        if (cnpj.length !== 14) {
+            addNotification('CNPJ deve ter 14 dígitos.', 'warning');
+            return;
+        }
+
+        setLoadingCnpj(true);
+        try {
+            const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+            if (!res.ok) throw new Error('CNPJ não encontrado.');
+            const data = await res.json();
+
+            // Auto Format Name - Razão Social
+            const formattedName = toTitleCase(data.razao_social);
+
+            // Tag/Grupo - Nome Fantasia
+            const tag = data.nome_fantasia ? toTitleCase(data.nome_fantasia) : '';
+
+            // Representative from QSA
+            let rep = '';
+            let repQual = '';
+            if (data.qsa && data.qsa.length > 0) {
+                // Find first socio administrador
+                const admin = data.qsa.find((s: any) =>
+                    s.qualificacao_socio && s.qualificacao_socio.toLowerCase().includes('administrador')
+                );
+                if (admin) {
+                    rep = toTitleCase(admin.nome_socio);
+                    repQual = admin.qualificacao_socio;
+                }
+            }
+
+            // Observations
+            const partners = data.qsa && data.qsa.length > 0
+                ? '\nSócios:\n' + data.qsa.map((s: any) => `- ${toTitleCase(s.nome_socio)} (${s.qualificacao_socio})`).join('\n')
+                : '';
+
+            const capitalSocial = data.capital_social
+                ? `\nCapital Social: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.capital_social)}`
+                : '';
+
+            const obs = `Situação: ${data.descricao_situacao_cadastral}\nCNAE Principal: ${data.cnae_fiscal_descricao}${capitalSocial}${partners}`;
+
+            setFormData(prev => ({
+                ...prev,
+                name: formattedName,
+                group: tag || prev.group,
+                representative: rep || prev.representative,
+                representativeQualification: repQual || prev.representativeQualification,
+                zip: maskCEP(data.cep),
+                street: data.logradouro,
+                addressNumber: data.numero,
+                complement: data.complemento || '',
+                neighborhood: data.bairro,
+                city: data.municipio,
+                state: data.uf,
+                email: data.email || prev.email,
+                phoneWork: data.ddd_telefone_1 ? maskPhone(data.ddd_telefone_1) : prev.phoneWork,
+                notes: obs + (prev.notes ? `\n\n${prev.notes}` : '')
+            }));
+
+            addNotification('Dados do CNPJ preenchidos!', 'success');
+        } catch (error) {
+            console.error(error);
+            addNotification('CNPJ não encontrado ou erro na busca.', 'error');
+        } finally {
+            setLoadingCnpj(false);
         }
     };
 
@@ -621,36 +693,87 @@ export const Clients: React.FC = () => {
                                 {/* 1. Dados Básicos */}
                                 <section className="space-y-4">
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700"><Briefcase size={14} /> Dados Principais</h3>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            {formData.type === 'Espólio' ? 'Nome do Falecido' : 'Nome Completo'} <span className="text-rose-500">*</span>
-                                        </label>
-                                        <input required placeholder="Nome do contato" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
-                                            value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                {formData.type === 'Pessoa Jurídica' ? 'CNPJ' : 'CPF'}
-                                            </label>
-                                            <input
-                                                placeholder={formData.type === 'Pessoa Jurídica' ? '00.000.000/0000-00' : '000.000.000-00'}
-                                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
-                                                value={formData.document}
-                                                onChange={handleDocumentChange}
-                                                maxLength={formData.type === 'Pessoa Jurídica' ? 18 : 14}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grupo / Tag</label>
-                                            <input
-                                                placeholder="Ex: Cliente, Réu, Parceiro..."
-                                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
-                                                value={formData.group}
-                                                onChange={e => setFormData({ ...formData, group: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+
+                                    {formData.type === 'Pessoa Jurídica' ? (
+                                        <>
+                                            {/* CNPJ First for PJ */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CNPJ</label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            placeholder="00.000.000/0000-00"
+                                                            className="flex-1 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                            value={formData.document}
+                                                            onChange={handleDocumentChange}
+                                                            maxLength={18}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCnpjSearch}
+                                                            disabled={loadingCnpj}
+                                                            className="p-3 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 disabled:opacity-50 transition-colors"
+                                                            title="Buscar CNPJ"
+                                                        >
+                                                            {loadingCnpj ? (
+                                                                <div className="w-5 h-5 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Search size={20} />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grupo / Tag</label>
+                                                    <input
+                                                        placeholder="Ex: Cliente, Parceiro..."
+                                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                        value={formData.group}
+                                                        onChange={e => setFormData({ ...formData, group: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Razão Social <span className="text-rose-500">*</span></label>
+                                                <input required placeholder="Nome da empresa" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Standard order for PF/Espolio */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    {formData.type === 'Espólio' ? 'Nome do Falecido' : 'Nome Completo'} <span className="text-rose-500">*</span>
+                                                </label>
+                                                <input required placeholder="Nome do contato" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                        {formData.type === 'Pessoa Jurídica' ? 'CNPJ' : 'CPF'}
+                                                    </label>
+                                                    <input
+                                                        placeholder={formData.type === 'Pessoa Jurídica' ? '00.000.000/0000-00' : '000.000.000-00'}
+                                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                        value={formData.document}
+                                                        onChange={handleDocumentChange}
+                                                        maxLength={formData.type === 'Pessoa Jurídica' ? 18 : 14}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grupo / Tag</label>
+                                                    <input
+                                                        placeholder="Ex: Cliente, Réu, Parceiro..."
+                                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                        value={formData.group}
+                                                        onChange={e => setFormData({ ...formData, group: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
 
                                     {/* Additional Fields for PF */}
                                     {formData.type === 'Pessoa Física' && (

@@ -72,37 +72,46 @@ export const calculateDeadline = (
   days: number,
   type: 'business' | 'calendar',
   customHolidays: Holiday[] = DEFAULT_HOLIDAYS
-): { date: Date, logs: string[] } => {
+): { date: Date, logs: string[], simulation: import('../types').SimulationStep[] } => {
 
   // Allow 0 days, check for NaN only
   if (!startDateStr || isNaN(days)) {
-    return { date: new Date(), logs: ['Aguardando dados válidos...'] };
+    return { date: new Date(), logs: ['Aguardando dados válidos...'], simulation: [] };
   }
 
   const parts = startDateStr.split('-');
   if (parts.length !== 3) {
-    return { date: new Date(), logs: ['Formato de data inválido'] };
+    return { date: new Date(), logs: ['Formato de data inválido'], simulation: [] };
   }
 
   const [y, m, d] = parts.map(Number);
   if (isNaN(y) || isNaN(m) || isNaN(d)) {
-    return { date: new Date(), logs: ['Data inválida'] };
+    return { date: new Date(), logs: ['Data inválida'], simulation: [] };
   }
 
   let current = new Date(Date.UTC(y, m - 1, d));
 
   if (isNaN(current.getTime())) {
-    return { date: new Date(), logs: ['Data inválida'] };
+    return { date: new Date(), logs: ['Data inválida'], simulation: [] };
   }
 
   const formattedStart = formatDate(startDateStr);
   const startDayName = getDayName(current);
   const logs: string[] = [`Data de publicação/intimação: ${formattedStart} (${startDayName})`];
+  const simulation: import('../types').SimulationStep[] = [];
+
+  // Day 0: Start Day (Excluded)
+  simulation.push({
+    date: formattedStart,
+    label: 'Dia do começo',
+    isCounted: false,
+    reason: 'start'
+  });
 
   // If 0 days, return immediately without CPC rule
   if (days === 0) {
     logs.push('Prazo de 0 dias: A data final é igual à data inicial.');
-    return { date: current, logs };
+    return { date: current, logs, simulation };
   }
 
   // CPC Rule: Exclude start day (Day 0)
@@ -121,11 +130,14 @@ export const calculateDeadline = (
 
       if (holidayName) {
         logs.push(`${formattedDate} (${dayName}): Feriado (${holidayName}) - Não contado`);
+        simulation.push({ date: formattedDate, label: holidayName, isCounted: false, reason: 'holiday' });
       } else if (weekend) {
         logs.push(`${formattedDate} (${dayName}): Final de semana - Não contado`);
+        simulation.push({ date: formattedDate, label: 'Final de Semana', isCounted: false, reason: 'weekend' });
       } else {
         count++;
         logs.push(`${formattedDate} (${dayName}): Dia útil ${count}/${days}`);
+        simulation.push({ date: formattedDate, label: dayName, isCounted: true, count, reason: 'business' });
       }
 
       // Move to next day if we haven't finished counting
@@ -142,6 +154,8 @@ export const calculateDeadline = (
 
       count++;
       logs.push(`${formattedDate} (${dayName}): Dia corrido ${count}/${days}`);
+      simulation.push({ date: formattedDate, label: dayName, isCounted: true, count, reason: 'calendar' });
+
       if (count < days) current.setDate(current.getDate() + 1);
     }
   }
@@ -159,6 +173,12 @@ export const calculateDeadline = (
 
     if (holidayName || weekend) {
       logs.push(`${formattedDate} (${dayName}) Vencimento em dia não útil (${holidayName || 'Fim de semana'}). Prorrogando para o próximo dia útil...`);
+      simulation.push({
+        date: formattedDate,
+        label: holidayName || 'Final de Semana',
+        isCounted: false,
+        reason: holidayName ? 'holiday' : 'weekend'
+      });
       current.setDate(current.getDate() + 1);
     } else {
       extensionNeeded = false;
@@ -169,7 +189,7 @@ export const calculateDeadline = (
   const finalDayName = getDayName(current);
   logs.push(`Vencimento final: ${formatDate(finalDateStr)} (${finalDayName})`);
 
-  return { date: current, logs };
+  return { date: current, logs, simulation };
 };
 
 export const getBusinessDaysDiff = (start: Date, end: Date, customHolidays: Holiday[] = DEFAULT_HOLIDAYS): number => {

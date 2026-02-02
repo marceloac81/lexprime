@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
-import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check } from './Icons';
+import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
 import { sanitizeCNJ } from '../utils/cnjUtils';
 
@@ -16,6 +16,44 @@ interface CalculatorModalProps {
     holidays: Holiday[];
     onDelete?: (id: string) => void;
 }
+
+const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
+    const month = date.getUTCMonth();
+    const year = date.getUTCFullYear();
+    const day = date.getUTCDate();
+
+    const firstDayOfMonth = new Date(Date.UTC(year, month, 1)).getUTCDay();
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+
+    const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+    const days = [];
+    for (let i = 0; i < firstDayOfMonth; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+    return (
+        <div className="bg-white dark:bg-dark-900 ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl p-3 shadow-lg w-[145px] shrink-0 animate-fade-in">
+            <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 text-center">
+                {monthNames[month]} {year}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5 text-[8px] font-bold text-slate-400 mb-2 text-center">
+                {weekDays.map((d, i) => <div key={i}>{d}</div>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+                {days.map((d, i) => (
+                    <div key={i} className={`h-4.5 flex items-center justify-center text-[9px] font-medium rounded-sm
+                        ${d === day
+                            ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-500/30'
+                            : 'text-slate-500 dark:text-slate-400'}
+                    `}>
+                        {d}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete }) => {
     // Default Initialization
@@ -47,7 +85,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     }, [initialCaseSearch, selectedCaseId]);
 
     const [isCaseDropdownOpen, setIsCaseDropdownOpen] = useState(false);
-    const [result, setResult] = useState<{ date: Date, logs: string[] } | null>(null);
+    const [result, setResult] = useState<{ date: Date, logs: string[], simulation: import('../types').SimulationStep[] } | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [showTempestividade, setShowTempestividade] = useState(false);
 
@@ -183,8 +221,8 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white dark:bg-dark-800 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:h-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in text-slate-900 dark:text-slate-100">
+            <div className="bg-white dark:bg-dark-800 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[98vh] h-full ring-1 ring-slate-200 dark:ring-slate-700">
                 {/* Form */}
                 <div className="p-6 md:p-8 w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar">
                     <div className="flex justify-between items-center mb-6">
@@ -386,24 +424,73 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                     </div>
                 </div>
 
-                {/* Results */}
-                <div className="p-6 md:p-8 w-full md:w-1/2 bg-slate-50 dark:bg-dark-900/50 flex flex-col h-[400px] md:h-auto">
+                {/* Results - SIMULATION LIST REFACTOR */}
+                <div className="p-6 md:p-8 w-full md:w-1/2 bg-slate-50 dark:bg-dark-900/50 flex flex-col max-h-full overflow-hidden">
                     {result ? (
-                        <div className="flex flex-col h-full animate-slide-in">
-                            <div className="mb-6">
-                                <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">Prazo Final (Calculado)</p>
-                                <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-primary-200 dark:border-primary-900/50 shadow-sm">
-                                    <p className="text-4xl font-bold text-primary-600 dark:text-primary-400">{formatDate(result.date.toISOString().split('T')[0])}</p>
-                                    <p className="text-xs text-slate-400 mt-2 flex items-center gap-1"><AlertCircle size={14} /> Regra CPC aplicada</p>
+                        <div className="flex flex-col h-full animate-slide-in overflow-hidden">
+                            <div className="mb-8 flex justify-between items-start gap-4">
+                                <div className="flex-1">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vencimento Final</h3>
+                                    <div className="flex items-center gap-5 bg-white dark:bg-dark-800 p-5 rounded-2xl ring-1 ring-blue-100 dark:ring-blue-900/30 shadow-xl shadow-blue-500/5">
+                                        <MiniCalendar date={result.date} />
+                                        <div>
+                                            <p className="text-2xl md:text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight leading-none mb-1">
+                                                {formatDate(result.date.toISOString().split('T')[0])}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                                <Check size={14} className="text-blue-500" />
+                                                <span>DATA CALCULADA (CPC)</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 overflow-y-auto text-sm space-y-2 mb-4 shadow-inner custom-scrollbar">
-                                {result.logs.map((l, i) => (
-                                    <div key={i} className={`py-1 border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${l.includes('Feriado') || l.includes('Final de semana') ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                                        {l}
+                            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 custom-scrollbar">
+                                {result.simulation.map((step, idx) => (
+                                    <div key={idx} className="flex items-center gap-4 group animate-fade-in" style={{ animationDelay: `${idx * 20}ms` }}>
+                                        <div className="shrink-0">
+                                            {step.isCounted ? (
+                                                <div className="w-7 h-7 bg-green-500 text-white rounded flex items-center justify-center text-sm font-bold shadow-md shadow-green-500/20">
+                                                    {step.count}
+                                                </div>
+                                            ) : (
+                                                <div className="w-7 h-7 bg-rose-500 text-white rounded flex items-center justify-center shadow-md shadow-rose-500/20">
+                                                    <X size={16} strokeWidth={3} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 pb-2 border-b border-slate-100 dark:border-slate-800 group-last:border-0">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                                    {step.date}
+                                                </span>
+                                                <span className={`text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded ${step.isCounted
+                                                    ? 'text-green-600 dark:text-green-400'
+                                                    : step.reason === 'start' ? 'text-slate-400' : 'text-rose-500 dark:text-rose-400'
+                                                    }`}>
+                                                    {step.label}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
+
+                                {/* Legend */}
+                                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 space-y-2 pb-4">
+                                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Legenda</h4>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-4 h-4 bg-green-500 rounded shadow-sm shrink-0"></div>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Dia considerado na simulação.</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-4 h-4 bg-rose-500 rounded shadow-sm shrink-0"></div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-none">Dia desconsiderado na simulação.</span>
+                                            <span className="text-[9px] text-slate-400 italic">Por suspensão, prorrogação, dia inicial, não útil ou feriado.</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex gap-3 mt-auto shrink-0">
