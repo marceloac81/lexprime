@@ -455,10 +455,10 @@ export const Deadlines: React.FC = () => {
                                         return (
                                             <tr
                                                 key={d.id}
-                                                onClick={() => handleEditClick(d)}
+                                                onDoubleClick={() => handleEditClick(d)}
                                                 className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                                 style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
-                                                title="Clique para editar"
+                                                title="Clique duplo para editar"
                                             >
                                                 <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
                                                     {(d.startTime || '09:00').substring(0, 5)}
@@ -555,7 +555,7 @@ export const Deadlines: React.FC = () => {
                                     const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '';
 
                                     return (
-                                        <div key={d.id} onClick={() => handleEditClick(d)} className={`bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative active:scale-[0.99] transition-transform ${isToday ? 'border-amber-200 bg-amber-50/50' : ''}`}>
+                                        <div key={d.id} onDoubleClick={() => handleEditClick(d)} className={`bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative active:scale-[0.99] transition-transform ${isToday ? 'border-amber-200 bg-amber-50/50' : ''}`} title="Clique duplo para editar">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div className={`bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-mono font-bold text-slate-600 dark:text-slate-300 ${textStyle}`}>
                                                     {(d.startTime || '09:00').substring(0, 5)}
