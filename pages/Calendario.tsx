@@ -7,7 +7,7 @@ import { Deadline, Case, Holiday } from '../types';
 
 import { CalculatorModal } from '../components/CalculatorModal';
 
-export const Calendar: React.FC = () => {
+export const Calendario: React.FC = () => {
     const { appointments, deadlines, cases, addDeadline, updateDeadline, deleteDeadline, holidays, isLoading, setIsLoading } = useStore();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
@@ -108,7 +108,7 @@ export const Calendar: React.FC = () => {
         <div className="p-4 md:p-8 h-full flex flex-col animate-fade-in relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 shrink-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Agenda</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Calendário</h1>
                 </div>
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                     <div className="flex bg-white dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative date-picker-container z-20">
@@ -233,7 +233,7 @@ export const Calendar: React.FC = () => {
                         {selectedDeadlines.length === 0 && selectedAppointments.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-slate-400 py-12">
                                 <div className="w-16 h-16 bg-slate-50 dark:bg-dark-900 rounded-full flex items-center justify-center mb-4 text-slate-300">
-                                    <Clock size={32} /> {/* Changed from CalendarIcon to Clock as CalendarIcon is not imported */}
+                                    <Clock size={32} />
                                 </div>
                                 <p className="text-sm font-medium">Nenhum compromisso para hoje</p>
                             </div>
@@ -255,7 +255,7 @@ export const Calendar: React.FC = () => {
                                                     <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-1">{deadline.title}</h4>
                                                     <p className="text-xs text-slate-500 line-clamp-1">{deadline.caseTitle || deadline.customerName || 'Sem processo'}</p>
                                                 </div>
-                                                <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1"> {/* Changed to existing handleEditDeadline */}
+                                                <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1">
                                                     <Edit size={16} />
                                                 </button>
                                             </div>
@@ -268,7 +268,7 @@ export const Calendar: React.FC = () => {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-xs font-mono font-bold text-slate-400">{appointment.date.substring(11, 16) || 'O dia todo'}</span> {/* Used existing appointment.date format */}
+                                                    <span className="text-xs font-mono font-bold text-slate-400">{appointment.date.substring(11, 16) || 'O dia todo'}</span>
                                                     <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400">Evento</span>
                                                 </div>
                                                 <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-1">{appointment.title}</h4>
@@ -310,5 +310,3 @@ export const Calendar: React.FC = () => {
         </div>
     );
 };
-
-

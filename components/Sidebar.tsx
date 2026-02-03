@@ -62,14 +62,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
   // Wait, looking at NavItem props:
   // <NavItem ... page="deadlines" ... count={pendingDeadlinesToday} />
-  // <NavItem ... page="calendar" ... count={agendaBadgeCount} />
+  // <NavItem ... page="calendario" ... count={agendaBadgeCount} />
 
   // The original code had: const agendaBadgeCount = pendingDeadlinesToday + todayAppointments;
   // This implies Agenda badge shows BOTH deadlines and appointments? 
   // If the user said "badge number stopped working", maybe they want them separated?
   // Usually Agenda shows everything. But let's check NavItem usage in previous file view.
   // Line 108: page="deadlines" count={pendingDeadlinesToday}
-  // Line 109: page="calendar" count={agendaBadgeCount}
+  // Line 109: page="calendario" count={agendaBadgeCount}
 
   // If I look at the code I read:
   // agendaBadgeCount = pendingDeadlinesToday + todayAppointments;
@@ -123,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         <NavItem collapsed={collapsed} page="dashboard" icon={LayoutDashboard} label="Dashboard" active={activePage === 'dashboard'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
-        <NavItem collapsed={collapsed} page="calendar" icon={CalendarIcon} label="Agenda" active={activePage === 'calendar'} onClick={handleNavClick} count={agendaBadgeCount} />
+        <NavItem collapsed={collapsed} page="calendario" icon={CalendarIcon} label="Calendário" active={activePage === 'calendario'} onClick={handleNavClick} count={agendaBadgeCount} />
         <NavItem collapsed={collapsed} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
 
         {!collapsed && <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-8 px-4 whitespace-nowrap">Administrativo</div>}

@@ -135,7 +135,7 @@ export const Dashboard: React.FC = () => {
           subtext="Próximos dias"
         />
         <StatCard
-          title="Agenda Hoje"
+          title="Calendário Hoje"
           value={todayItems}
           icon={CalendarIcon}
           trend={todayItems > 0 ? 'Ocupado' : 'Livre'}
@@ -369,8 +369,8 @@ export const Dashboard: React.FC = () => {
                       key={deadline.id}
                       onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
                       className={`flex items-start gap-3 p-4 rounded-lg transition-colors cursor-pointer hover:shadow-sm group border ${isToday
-                          ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-                          : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30'
+                        ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                        : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30'
                         }`}
                     >
                       <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : 'bg-amber-500'}`} />

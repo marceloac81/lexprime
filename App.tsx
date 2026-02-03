@@ -8,7 +8,7 @@ import { SearchModal } from './components/SearchModal';
 import { Dashboard } from './pages/Dashboard';
 import { Cases } from './pages/Cases';
 import { Deadlines } from './pages/Deadlines';
-import { Calendar } from './pages/Calendar';
+import { Calendario } from './pages/Calendario';
 import { Clients } from './pages/Clients';
 import { Settings } from './pages/Settings';
 import { Team } from './pages/Team';
@@ -58,7 +58,7 @@ const AppContent: React.FC = () => {
       case 'dashboard': return <Dashboard />;
       case 'cases': return <Cases />;
       case 'deadlines': return <Deadlines />;
-      case 'calendar': return <Calendar />;
+      case 'calendario': return <Calendario />;
       case 'clients': return <Clients />;
       case 'settings': return <Settings />;
       case 'team': return <Team />;
