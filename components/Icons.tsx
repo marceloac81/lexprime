@@ -23,6 +23,7 @@ import {
   Sun,
   Menu,
   X,
+  RefreshCw,
   Download,
   Upload,
   TrendingUp,
@@ -50,7 +51,8 @@ import {
   Scale,
   Lock,
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Smartphone
 } from 'lucide-react';
 
 
@@ -78,6 +80,7 @@ export {
   Sun,
   Menu,
   X,
+  RefreshCw,
   Download,
   Upload,
   TrendingUp,
@@ -105,5 +108,6 @@ export {
   Scale,
   Lock,
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Smartphone
 };

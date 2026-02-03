@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/Store';
-import { ChevronLeft, ChevronRight, Plus, Clock, Search, CheckCircle2, AlertCircle, X, Edit, ChevronDown, User, MapPin } from '../components/Icons';
+import { ChevronLeft, ChevronRight, Plus, Clock, Search, CheckCircle2, AlertCircle, X, Edit, ChevronDown, User, MapPin, RefreshCw, Copy, Globe, Smartphone, Check, Trash2, RotateCcw, CalendarIcon } from '../components/Icons';
+import { supabase } from '../utils/supabaseClient';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
 
@@ -16,6 +17,11 @@ export const Calendario: React.FC = () => {
     const [showNewModal, setShowNewModal] = useState(false);
     const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
     const [showMonthPicker, setShowMonthPicker] = useState(false);
+    const [showSyncModal, setShowSyncModal] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [activeSyncTab, setActiveSyncTab] = useState<'outlook' | 'google' | 'iphone'>('outlook');
+    const [syncToken, setSyncToken] = useState<string>('');
+    const [isResettingToken, setIsResettingToken] = useState(false);
 
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
@@ -93,6 +99,47 @@ export const Calendario: React.FC = () => {
         days.push(i);
     }
 
+    // Fetch Sync Token
+    useEffect(() => {
+        const fetchToken = async () => {
+            const { data, error } = await supabase
+                .from('office_settings')
+                .select('value')
+                .eq('key', 'calendar_token')
+                .single();
+            if (data) setSyncToken(data.value);
+        };
+        fetchToken();
+    }, []);
+
+    const handleCopyToken = () => {
+        const url = `${(import.meta as any).env.VITE_SUPABASE_URL}/functions/v1/calendar-feed?token=${syncToken}`;
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleResetToken = async () => {
+        if (!confirm('Ao redefinir o link, todos os calendários já sincronizados pararão de funcionar. Deseja continuar?')) return;
+
+        setIsResettingToken(true);
+        const newToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        try {
+            const { error } = await supabase
+                .from('office_settings')
+                .update({ value: newToken })
+                .eq('key', 'calendar_token');
+
+            if (error) throw error;
+            setSyncToken(newToken);
+        } catch (err) {
+            alert('Erro ao redefinir link. Tente novamente.');
+        } finally {
+            setIsResettingToken(false);
+        }
+    };
+
     // Close picker when clicking outside (simple implementation)
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -153,6 +200,18 @@ export const Calendario: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    <button
+                        onClick={() => setShowSyncModal(true)}
+                        className="group p-2 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg transition-all flex items-center gap-2.5 text-left"
+                        title="Sincronizar com Outlook, Google e iPhone"
+                    >
+                        <RefreshCw size={22} className="group-hover:rotate-180 transition-transform duration-500" />
+                        <div className="hidden lg:flex flex-col leading-tight">
+                            <span className="text-sm font-bold">Sincronizar Calendário</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Outlook • Google • iPhone</span>
+                        </div>
+                    </button>
 
                     <button
                         onClick={() => setShowNewModal(true)}
@@ -306,6 +365,144 @@ export const Calendario: React.FC = () => {
                     initialData={editingDeadline}
                     onDelete={deleteDeadline}
                 />
+            )}
+            {/* Sync Modal */}
+            {showSyncModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg overflow-hidden animate-scale-in">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-dark-900/50">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center text-primary-600 dark:text-primary-400">
+                                    <RefreshCw size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:white">Sincronizar Calendário</h3>
+                                    <p className="text-xs text-slate-500">Outlook, Google Calendar e iPhone</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowSyncModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Link Box */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-end mb-1">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Seu Link de Feed (iCal)</label>
+                                    <button
+                                        onClick={handleResetToken}
+                                        disabled={isResettingToken}
+                                        className="text-[10px] font-bold text-rose-500 hover:text-rose-600 uppercase flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                        <RotateCcw size={12} /> Redefinir Link
+                                    </button>
+                                </div>
+                                <div className="flex gap-2 p-1.5 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl items-center">
+                                    <div className="flex-1 px-3 py-2 text-sm font-mono text-slate-600 dark:text-slate-300 truncate">
+                                        {syncToken ? (
+                                            `${(import.meta as any).env.VITE_SUPABASE_URL}/functions/v1/calendar-feed?token=${syncToken}`
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-slate-400 italic">
+                                                <RefreshCw size={14} className="animate-spin" /> Gerando link seguro...
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={handleCopyToken}
+                                        disabled={!syncToken}
+                                        className={`${copied ? 'bg-green-500 border-green-500 text-white' : 'bg-white dark:bg-dark-800 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600'} hover:opacity-90 px-4 py-2 rounded-lg border text-sm font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 min-w-[110px] justify-center disabled:opacity-50`}
+                                    >
+                                        {copied ? <><Check size={16} /> Copiado!</> : <><Copy size={16} /> Copiar</>}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Device Tabs */}
+                            <div className="space-y-4">
+                                <div className="flex border-b border-slate-100 dark:border-slate-700">
+                                    <button
+                                        onClick={() => setActiveSyncTab('outlook')}
+                                        className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center justify-center gap-2 ${activeSyncTab === 'outlook' ? 'border-primary-500 text-primary-600 font-black' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        <CalendarIcon size={14} /> Outlook
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveSyncTab('google')}
+                                        className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center justify-center gap-2 ${activeSyncTab === 'google' ? 'border-primary-500 text-primary-600 font-black' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        <Globe size={14} /> Google
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveSyncTab('iphone')}
+                                        className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center justify-center gap-2 ${activeSyncTab === 'iphone' ? 'border-primary-500 text-primary-600 font-black' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        <Smartphone size={14} /> iPhone
+                                    </button>
+                                </div>
+
+                                <div className="min-h-[140px]">
+                                    {activeSyncTab === 'outlook' && (
+                                        <ol className="space-y-3 animate-fade-in">
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                                                <span>No Outlook, clique em <strong>Adicionar Calendário</strong> &gt; <strong>Da Internet</strong>.</span>
+                                            </li>
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                                                <span>Cole o link copiado acima e clique em <strong>Assinar</strong>.</span>
+                                            </li>
+                                        </ol>
+                                    )}
+                                    {activeSyncTab === 'google' && (
+                                        <ol className="space-y-3 animate-fade-in">
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                                                <span>No Google Agenda, clique no <strong>+</strong> ao lado de 'Outras agendas'.</span>
+                                            </li>
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                                                <span>Selecione <strong>Do URL</strong>, cole o link e clique em <strong>Adicionar agenda</strong>.</span>
+                                            </li>
+                                        </ol>
+                                    )}
+                                    {activeSyncTab === 'iphone' && (
+                                        <ol className="space-y-3 animate-fade-in">
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                                                <span>Acesse <strong>Ajustes</strong> &gt; <strong>Calendário</strong> &gt; <strong>Contas</strong>.</span>
+                                            </li>
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                                                <span>Toque em <strong>Adicionar Conta</strong> &gt; <strong>Outra</strong> &gt; <strong>Adic. Calendário Assinado</strong>.</span>
+                                            </li>
+                                            <li className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                                                <span>Cole o link no campo Servidor e toque em <strong>Seguinte</strong>.</span>
+                                            </li>
+                                        </ol>
+                                    )}
+                                </div>
+
+                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30 flex gap-3">
+                                    <AlertCircle size={18} className="text-amber-500 shrink-0" />
+                                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                                        <strong>Nota sobre sincronização:</strong> Outlook e Google podem levar de 4 a 24 horas para refletir mudanças recentes devido ao cache dos servidores deles.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 dark:bg-dark-900/50 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                            <button
+                                onClick={() => setShowSyncModal(false)}
+                                className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
+                            >
+                                Concluído
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
