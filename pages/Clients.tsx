@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
 import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign } from '../components/Icons';
 import { Client } from '../types';
+import { normalizeText } from '../utils/textUtils';
 import { PowerOfAttorneyModal } from '../components/PowerOfAttorneyModal';
 import { FeeContractModal } from '../components/FeeContractModal';
 
@@ -103,10 +104,11 @@ export const Clients: React.FC = () => {
     }, [pendingAction, setPendingAction]);
 
     const filteredClients = clients.filter(c => {
-        const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            c.document.includes(searchTerm) ||
-            (c.group && c.group.toLowerCase().includes(searchTerm.toLowerCase()));
+        const normalizedTerm = normalizeText(searchTerm);
+        const matchesSearch = normalizeText(c.name).includes(normalizedTerm) ||
+            (c.email && normalizeText(c.email).includes(normalizedTerm)) ||
+            normalizeText(c.document).includes(normalizedTerm) ||
+            (c.group && normalizeText(c.group).includes(normalizedTerm));
         const matchesType = typeFilter === 'all' || c.type === typeFilter;
         return matchesSearch && matchesType;
     });

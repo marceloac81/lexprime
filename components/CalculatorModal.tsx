@@ -4,7 +4,8 @@ import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
 import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
-import { sanitizeCNJ } from '../utils/cnjUtils';
+import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
+import { normalizeText } from '../utils/textUtils';
 
 interface CalculatorModalProps {
     onClose: () => void;
@@ -111,15 +112,15 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
     const filteredCases = cases.filter(c => {
         if (!caseSearch) return true;
-        const searchLower = caseSearch.toLowerCase();
-        const searchSanitized = sanitizeCNJ(searchLower);
+        const normalizedTerm = normalizeText(caseSearch);
+        const searchSanitized = sanitizeCNJ(caseSearch);
         const caseNumberSanitized = sanitizeCNJ(c.number);
 
         return (
             (searchSanitized && caseNumberSanitized.includes(searchSanitized)) ||
-            c.number.includes(searchLower) ||
-            c.title.toLowerCase().includes(searchLower) ||
-            c.clientName.toLowerCase().includes(searchLower)
+            normalizeText(c.number).includes(normalizedTerm) ||
+            normalizeText(c.title).includes(normalizedTerm) ||
+            normalizeText(c.clientName).includes(normalizedTerm)
         );
     });
 
@@ -259,7 +260,12 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     className={`w-full pl-10 pr-10 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500 font-mono text-sm ${initialData?.caseId ? 'cursor-not-allowed bg-slate-100 dark:bg-dark-900/50' : ''}`}
                                     placeholder="Buscar por número ou cliente..."
                                     value={caseSearch}
-                                    onChange={e => { setCaseSearch(e.target.value); setIsCaseDropdownOpen(true); if (selectedCaseId) handleClearCase(); }}
+                                    onChange={e => {
+                                        const val = formatCNJ(e.target.value);
+                                        setCaseSearch(val);
+                                        setIsCaseDropdownOpen(true);
+                                        if (selectedCaseId) handleClearCase();
+                                    }}
                                     onFocus={() => !initialData?.caseId && setIsCaseDropdownOpen(true)}
                                     disabled={!!initialData?.caseId} // Disable search if case ID is fixed/passed
                                 />

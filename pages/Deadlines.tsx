@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
 import { Plus, X, Search, CalendarIcon, ChevronLeft, ChevronRight, Edit, Trash2, Printer } from '../components/Icons';
 import { formatDate } from '../utils/dateUtils';
+import { normalizeText } from '../utils/textUtils';
 import { Deadline } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
@@ -91,16 +92,16 @@ export const Deadlines: React.FC = () => {
         if (filterDate && d.dueDate !== filterDate) return false;
 
         if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase();
+            const normalizedTerm = normalizeText(searchTerm);
             const matches =
-                d.title.toLowerCase().includes(lowerTerm) ||
-                (d.customerName || '').toLowerCase().includes(lowerTerm) ||
-                (d.court || '').toLowerCase().includes(lowerTerm) ||
-                (d.city || '').toLowerCase().includes(lowerTerm) ||
-                (relatedCase?.number || '').toLowerCase().includes(lowerTerm) ||
-                (relatedCase?.clientName || '').toLowerCase().includes(lowerTerm) ||
-                (relatedCase?.court || '').toLowerCase().includes(lowerTerm) ||
-                (relatedCase?.city || '').toLowerCase().includes(lowerTerm);
+                normalizeText(d.title).includes(normalizedTerm) ||
+                normalizeText(d.customerName || '').includes(normalizedTerm) ||
+                normalizeText(d.court || '').includes(normalizedTerm) ||
+                normalizeText(d.city || '').includes(normalizedTerm) ||
+                normalizeText(relatedCase?.number || '').includes(normalizedTerm) ||
+                normalizeText(relatedCase?.clientName || '').includes(normalizedTerm) ||
+                normalizeText(relatedCase?.court || '').includes(normalizedTerm) ||
+                normalizeText(relatedCase?.city || '').includes(normalizedTerm);
 
             if (!matches) return false;
         }

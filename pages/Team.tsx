@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useStore } from '../context/Store';
 import { User, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle } from '../components/Icons';
 import { TeamMember } from '../types';
+import { normalizeText } from '../utils/textUtils';
 
 // Mask helpers
 const maskPhone = (value: string) => {
@@ -36,11 +37,12 @@ export const Team: React.FC = () => {
     const fileRef = useRef<HTMLInputElement>(null);
 
     // Filter members
-    const filteredMembers = teamMembers.filter(m =>
-        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.role.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredMembers = teamMembers.filter(m => {
+        const normalizedTerm = normalizeText(searchTerm);
+        return normalizeText(m.name).includes(normalizedTerm) ||
+            normalizeText(m.email).includes(normalizedTerm) ||
+            normalizeText(m.role).includes(normalizedTerm);
+    });
 
     const sortedMembers = [...filteredMembers].sort((a, b) => {
         const aValue = a[sortConfig.key]?.toString().toLowerCase() || '';

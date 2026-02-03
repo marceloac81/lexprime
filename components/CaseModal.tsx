@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Briefcase, Search, FileText, User as UserIcon, AlertCircle, Shield, GitBranch } from '../components/Icons';
 import { CaseStatus, Case } from '../types';
 import { maskCurrency, parseCurrency } from '../utils/currencyUtils';
+import { normalizeText } from '../utils/textUtils';
+import { formatCNJ } from '../utils/cnjUtils';
 
 interface CaseModalProps {
     onClose: () => void;
@@ -174,13 +176,13 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                                 <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
                                                     {cases
                                                         .filter(c => c.id !== newCase.id &&
-                                                            (c.number.toLowerCase().includes(parentSearch.toLowerCase()) ||
-                                                                c.title.toLowerCase().includes(parentSearch.toLowerCase())))
+                                                            (normalizeText(c.number).includes(normalizeText(parentSearch)) ||
+                                                                normalizeText(c.title).includes(normalizeText(parentSearch))))
                                                         .length > 0 ? (
                                                         cases
                                                             .filter(c => c.id !== newCase.id &&
-                                                                (c.number.toLowerCase().includes(parentSearch.toLowerCase()) ||
-                                                                    c.title.toLowerCase().includes(parentSearch.toLowerCase())))
+                                                                (normalizeText(c.number).includes(normalizeText(parentSearch)) ||
+                                                                    normalizeText(c.title).includes(normalizeText(parentSearch))))
                                                             .map(c => (
                                                                 <button
                                                                     key={c.id}
@@ -244,7 +246,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                 <input
                                     placeholder="0000000-00.0000.0.00.0000"
                                     value={newCase.number}
-                                    onChange={e => setNewCase({ ...newCase, number: e.target.value })}
+                                    onChange={e => setNewCase({ ...newCase, number: formatCNJ(e.target.value) })}
                                     className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white font-mono tracking-wide focus:ring-2 focus:ring-primary-500"
                                 />
                             </div>
@@ -285,8 +287,8 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                         />
                                         {showCityDropdown && newCase.uf && (
                                             <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar animate-fade-in">
-                                                {Array.from(new Set(cases.filter(c => c.uf === newCase.uf && c.city).map(c => c.city)))
-                                                    .filter(city => city.toLowerCase().includes(citySearch.toLowerCase()))
+                                                {Array.from(new Set(cases.filter(c => c.uf === newCase.uf && c.city).map(c => c.city as string)))
+                                                    .filter((city: string) => normalizeText(city).includes(normalizeText(citySearch)))
                                                     .sort()
                                                     .map(city => (
                                                         <button
@@ -323,8 +325,8 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                         />
                                         {showCourtDropdown && (
                                             <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar animate-fade-in">
-                                                {Array.from(new Set(cases.filter(c => (!newCase.city || c.city === newCase.city) && c.court).map(c => c.court)))
-                                                    .filter(court => court.toLowerCase().includes(courtSearch.toLowerCase()))
+                                                {Array.from(new Set(cases.filter(c => (!newCase.city || c.city === newCase.city) && c.court).map(c => c.court as string)))
+                                                    .filter((court: string) => normalizeText(court).includes(normalizeText(courtSearch)))
                                                     .sort()
                                                     .map(court => (
                                                         <button
@@ -361,8 +363,8 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                         />
                                         {showAreaDropdown && (
                                             <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
-                                                {Array.from(new Set([...DEFAULT_AREAS, ...cases.map(c => c.area).filter(Boolean)]))
-                                                    .filter(a => a.toLowerCase().includes(areaSearch.toLowerCase()))
+                                                {Array.from(new Set([...DEFAULT_AREAS, ...cases.map(c => c.area as string).filter(Boolean)]))
+                                                    .filter((a: string) => normalizeText(a).includes(normalizeText(areaSearch)))
                                                     .sort()
                                                     .map(area => (
                                                         <button
@@ -418,7 +420,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                         {showClientDropdown && (
                                             <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
                                                 {clients
-                                                    .filter(cli => cli.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                                                    .filter(cli => normalizeText(cli.name).includes(normalizeText(clientSearch)))
                                                     .sort((a, b) => a.name.localeCompare(b.name))
                                                     .map(cli => (
                                                         <button

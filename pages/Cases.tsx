@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useStore } from '../context/Store';
 import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
+import { normalizeText } from '../utils/textUtils';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
 import { formatCurrency, maskCurrency, parseCurrency } from '../utils/currencyUtils';
@@ -53,7 +54,10 @@ export const Cases: React.FC = () => {
     ];
 
     const filteredCases = cases.filter(c => {
-        const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) || c.number.includes(searchTerm) || c.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+        const normalizedTerm = normalizeText(searchTerm);
+        const matchesSearch = normalizeText(c.title).includes(normalizedTerm) ||
+            normalizeText(c.number).includes(normalizedTerm) ||
+            normalizeText(c.clientName).includes(normalizedTerm);
         const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
         return matchesSearch && matchesStatus;
     }).sort((a, b) => {
