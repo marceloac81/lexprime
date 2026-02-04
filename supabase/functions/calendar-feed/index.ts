@@ -93,7 +93,7 @@ serve(async (req) => {
             ics.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`)
             ics.push(`DTSTART;TZID=America/Sao_Paulo:${dtStart}`)
             ics.push(`DTEND;TZID=America/Sao_Paulo:${dtEnd}`)
-            ics.push(`SUMMARY:[PRAZO] - ${d.title}`)
+            ics.push(`SUMMARY:${d.title}`)
             ics.push(`DESCRIPTION:Processo: ${processNumber}\\nCliente: ${clientName}\\nLocal: ${court}`)
             ics.push('END:VEVENT')
         }

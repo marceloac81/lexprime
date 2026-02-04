@@ -224,54 +224,60 @@ export const Calendario: React.FC = () => {
 
             <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-2">
                 {/* CALENDAR GRID */}
-                <div className="flex-[3] bg-white dark:bg-dark-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col min-h-[600px]">
-                    <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-700">
+                <div className="flex-[3] bg-white dark:bg-dark-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col min-h-[600px] relative">
+                    <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-700 shrink-0">
                         {['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map(d => (
                             <div key={d} className="py-3 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50/50 dark:bg-dark-900/50">{d}</div>
                         ))}
                     </div>
-                    <div className="grid grid-cols-7 flex-1 auto-rows-fr">
-                        {days.map((day, idx) => {
-                            if (day === null) return <div key={idx} className="bg-slate-50/30 dark:bg-dark-900/30 border-b border-r border-slate-100 dark:border-slate-800" />;
+                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ direction: 'rtl' }}>
+                        <div className="grid grid-cols-7 auto-rows-fr" style={{ direction: 'ltr' }}>
+                            {days.map((day, idx) => {
+                                if (day === null) return <div key={idx} className="bg-slate-50/30 dark:bg-dark-900/30 border-b border-r border-slate-100 dark:border-slate-800" />;
 
-                            const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                            const dayDeadlines = deadlines.filter(d => d.dueDate === dateStr);
-                            const dayAppointments = appointments.filter(a => a.date.startsWith(dateStr));
-                            const isToday = new Date().toISOString().split('T')[0] === dateStr;
-                            const isSelected = selectedDateStr === dateStr;
+                                const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                const dayDeadlines = deadlines.filter(d => d.dueDate === dateStr);
+                                const dayAppointments = appointments.filter(a => a.date.startsWith(dateStr));
+                                const isToday = new Date().toISOString().split('T')[0] === dateStr;
+                                const isSelected = selectedDateStr === dateStr;
 
-                            return (
-                                <div
-                                    key={idx}
-                                    onClick={() => setSelectedDateStr(dateStr)}
-                                    className={`border-b border-r border-slate-100 dark:border-slate-800 p-1 md:p-2 min-h-[100px] md:min-h-[120px] relative group cursor-pointer transition-colors
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => setSelectedDateStr(dateStr)}
+                                        className={`border-b border-r border-slate-100 dark:border-slate-800 p-1 md:p-2 min-h-[150px] md:min-h-[180px] relative group cursor-pointer transition-colors
                                 ${isSelected ? 'bg-primary-50 dark:bg-primary-900/10 ring-2 ring-inset ring-primary-500/50' : 'hover:bg-slate-50 dark:hover:bg-dark-900/50'}
                                 ${isToday && !isSelected ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}
                             `}
-                                >
-                                    <span className={`text-sm font-bold block mb-2 w-7 h-7 flex items-center justify-center rounded-full 
+                                    >
+                                        <span className={`text-sm font-bold block mb-2 w-7 h-7 flex items-center justify-center rounded-full 
                                 ${isToday ? 'bg-primary-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300'}
                                 ${isSelected && !isToday ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white' : ''}
                             `}>
-                                        {day}
-                                    </span>
+                                            {day}
+                                        </span>
 
-                                    <div className="space-y-1">
-                                        {dayDeadlines.map(d => (
-                                            <div key={d.id} className="text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 truncate border-l-2 border-rose-500 font-medium">
-                                                <span className="hidden md:inline">{d.title}</span>
-                                                <span className="md:hidden">Prazo</span>
-                                            </div>
-                                        ))}
-                                        {dayAppointments.map(a => (
-                                            <div key={a.id} className="text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 truncate border-l-2 border-purple-500 font-medium">
-                                                {a.date.substring(11, 16)} <span className="hidden md:inline">{a.title}</span>
-                                            </div>
-                                        ))}
+                                        <div className="space-y-1">
+                                            {dayDeadlines.map(d => {
+                                                const dCase = cases.find(c => c.id === d.caseId);
+                                                const procNum = dCase?.number || 'Avulso';
+                                                return (
+                                                    <div key={d.id} className="text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 truncate border-l-2 border-rose-500 font-medium" title={`${(d.startTime || '09:00').slice(0, 5)} - ${d.title}\nProcesso: ${procNum}`}>
+                                                        <span className="hidden md:inline">{(d.startTime || '09:00').slice(0, 5)} - {d.title}</span>
+                                                        <span className="md:hidden">{(d.startTime || '09:00').slice(0, 5)}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                            {dayAppointments.map(a => (
+                                                <div key={a.id} className="text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 truncate border-l-2 border-purple-500 font-medium" title={`${(a.date.substring(11, 16) || '09:00')} - ${a.title}`}>
+                                                    {(a.date.substring(11, 16) || '09:00')} <span className="hidden md:inline">{a.title}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        })}
+                                )
+                            })}
+                        </div>
                     </div>
                 </div>
 
@@ -300,26 +306,39 @@ export const Calendario: React.FC = () => {
                             <>
                                 {selectedDeadlines
                                     .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
-                                    .map(deadline => (
-                                        <div key={deadline.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-                                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${deadline.priority === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-primary-500 transition-colors">{(deadline.startTime || 'O dia todo').slice(0, 5)}</span>
-                                                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${deadline.priority === 'High' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'}`}>
-                                                            {deadline.type?.toUpperCase() === 'PRAZO PROCESSUAL' ? 'PRAZO' : deadline.type}
-                                                        </span>
+                                    .map(deadline => {
+                                        const dCase = cases.find(c => c.id === deadline.caseId);
+                                        const clientName = dCase?.clientName || deadline.customerName || 'Não informado';
+                                        const procNum = dCase?.number || 'Avulso';
+                                        const statusLabel = deadline.status === 'Done' ? 'Concluído' : deadline.status === 'Canceled' ? 'Cancelado' : 'Pendente';
+                                        const statusColor = deadline.status === 'Done' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' : deadline.status === 'Canceled' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400';
+
+                                        return (
+                                            <div key={deadline.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+                                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${deadline.priority === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-xs font-mono font-bold text-slate-400 transition-colors">{(deadline.startTime || 'O dia todo').slice(0, 5)}</span>
+                                                            <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${statusColor}`}>
+                                                                {statusLabel}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-0.5 truncate">{deadline.title}</h4>
+                                                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 truncate mb-1">{clientName}</p>
+                                                        <div className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+                                                            {procNum}
+                                                        </div>
                                                     </div>
-                                                    <h4 className="font-bold text-slate-800 dark:text-slate-200 leading-tight mb-1">{deadline.title}</h4>
-                                                    <p className="text-xs text-slate-500 line-clamp-1">{deadline.caseTitle || deadline.customerName || 'Sem processo'}</p>
+                                                    <div className="flex flex-col items-end shrink-0 ml-2">
+                                                        <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1">
+                                                            <Edit size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <button onClick={() => handleEditDeadline(deadline)} className="text-slate-300 hover:text-primary-500 p-1">
-                                                    <Edit size={16} />
-                                                </button>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
 
                                 {selectedAppointments.map(appointment => (
                                     <div key={appointment.id} className="bg-white dark:bg-dark-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
