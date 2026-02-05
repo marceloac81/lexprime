@@ -236,8 +236,12 @@ export const Calendario: React.FC = () => {
                                 if (day === null) return <div key={idx} className="bg-slate-50/30 dark:bg-dark-900/30 border-b border-r border-slate-100 dark:border-slate-800" />;
 
                                 const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                                const dayDeadlines = deadlines.filter(d => d.dueDate === dateStr);
-                                const dayAppointments = appointments.filter(a => a.date.startsWith(dateStr));
+                                const dayDeadlines = deadlines
+                                    .filter(d => d.dueDate === dateStr)
+                                    .sort((a, b) => (a.startTime || '09:00').localeCompare(b.startTime || '09:00'));
+                                const dayAppointments = appointments
+                                    .filter(a => a.date.startsWith(dateStr))
+                                    .sort((a, b) => a.date.substring(11, 16).localeCompare(b.date.substring(11, 16)));
                                 const isToday = new Date().toISOString().split('T')[0] === dateStr;
                                 const isSelected = selectedDateStr === dateStr;
 

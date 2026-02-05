@@ -275,6 +275,8 @@ export const Dashboard: React.FC = () => {
                           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                         }}
                         itemStyle={{ color: '#fff' }}
+                        labelStyle={{ display: 'none' }}
+                        formatter={(value: any, name: any, props: any) => [`${value}`, `${props.payload.name}`]}
                       />
                       <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                         {areaData.map((entry, index) => (
