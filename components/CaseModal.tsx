@@ -488,7 +488,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                         <input
                                             type="text"
                                             placeholder="0,00"
-                                            value={newCase.value !== undefined ? maskCurrency(newCase.value.toFixed(2).replace('.', '')) : ''}
+                                            value={(newCase.value !== undefined && newCase.value !== null) ? maskCurrency(newCase.value.toFixed(2).replace('.', '')) : ''}
                                             onChange={e => {
                                                 const masked = maskCurrency(e.target.value);
                                                 setNewCase({ ...newCase, value: parseCurrency(masked) });
