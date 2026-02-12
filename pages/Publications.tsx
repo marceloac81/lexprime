@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, AlertCircle, FileText, Calendar as CalendarIcon, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check } from 'lucide-react';
+import { Search, Loader2, AlertCircle, FileText, Calendar as CalendarIcon, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer } from 'lucide-react';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
@@ -37,6 +37,8 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     // Dropdown State
     const [isOabDropdownOpen, setIsOabDropdownOpen] = useState(false);
     const [manualOab, setManualOab] = useState('');
+    // Selection State
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const oabDropdownRef = useRef<HTMLDivElement>(null);
 
     // Sanitization Helper
@@ -191,6 +193,57 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         }
     };
 
+    const toggleSelection = (id: string) => {
+        const newSelection = new Set(selectedItems);
+        if (newSelection.has(id)) {
+            newSelection.delete(id);
+        } else {
+            newSelection.add(id);
+        }
+        setSelectedItems(newSelection);
+    };
+
+    const handlePrint = () => {
+        if (selectedItems.size === 0) {
+            alert('Por favor, selecione pelo menos uma publicação para imprimir.');
+            return;
+        }
+        window.print();
+    };
+
+    const formatDateForDisplay = (dateString: string) => {
+        if (!dateString) return '';
+        // Date comes as YYYY-MM-DD from API
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return new Date(dateString).toLocaleDateString('pt-BR');
+    };
+
+    const sanitizeText = (html: string) => {
+        if (!html) return '';
+
+        // 1. Decode entities using a temporary element (browser-safe)
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        let decoded = doc.body.textContent || "";
+
+        // 2. Remove remaining HTML tags (regex fallback)
+        decoded = decoded.replace(/<[^>]*>/g, '');
+
+        // 3. Clean up extra newlines and spaces
+        return decoded.trim();
+    };
+
+    const handleToggleAll = () => {
+        if (selectedItems.size === results.length && results.length > 0) {
+            setSelectedItems(new Set());
+        } else {
+            const allIds = new Set(results.map(r => r.id));
+            setSelectedItems(allIds);
+        }
+    };
+
     const handleCreateDeadline = (processNumber: string) => {
         setPendingProcessNumber(processNumber);
         setShowDeadlineModal(true);
@@ -214,10 +267,49 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return (
-        <div className="p-6 md:p-8 space-y-8 animate-fade-in max-w-7xl mx-auto">
+        <div className="p-6 md:p-8 space-y-8 animate-fade-in max-w-7xl mx-auto print:p-0 print:m-0 print:max-w-none">
+            <style>
+                {`
+                @media print {
+                    @page { margin: 20mm; }
+                    .no-print { display: none !important; }
+                    .print-only { display: block !important; }
+                    
+                    html, body, #root, .animate-fade-in { 
+                        display: block !important;
+                        height: auto !important; 
+                        overflow: visible !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
+                    .max-w-7xl { max-width: none !important; }
+                    .space-y-8 > * + * { margin-top: 0 !important; }
+                    .space-y-4 > * + * { margin-top: 0 !important; }
+
+                    .print-card { 
+                        display: block !important;
+                        box-shadow: none !important; 
+                        border: 1px solid #e2e8f0 !important; 
+                        margin-bottom: 3rem !important;
+                        page-break-inside: avoid !important;
+                        padding: 2rem !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                    }
+                    .print-card-selected {
+                        display: block !important;
+                    }
+                    .print-card-not-selected {
+                        display: none !important;
+                    }
+                    body { background: white !important; }
+                }
+                `}
+            </style>
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div className="no-print">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                         Publicações DJEN
                     </h1>
@@ -228,7 +320,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             </div>
 
             {/* Filters Card */}
-            <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-6">
+            <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-6 no-print">
                 <div className="flex flex-wrap lg:flex-nowrap gap-6">
 
                     {/* Multi-select OAB Dropdown with Manual Entry */}
@@ -355,46 +447,90 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             <div className="space-y-4">
                 {results.length > 0 ? (
                     <>
-                        <div className="flex justify-between items-center px-2">
+                        <div className="flex justify-between items-center px-2 no-print">
                             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
                                 Total de {totalCount} resultado(s) encontrados
                             </span>
 
-                            {totalPages > 1 && (
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={handleToggleAll}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-dark-700 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-dark-750 transition-all active:scale-95"
+                                >
+                                    {selectedItems.size === results.length && results.length > 0 ? (
+                                        <>
+                                            <X size={16} className="text-red-500" />
+                                            Desmarcar Todas
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check size={16} className="text-green-500" />
+                                            Selecionar Todas
+                                        </>
+                                    )}
+                                </button>
+
+                                {selectedItems.size > 0 && (
                                     <button
-                                        onClick={() => handleSearch(pageNumber - 1)}
-                                        disabled={pageNumber === 1 || loading}
-                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
+                                        onClick={handlePrint}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-lg active:scale-95"
                                     >
-                                        <ChevronLeft className="h-5 w-5" />
+                                        <Printer size={16} />
+                                        Imprimir Selecionadas ({selectedItems.size})
                                     </button>
-                                    <span className="text-sm font-bold w-12 text-center text-slate-700 dark:text-slate-300">{pageNumber} / {totalPages}</span>
-                                    <button
-                                        onClick={() => handleSearch(pageNumber + 1)}
-                                        disabled={pageNumber === totalPages || loading}
-                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
-                                    >
-                                        <ChevronRight className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            )}
+                                )}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleSearch(pageNumber - 1)}
+                                            disabled={pageNumber === 1 || loading}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
+                                        >
+                                            <ChevronLeft className="h-5 w-5" />
+                                        </button>
+                                        <span className="text-sm font-bold w-12 text-center text-slate-700 dark:text-slate-300">{pageNumber} / {totalPages}</span>
+                                        <button
+                                            onClick={() => handleSearch(pageNumber + 1)}
+                                            disabled={pageNumber === totalPages || loading}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-800 disabled:opacity-30 transition-colors"
+                                        >
+                                            <ChevronRight className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {results.map((item) => (
                             <div
                                 key={item.id}
-                                className="group bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:border-blue-200 dark:hover:border-dark-700 relative"
+                                className={`group bg-white dark:bg-dark-900 rounded-2xl p-6 border transition-all duration-300 relative print-card ${selectedItems.has(item.id)
+                                    ? 'border-blue-500 shadow-xl bg-blue-50/10 dark:bg-blue-900/5 print-card-selected'
+                                    : 'border-slate-200 dark:border-dark-800 shadow-sm hover:shadow-xl hover:border-blue-200 dark:hover:border-dark-700 print-card-not-selected'
+                                    }`}
                             >
-                                <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4">
-                                    <div>
+                                {/* Selection Checkbox */}
+                                <div className="absolute top-4 left-4 no-print">
+                                    <div
+                                        onClick={() => toggleSelection(item.id)}
+                                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${selectedItems.has(item.id)
+                                            ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-500/30'
+                                            : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-dark-800 hover:border-blue-400'
+                                            }`}
+                                    >
+                                        {selectedItems.has(item.id) && <Check size={14} className="text-white" strokeWidth={3} />}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4 pl-8 no-print:pl-8">
+                                    <div className="pl-6 no-print:pl-6">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
                                                 {item.siglaTribunal}
                                             </span>
-                                            <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
                                                 <CalendarIcon className="h-3.5 w-3.5" />
-                                                {new Date(item.data_disponibilizacao).toLocaleDateString('pt-BR')}
+                                                Disp: {formatDateForDisplay(item.data_disponibilizacao)}
                                             </span>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
@@ -405,7 +541,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                         </p>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex flex-wrap items-center gap-3 no-print">
                                         {(() => {
                                             const existingCase = findProcessInDatabase(item.numero_processo);
                                             if (existingCase) {
@@ -449,14 +585,14 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-50/50 dark:bg-dark-950/40 p-5 rounded-2xl border border-slate-100 dark:border-dark-800 mb-4 transition-colors group-hover:bg-white dark:group-hover:bg-dark-950/70 border-dashed">
-                                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed line-clamp-6 group-hover:line-clamp-none transition-all">
-                                        {item.texto}
+                                <div className="bg-slate-50/50 dark:bg-dark-950/40 p-5 rounded-2xl border border-slate-100 dark:border-dark-800 mb-4 transition-colors group-hover:bg-white dark:group-hover:bg-dark-950/70 border-dashed print:bg-white print:p-0 print:border-none">
+                                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed transition-all">
+                                        {sanitizeText(item.texto)}
                                     </p>
                                 </div>
 
                                 {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
-                                    <div className="border-t border-slate-100 dark:border-dark-800 pt-4">
+                                    <div className="border-t border-slate-100 dark:border-dark-800 pt-4 no-print">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Advogados Intimados</p>
                                         <div className="flex flex-wrap gap-2">
                                             {item.destinatarioadvogados.map((adv) => {
@@ -480,7 +616,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         ))}
                     </>
                 ) : (
-                    !loading && <div className="text-center py-24 text-slate-400 animate-fade-in">
+                    !loading && <div className="text-center py-24 text-slate-400 animate-fade-in no-print">
                         <Search className="h-16 w-16 mx-auto mb-6 opacity-10" />
                         <h4 className="text-xl font-bold text-slate-300 dark:text-slate-700 mb-2">Pronto para pesquisar</h4>
                         <p className="text-sm max-w-xs mx-auto">Utilize os filtros acima para consultar publicações e criar prazos sem sair da página.</p>
