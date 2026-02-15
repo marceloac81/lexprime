@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../context/Store';
-import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown } from '../components/Icons';
+import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
 import { normalizeText } from '../utils/textUtils';
 import { CalculatorModal } from '../components/CalculatorModal';
@@ -131,6 +131,10 @@ export const Cases: React.FC = () => {
         setShowNewCaseModal(true);
     };
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     const handleDelete = (id: string, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         if (window.confirm("Tem certeza que deseja excluir este processo permanentemente? Todos os prazos associados também podem ser afetados.")) {
@@ -206,8 +210,14 @@ export const Cases: React.FC = () => {
                 </div>
                 <div className="flex gap-2 md:gap-3 w-full md:w-auto">
                     <button
+                        onClick={handlePrint}
+                        className="flex-1 md:flex-none bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 no-print"
+                    >
+                        <Printer size={20} /> Imprimir
+                    </button>
+                    <button
                         onClick={handleOpenNew}
-                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95"
+                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95 no-print"
                     >
                         <Plus size={20} /> Novo Processo
                     </button>
@@ -418,6 +428,67 @@ export const Cases: React.FC = () => {
                     isEditing={isEditing}
                 />
             )}
+            {/* Print Styles */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media print {
+                    @page {
+                        margin: 1cm;
+                        size: landscape;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .no-print, 
+                    nav, 
+                    aside, 
+                    header, 
+                    button,
+                    .bg-primary-600,
+                    .shadow-lg,
+                    [role="button"] {
+                        display: none !important;
+                    }
+                    .animate-fade-in {
+                        animation: none !important;
+                    }
+                    .p-2, .md\\:p-8 {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    .bg-white, .dark\\:bg-dark-800 {
+                        background: transparent !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                    }
+                    table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                    }
+                    th, td {
+                        border-bottom: 1px solid #e2e8f0 !important;
+                        color: black !important;
+                        padding: 8px !important;
+                    }
+                    .text-slate-500, .text-slate-400 {
+                        color: #64748b !important;
+                    }
+                    .dark {
+                        color-scheme: light !important;
+                    }
+                    /* Ensure table fills page */
+                    .flex-1 {
+                        display: block !important;
+                    }
+                    .hidden.md\\:block {
+                        display: block !important;
+                    }
+                    .md\\:hidden {
+                        display: none !important;
+                    }
+                }
+            ` }} />
         </div>
     );
 };
