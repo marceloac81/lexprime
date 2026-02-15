@@ -52,7 +52,9 @@ import {
   Lock,
   ArrowRight,
   RotateCcw,
-  Smartphone
+  Smartphone,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 
 
@@ -109,5 +111,7 @@ export {
   Lock,
   ArrowRight,
   RotateCcw,
-  Smartphone
+  Smartphone,
+  Maximize2,
+  Minimize2
 };

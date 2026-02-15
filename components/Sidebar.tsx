@@ -119,14 +119,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
 
       <nav className={`flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar overflow-x-hidden ${collapsed ? 'items-center flex flex-col' : ''}`}>
-        {!collapsed && <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2 px-4 whitespace-nowrap">Gestão</div>}
         <NavItem collapsed={collapsed} page="dashboard" icon={LayoutDashboard} label="Dashboard" active={activePage === 'dashboard'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
         <NavItem collapsed={collapsed} page="calendario" icon={CalendarIcon} label="Calendário" active={activePage === 'calendario'} onClick={handleNavClick} count={agendaBadgeCount} />
         <NavItem collapsed={collapsed} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
 
-        {!collapsed && <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-8 px-4 whitespace-nowrap">Administrativo</div>}
         {collapsed && <div className="my-4 h-px w-full bg-slate-200 dark:bg-slate-800" />}
 
         <NavItem collapsed={collapsed} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />

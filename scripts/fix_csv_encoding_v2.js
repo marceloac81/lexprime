@@ -72,6 +72,4 @@ NATÁLIA SILVA DE SOUZA;104.671.337-00;26.823.268-3;;Feminino;Brasileira;Solteir
 ALCEU VILELA PAIVA NETO;143.548.687-09;27.683.664-0;;Masculino;Brasileiro;Solteiro;Estudante;;;;;;;;Avenida Professor Florestan Fernandes;1024;casa 04-A;Camboinhas;Niterói;RJ;24.358-580;Brasil;;;`;
 const bom = '\\uFEFF';
 fs.writeFileSync('contatos_procuracoes.csv', bom + content, { encoding: 'utf8' });
-`;
-const path = 'c:\\Users\\Marcelo\\Downloads\\lexprime\\scripts\\fix_csv_encoding_v2.js';
-fs.writeFileSync(path, CodeContent);
+

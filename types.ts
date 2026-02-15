@@ -103,6 +103,7 @@ export interface Case {
   id: string;
   number: string;          // CNJ or Admin (Required)
   title: string;           // Auto-generated or manual (Client vs Opponent)
+  tribunal?: string;       // Tribunal (TJRJ, TRF1, etc.)
 
   // Parties
   clientId?: string;
@@ -125,6 +126,8 @@ export interface Case {
   value?: number;          // Optional
   valueDate?: string;      // Optional
 
+  subject?: string;        // Assunto (DataJud)
+  probability?: string;     // Probabilidade de Êxito/Perda
   status: CaseStatus;
   lastUpdate: string;
   tags: string[];

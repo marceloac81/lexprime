@@ -428,6 +428,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             relatedType: c.related_type,
             valueDate: c.value_date,
             lastUpdate: c.last_update,
+            tribunal: c.tribunal,
+            subject: c.subject,
+            probability: c.probability,
           })));
         }
 
@@ -658,6 +661,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         status: updatedCase.status,
         last_update: updatedCase.lastUpdate,
         tags: updatedCase.tags,
+        tribunal: updatedCase.tribunal || null,
+        subject: updatedCase.subject || null,
+        probability: updatedCase.probability || null,
         description: updatedCase.description,
         occurrences: updatedCase.occurrences,
         history: updatedCase.history,
@@ -710,6 +716,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         status: updated.status,
         last_update: updated.lastUpdate,
         tags: updated.tags,
+        tribunal: updated.tribunal || null,
+        subject: updated.subject || null,
+        probability: updated.probability || null,
         description: updated.description,
         occurrences: updated.occurrences,
         history: updated.history,
