@@ -582,7 +582,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                 </div>
 
                                 <div className="bg-slate-50/50 dark:bg-dark-950/40 p-5 rounded-2xl border border-slate-100 dark:border-dark-800 mb-4 transition-colors group-hover:bg-white dark:group-hover:bg-dark-950/70 border-dashed print:bg-white print:p-0 print:border-none">
-                                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed transition-all">
+                                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed transition-all text-justify">
                                         {sanitizeText(item.texto)}
                                     </p>
                                 </div>
