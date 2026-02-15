@@ -456,11 +456,12 @@ export const Clients: React.FC = () => {
     const isBrazilianAddress = !formData.country || formData.country.toLowerCase() === 'brasil';
 
     return (
-        <div className="p-2 md:p-8 h-full flex flex-col animate-fade-in relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 md:mb-8 gap-2 md:gap-4">
+        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-10">
                 <div>
-                    <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white">Contatos</h1>
-                    <p className="text-xs md:text-base text-slate-500 dark:text-slate-400 mt-1">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Gestão de Contatos</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {clients.length === 0 ? (
                             "Nenhum contato cadastrado."
                         ) : filteredClients.length === clients.length ? (
@@ -470,9 +471,9 @@ export const Clients: React.FC = () => {
                         )}
                     </p>
                 </div>
-                <div className="flex gap-2 md:gap-3 w-full md:w-auto flex-wrap">
-                    <button onClick={handleOpenNew} className="flex-1 md:flex-none justify-center bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center gap-2 transform active:scale-95 transition-all">
-                        <Plus size={20} /> <span className="hidden md:inline">Novo Contato</span><span className="md:hidden">Novo</span>
+                <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+                    <button onClick={handleOpenNew} className="flex-1 md:flex-none justify-center bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center gap-2 transform active:scale-95 transition-all whitespace-nowrap">
+                        <Plus size={20} /> Novo Contato
                     </button>
                 </div>
             </div>

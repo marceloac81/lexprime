@@ -13,6 +13,7 @@ import { Clients } from './pages/Clients';
 import { Settings } from './pages/Settings';
 import { Team } from './pages/Team';
 import { Publications } from './pages/Publications';
+import Calculations from './pages/Calculations';
 import { SplashScreen } from './components/SplashScreen';
 
 const AppContent: React.FC = () => {
@@ -63,6 +64,7 @@ const AppContent: React.FC = () => {
       case 'settings': return <Settings />;
       case 'team': return <Team />;
       case 'publications': return <Publications setPage={setCurrentPage} />;
+      case 'calculations': return <Calculations />;
       default: return <Dashboard />;
     }
   };

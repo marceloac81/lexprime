@@ -152,10 +152,12 @@ export const Calendario: React.FC = () => {
     }, [showMonthPicker]);
 
     return (
-        <div className="p-4 md:p-8 h-full flex flex-col animate-fade-in relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 shrink-0">
+        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Calendário</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Agenda</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Organize seus compromissos e prazos no calendário.</p>
                 </div>
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                     <div className="flex bg-white dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative date-picker-container z-20">

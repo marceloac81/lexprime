@@ -280,21 +280,22 @@ export const Deadlines: React.FC = () => {
     };
 
     return (
-        <div className="p-2 md:p-8 h-full flex flex-col animate-fade-in relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-3 md:mb-6 gap-2 md:gap-4">
+        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20 relative">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
                 <div>
-                    <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
                 </div>
-                {/* CONTAINER GERAL DE AÇÕES: Coluna no mobile, Linha no desktop */}
-                <div className="flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto md:items-center">
-
-                    {/* Search bar - width full mobile, auto desktop */}
+                {/* CONTAINER GERAL DE AÇÕES */}
+                <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center">
+                    {/* Search bar */}
                     <div className="relative group w-full md:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
                         <input
                             type="text"
                             placeholder="Pesquisar..."
-                            className="pl-9 pr-4 py-1.5 md:py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200"
+                            className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200Shadow-sm"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
@@ -305,22 +306,18 @@ export const Deadlines: React.FC = () => {
                         )}
                     </div>
 
-                    {/* GRUPO DE FILTROS E AÇÕES SECUNDÁRIAS */}
-                    {/* Mobile: Row (Data + Icons) | Desktop: Items soltos na row principal (usando fragment ou div contents se necessário, mas aqui vamos manter div para agrupar) */}
                     <div className="flex flex-row gap-2 w-full md:w-auto">
-
-                        {/* Custom Date Picker - Flex 1 no mobile, auto no desktop */}
+                        {/* Custom Date Picker */}
                         <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
                             <button
                                 onClick={() => setShowDatePicker(!showDatePicker)}
-                                className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-1.5 md:py-2 rounded-lg border text-sm transition-all ${filterDate
+                                className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-sm ${filterDate
                                     ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
                                     : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
                                     }`}
                             >
                                 <CalendarIcon size={16} />
-                                <span className="hidden md:inline">{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
-                                <span className="md:hidden">{filterDate ? formatDate(filterDate) : 'Data'}</span>
+                                <span>{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
                                 {filterDate && (
                                     <div
                                         onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
@@ -375,22 +372,18 @@ export const Deadlines: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Ícones de Ação */}
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setShowPrintModal(true)}
-                                className="p-2 md:p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
-                                title="Imprimir Prazos"
-                            >
-                                <Printer size={18} md:size={20} />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setShowPrintModal(true)}
+                            className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
+                            title="Imprimir Prazos"
+                        >
+                            <Printer size={20} />
+                        </button>
                     </div>
 
-                    {/* Botão Novo Prazo - Full mobile, Auto desktop */}
                     <button
                         onClick={() => setShowCalculator(true)}
-                        className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap"
+                        className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap"
                     >
                         <Plus size={20} /> Novo Prazo
                     </button>

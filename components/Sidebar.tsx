@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard, Briefcase, Clock, CalendarIcon, Users,
-  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText
+  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText, Calculator
 } from './Icons';
 import { useStore } from '../context/Store';
 
@@ -120,14 +120,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
       <nav className={`flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar overflow-x-hidden ${collapsed ? 'items-center flex flex-col' : ''}`}>
         <NavItem collapsed={collapsed} page="dashboard" icon={LayoutDashboard} label="Dashboard" active={activePage === 'dashboard'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
         <NavItem collapsed={collapsed} page="calendario" icon={CalendarIcon} label="Calendário" active={activePage === 'calendario'} onClick={handleNavClick} count={agendaBadgeCount} />
+        <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
 
         {collapsed && <div className="my-4 h-px w-full bg-slate-200 dark:bg-slate-800" />}
 
-        <NavItem collapsed={collapsed} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} page="settings" icon={Settings} label="Configurações" active={activePage === 'settings'} onClick={handleNavClick} />
       </nav>

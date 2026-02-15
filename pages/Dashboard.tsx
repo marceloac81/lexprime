@@ -77,15 +77,16 @@ export const Dashboard: React.FC = () => {
     .slice(0, 4); // Top 4
 
   return (
-    <div className="p-4 md:p-8 space-y-8 animate-fade-in pb-20">
+    <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Bem-vindo(a) ao LexPrime.</p>
         </div>
-        <div className="text-right hidden md:block">
+        <div className="text-left md:text-right">
           <p className="text-sm text-slate-500 dark:text-slate-400">Hoje</p>
-          <p className="text-xl font-semibold text-slate-900 dark:text-white capitalize">
+          <p className="text-xl font-semibold text-slate-900 dark:text-white capitalize leading-tight">
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>

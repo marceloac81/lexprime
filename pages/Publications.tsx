@@ -267,7 +267,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return (
-        <div className="p-6 md:p-8 space-y-8 animate-fade-in max-w-7xl mx-auto print:p-0 print:m-0 print:max-w-none">
+        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
             <style>
                 {`
                 @media print {
@@ -283,7 +283,6 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         padding: 0 !important;
                     }
 
-                    .max-w-7xl { max-width: none !important; }
                     .space-y-8 > * + * { margin-top: 0 !important; }
                     .space-y-4 > * + * { margin-top: 0 !important; }
 
@@ -307,15 +306,12 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 }
                 `}
             </style>
+
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="no-print">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-                        Publicações DJEN
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Consulte publicações do Diário de Justiça Eletrônico Nacional
-                    </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-10 no-print">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Publicações DJEN</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Consulte publicações do Diário de Justiça Eletrônico Nacional.</p>
                 </div>
             </div>
 
