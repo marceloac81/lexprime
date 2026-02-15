@@ -67,11 +67,8 @@ export const fetchProcessData = async (processNumber: string): Promise<DataJudRe
     const cleanNumber = processNumber.replace(/\D/g, '');
     const tribunalSuffix = getTribunalSuffix(cleanNumber);
 
-    // A URL base é segmentada por tribunal na API pública
-    const targetUrl = `https://api-publica.datajud.cnj.jus.br/api_publica_${tribunalSuffix}/_search`;
-
-    // Using corsproxy.io - try the direct path format
-    const proxyUrl = `https://corsproxy.io/?${targetUrl}`;
+    // URL interna via proxy (Vite ou Vercel)
+    const proxyUrl = `/api/datajud/${tribunalSuffix}/_search`;
 
     console.log(`Buscando processo ${cleanNumber} no tribunal ${tribunalSuffix}...`);
 
