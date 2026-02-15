@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <button onClick={() => setPendingAction('newCase')} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-between group transition-all transform hover:scale-[1.02]">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg"><Briefcase size={20} /></div>
@@ -118,7 +118,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Processos Ativos"
           value={activeCases}
