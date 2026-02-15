@@ -36,6 +36,7 @@ interface BatchItem {
     id: string;
     startDate: string;
     value: string;
+    interestStartDate?: string;
 }
 
 const Calculations: React.FC = () => {
@@ -57,10 +58,16 @@ const Calculations: React.FC = () => {
         { id: crypto.randomUUID(), startDate: '', value: '' }
     ]);
     const [batchInterestType, setBatchInterestType] = useState('0');
+    const [interestMode, setInterestMode] = useState<'fixed' | 'individual' | 'same-as-start'>('fixed');
     const [batchInterestStartDate, setBatchInterestStartDate] = useState('');
     const [batchFees, setBatchFees] = useState('');
     const [batchHasFine523, setBatchHasFine523] = useState(false);
     const [batchHasFees523, setBatchHasFees523] = useState(false);
+
+    // States for Batch Generator
+    const [generatorStart, setGeneratorStart] = useState(''); // YYYY-MM
+    const [generatorEnd, setGeneratorEnd] = useState('');   // YYYY-MM
+    const [generatorValue, setGeneratorValue] = useState('');
 
     const [result, setResult] = useState<CalculationResult | null>(null);
 
@@ -143,6 +150,38 @@ const Calculations: React.FC = () => {
         });
     };
 
+    const handleGenerateRows = () => {
+        if (!generatorStart || !generatorEnd || !generatorValue) {
+            alert('Preencha os campos do gerador (Mês Inicial, Final e Valor).');
+            return;
+        }
+
+        const [startYear, startMonth] = generatorStart.split('-').map(Number);
+        const [endYear, endMonth] = generatorEnd.split('-').map(Number);
+
+        let currentMonth = startMonth;
+        let currentYear = startYear;
+        const newItems: BatchItem[] = [];
+
+        while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+            const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+            newItems.push({
+                id: crypto.randomUUID(),
+                startDate: dateStr,
+                value: generatorValue,
+                interestStartDate: interestMode === 'same-as-start' ? dateStr : undefined
+            });
+
+            currentMonth++;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            }
+        }
+
+        setBatchItems(newItems);
+    };
+
     const handleCalculateBatch = () => {
         const validItems = batchItems.filter(item => item.startDate && item.value);
         if (validItems.length === 0) {
@@ -175,10 +214,21 @@ const Calculations: React.FC = () => {
             const corrected = val * factor;
 
             let intVal = 0;
-            if (intRate > 0 && batchInterestStartDate) {
-                const intStart = parseDateSafe(batchInterestStartDate);
-                const daysInt = getDaysDiff360(intStart, end);
-                intVal = calculateInterest(corrected, intRate, daysInt);
+            if (intRate > 0) {
+                let currentIntStartStr = '';
+                if (interestMode === 'fixed') {
+                    currentIntStartStr = batchInterestStartDate;
+                } else if (interestMode === 'same-as-start') {
+                    currentIntStartStr = item.startDate;
+                } else if (interestMode === 'individual') {
+                    currentIntStartStr = item.interestStartDate || '';
+                }
+
+                if (currentIntStartStr) {
+                    const intStart = parseDateSafe(currentIntStartStr);
+                    const daysInt = getDaysDiff360(intStart, end);
+                    intVal = calculateInterest(corrected, intRate, daysInt);
+                }
             }
 
             totalInitial += val;
@@ -209,7 +259,7 @@ const Calculations: React.FC = () => {
             interestRate: intRate,
             interestValue: totalInterest,
             daysDiffCorrection: 0,
-            daysDiffInterest: batchInterestStartDate ? getDaysDiff360(parseDateSafe(batchInterestStartDate), end) : 0,
+            daysDiffInterest: (interestMode === 'fixed' && batchInterestStartDate) ? getDaysDiff360(parseDateSafe(batchInterestStartDate), end) : 0,
             feesRate,
             feesValue: feesVal,
             fine523: fineValue,
@@ -219,7 +269,7 @@ const Calculations: React.FC = () => {
             correctionFactor: 1, // Not used in batch
             startDate: '', // Not used in batch
             endDate: batchEndDate,
-            interestStartDate: batchInterestStartDate,
+            interestStartDate: interestMode === 'fixed' ? batchInterestStartDate : 'Variável',
             isBatch: true,
             batchDetails
         });
@@ -392,9 +442,34 @@ const Calculations: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8">Cálculo em Lote / Múltiplos Valores</h2>
-                            <div className="space-y-4 max-w-2xl mx-auto print:hidden">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                            <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8 border-b border-slate-100 dark:border-slate-700 pb-4">Cálculo em Lote / Múltiplos Valores</h2>
+
+                            <div className="space-y-6 animate-fade-in">
+                                {/* Batch Generator Tool */}
+                                <div className="bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-dashed border-primary-200 dark:border-primary-900/30 mb-8 no-print">
+                                    <h3 className="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <Plus size={16} /> Gerador de Parcelas em Lote
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Inicial</label>
+                                            <input type="month" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Final</label>
+                                            <input type="month" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Valor Base (R$)</label>
+                                            <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                        </div>
+                                        <button onClick={handleGenerateRows} className="bg-primary-600 hover:bg-primary-700 text-white p-2 text-sm font-bold rounded transition-colors shadow-sm">
+                                            GERAR PARCELAS
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white dark:bg-dark-800 p-0 rounded-xl mb-4">
                                     <div className="space-y-4">
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Data Final de Atualização</label>
@@ -402,7 +477,7 @@ const Calculations: React.FC = () => {
                                                 type="date"
                                                 value={batchEndDate}
                                                 onChange={(e) => setBatchEndDate(e.target.value)}
-                                                className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none shadow-sm"
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
@@ -410,22 +485,43 @@ const Calculations: React.FC = () => {
                                             <select
                                                 value={batchInterestType}
                                                 onChange={(e) => setBatchInterestType(e.target.value)}
-                                                className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none shadow-sm"
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
                                             >
-                                                <option value="0">Sem juros (somente correção)</option>
+                                                <option value="0">Sem juros</option>
                                                 <option value="6">Juros Simples 6% a.a</option>
                                                 <option value="12">Juros Simples 12% a.a</option>
                                             </select>
                                         </div>
+
                                         {batchInterestType !== '0' && (
-                                            <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2">
-                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Data de Incidência dos Juros</label>
-                                                <input
-                                                    type="date"
-                                                    value={batchInterestStartDate}
-                                                    onChange={(e) => setBatchInterestStartDate(e.target.value)}
-                                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none shadow-sm"
-                                                />
+                                            <div className="bg-slate-50 dark:bg-dark-900/30 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50 space-y-3">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Configuração de Incidência de Juros</label>
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                        <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
+                                                        Data Fixa Igualmente (ex: citação)
+                                                    </label>
+                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                        <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
+                                                        Data Individual por Linha
+                                                    </label>
+                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                        <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
+                                                        Mesma Data Inicial de cada Parcela
+                                                    </label>
+                                                </div>
+
+                                                {interestMode === 'fixed' && (
+                                                    <div className="mt-3 flex flex-col gap-1.5 animate-in fade-in duration-300">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data Fixa de Juros</label>
+                                                        <input
+                                                            type="date"
+                                                            value={batchInterestStartDate}
+                                                            onChange={(e) => setBatchInterestStartDate(e.target.value)}
+                                                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -438,18 +534,18 @@ const Calculations: React.FC = () => {
                                                 placeholder="0,00"
                                                 value={batchFees}
                                                 onChange={(e) => setBatchFees(e.target.value)}
-                                                className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none shadow-sm"
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Art. 523 § 1º CPC</label>
-                                            <div className="flex gap-4 p-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Penalidades (Art. 523 § 1º CPC)</label>
+                                            <div className="flex flex-col gap-2 p-1">
                                                 <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                    <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                                    <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
                                                     10% Multa
                                                 </label>
                                                 <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                    <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                                    <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
                                                     10% Honorários
                                                 </label>
                                             </div>
@@ -457,68 +553,99 @@ const Calculations: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 animate-fade-in">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Listagem de Valores e Datas</label>
+                                {/* Compact Items Table */}
+                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-950">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50 dark:bg-dark-900/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                                <th className="p-2 pl-4">#</th>
+                                                <th className="p-2">Data Inicial*</th>
+                                                <th className="p-2">Valor Principal*</th>
+                                                {batchInterestType !== '0' && interestMode === 'individual' && (
+                                                    <th className="p-2">Data Juros</th>
+                                                )}
+                                                <th className="p-2 pr-4 text-right">Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {batchItems.map((item, index) => (
+                                                <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-dark-900/30 transition-colors">
+                                                    <td className="p-2 pl-4 text-xs font-medium text-slate-400">{index + 1}</td>
+                                                    <td className="p-2">
+                                                        <input
+                                                            type="date"
+                                                            value={item.startDate}
+                                                            onChange={(e) => {
+                                                                const newItems = [...batchItems];
+                                                                newItems[index].startDate = e.target.value;
+                                                                if (interestMode === 'same-as-start') {
+                                                                    newItems[index].interestStartDate = e.target.value;
+                                                                }
+                                                                setBatchItems(newItems);
+                                                            }}
+                                                            className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    <td className="p-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="0,00"
+                                                            value={item.value}
+                                                            onChange={(e) => {
+                                                                const newItems = [...batchItems];
+                                                                newItems[index].value = e.target.value;
+                                                                setBatchItems(newItems);
+                                                            }}
+                                                            className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    {batchInterestType !== '0' && interestMode === 'individual' && (
+                                                        <td className="p-2">
+                                                            <input
+                                                                type="date"
+                                                                value={item.interestStartDate || ''}
+                                                                onChange={(e) => {
+                                                                    const newItems = [...batchItems];
+                                                                    newItems[index].interestStartDate = e.target.value;
+                                                                    setBatchItems(newItems);
+                                                                }}
+                                                                className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                            />
+                                                        </td>
+                                                    )}
+                                                    <td className="p-2 pr-4 text-right">
+                                                        <button
+                                                            onClick={() => setBatchItems(batchItems.filter(i => i.id !== item.id))}
+                                                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                            disabled={batchItems.length === 1}
+                                                        >
+                                                            <RotateCcw size={14} className="rotate-45" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    <div className="p-3 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print">
+                                        <span className="text-[10px] text-slate-400 font-medium">{batchItems.length} item(ns) na listagem</span>
                                         <button
                                             onClick={() => setBatchItems([...batchItems, { id: crypto.randomUUID(), startDate: '', value: '' }])}
-                                            className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                                            className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
                                         >
-                                            <Plus size={14} /> ADICIONAR LINHA
+                                            <Plus size={14} /> ADICIONAR NOVA LINHA
                                         </button>
                                     </div>
-                                    {batchItems.map((item, index) => (
-                                        <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-white dark:bg-dark-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-                                            <div className="md:col-span-5 flex flex-col gap-1">
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase">Data Inicial</span>
-                                                <input
-                                                    type="date"
-                                                    value={item.startDate}
-                                                    onChange={(e) => {
-                                                        const newItems = [...batchItems];
-                                                        newItems[index].startDate = e.target.value;
-                                                        setBatchItems(newItems);
-                                                    }}
-                                                    className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500"
-                                                />
-                                            </div>
-                                            <div className="md:col-span-5 flex flex-col gap-1">
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase">Valor (R$)</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="0,00"
-                                                    value={item.value}
-                                                    onChange={(e) => {
-                                                        const newItems = [...batchItems];
-                                                        newItems[index].value = e.target.value;
-                                                        setBatchItems(newItems);
-                                                    }}
-                                                    className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500"
-                                                />
-                                            </div>
-                                            <div className="md:col-span-2 text-right">
-                                                {batchItems.length > 1 && (
-                                                    <button
-                                                        onClick={() => setBatchItems(batchItems.filter(i => i.id !== item.id))}
-                                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded transition-colors"
-                                                    >
-                                                        <RotateCcw size={16} className="rotate-45" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
 
                                 <div className="flex gap-4 pt-6 justify-center">
-                                    <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
-                                        <Calculator size={18} /> CALCULAR LOTE
+                                    <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-10 py-3 rounded shadow-lg hover:shadow-primary-500/10 transition-all flex items-center gap-2 font-bold active:scale-95">
+                                        <Calculator size={18} /> CALCULAR TUDO
                                     </button>
-                                    <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2">
+                                    <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3 rounded transition-all flex items-center gap-2 active:scale-95">
                                         <RotateCcw size={18} /> LIMPAR
                                     </button>
                                     {result && result.isBatch && (
-                                        <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
+                                        <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-10 py-3 rounded shadow-lg transition-all flex items-center gap-2 font-bold active:scale-95">
                                             <Printer size={18} /> IMPRIMIR
                                         </button>
                                     )}
