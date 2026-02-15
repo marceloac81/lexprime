@@ -469,7 +469,12 @@ export const Deadlines: React.FC = () => {
                                                 </td>
                                                 <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
                                                     <div className="text-sm font-bold">{relatedCase?.number || '-'}</div>
-                                                    {relatedCase?.area && <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">{relatedCase.area}</div>}
+                                                    {(relatedCase?.tribunal || relatedCase?.area) && (
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                                                            {relatedCase?.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
+                                                            {relatedCase?.area}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="py-2 px-4">
                                                     <div className="flex flex-col gap-0.5 max-w-[200px]">
@@ -575,7 +580,12 @@ export const Deadlines: React.FC = () => {
                                                     <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1 w-fit">
                                                         <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
                                                     </div>
-                                                    {relatedCase.area && <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">{relatedCase.area}</p>}
+                                                    {(relatedCase.tribunal || relatedCase.area) && (
+                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">
+                                                            {relatedCase.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
+                                                            {relatedCase.area}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             )}
                                             <div className="text-sm text-slate-600 dark:text-slate-400 flex flex-col gap-1">

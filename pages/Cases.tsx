@@ -294,7 +294,12 @@ export const Cases: React.FC = () => {
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</div>
-                                                <div className="text-xs text-slate-400 mt-0.5">{c.area}</div>
+                                                {(c.tribunal || c.area) && (
+                                                    <div className="text-xs text-slate-400 mt-0.5">
+                                                        {c.tribunal && <span>{c.tribunal} {c.area && '- '}</span>}
+                                                        {c.area}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
@@ -382,7 +387,9 @@ export const Cases: React.FC = () => {
                             <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
                                 <div>
                                     <p className="text-xs font-medium text-slate-900 dark:text-white">{c.court}</p>
-                                    <p className="text-xs text-slate-500">{c.city} - {c.uf} • {c.area}</p>
+                                    <p className="text-xs text-slate-500">
+                                        {c.city} - {c.uf} • {c.tribunal && <span>{c.tribunal} - </span>}{c.area}
+                                    </p>
                                 </div>
                                 {c.folderNumber && (
                                     <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-mono text-slate-500">
@@ -549,7 +556,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center animate-fade-in">
-            <div className="bg-white dark:bg-dark-800 w-full md:w-[90%] md:max-w-4xl h-[90vh] md:h-[85vh] md:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-dark-800 w-full md:w-[96%] md:max-w-[1400px] h-[95vh] md:h-[92vh] md:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
                 {/* Header */}
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-900 flex justify-between items-start shrink-0">
                     <div className="flex gap-4 items-start">
@@ -715,25 +722,52 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                         <div className="space-y-6">
                             <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><Briefcase size={16} /> Dados Principais</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div>
                                         <p className="text-xs text-slate-500 uppercase">Número</p>
                                         <p className="font-mono font-medium break-all">{c.number}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase">Pasta Física</p>
-                                        <p className="font-mono font-medium">{c.folderNumber || '-'}</p>
+                                        <p className="text-xs text-slate-500 uppercase">Tribunal</p>
+                                        <p className="font-medium">{c.tribunal || '-'}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 uppercase">Área</p>
                                         <p className="font-medium">{c.area}</p>
                                     </div>
                                     <div>
+                                        <p className="text-xs text-slate-500 uppercase">Assunto</p>
+                                        <p className="font-medium">{c.subject || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 uppercase">Pasta Física</p>
+                                        <p className="font-mono font-medium">{c.folderNumber || '-'}</p>
+                                    </div>
+                                    <div>
                                         <p className="text-xs text-slate-500 uppercase">Valor da Causa</p>
                                         <p className="font-medium">{c.value ? formatCurrency(c.value) : '-'}</p>
                                     </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 uppercase">Data do Valor</p>
+                                        <p className="font-medium">{c.valueDate ? new Date(c.valueDate).toLocaleDateString() : '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 uppercase">Probabilidade de Êxito</p>
+                                        <p className={`font-bold ${c.probability === 'Alta' ? 'text-green-600' : c.probability === 'Média' ? 'text-amber-600' : 'text-rose-600'}`}>
+                                            {c.probability || '-'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
+
+                            {c.description && (
+                                <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><FileText size={16} /> Descrição / Observações</h4>
+                                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                        {c.description}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><UserIcon size={16} /> Partes</h4>
@@ -802,6 +836,10 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                                         </div>
                                     )}
                                 </div>
+                            </div>
+
+                            <div className="text-[10px] text-slate-400 font-mono text-center pt-4 uppercase tracking-widest">
+                                ID do Registro: {c.id}
                             </div>
                         </div>
                     )}

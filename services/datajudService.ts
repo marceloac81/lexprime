@@ -14,7 +14,31 @@ const getTribunalSuffix = (processNumber: string): string => {
     const j = clean.substring(13, 14); // Segmento J (Justiça)
     const tr = clean.substring(14, 16); // Segmento TR (Tribunal)
 
-    // Justiça Estadual (8)
+    // Tribunais Superiores (J=3)
+    if (j === '3') return 'stj';
+
+    // Justiça Federal (J=4)
+    if (j === '4') {
+        const trInt = parseInt(tr);
+        return trInt > 0 ? `trf${trInt}` : 'trf1'; // Fallback for TRF
+    }
+
+    // Justiça do Trabalho (J=5)
+    if (j === '5') {
+        const trInt = parseInt(tr);
+        return trInt === 0 ? 'tst' : `trt${trInt}`;
+    }
+
+    // Justiça Eleitoral (J=6)
+    if (j === '6') {
+        const trInt = parseInt(tr);
+        return trInt === 0 ? 'tse' : `tre${trInt}`;
+    }
+
+    // Justiça Militar (J=7)
+    if (j === '7') return 'stm';
+
+    // Justiça Estadual (J=8)
     if (j === '8') {
         const stateMapping: Record<string, string> = {
             '01': 'tjac', '02': 'tjal', '03': 'tjam', '04': 'tjap', '05': 'tjba',
@@ -27,14 +51,12 @@ const getTribunalSuffix = (processNumber: string): string => {
         return stateMapping[tr] || 'tjrj';
     }
 
-    // Justiça Federal (4)
-    if (j === '4') {
-        return `trf${parseInt(tr)}`;
-    }
-
-    // Justiça do Trabalho (5)
-    if (j === '5') {
-        return `trt${parseInt(tr)}`;
+    // Justiça Militar Estadual (J=9)
+    if (j === '9') {
+        const militaryMapping: Record<string, string> = {
+            '13': 'tjmmg', '21': 'tjmrs', '26': 'tjmsp'
+        };
+        return militaryMapping[tr] || 'tjrj';
     }
 
     // Fallback para TJRJ
@@ -65,7 +87,8 @@ export const fetchProcessData = async (processNumber: string): Promise<DataJudRe
         const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: {
-                'Authorization': `APIKey ${DEFAULT_API_KEY}`,
+                'Authorization': `ApiKey ${DEFAULT_API_KEY}`,
+                'X-API-Key': DEFAULT_API_KEY,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
