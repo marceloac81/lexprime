@@ -280,326 +280,329 @@ export const Deadlines: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20 relative">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
-                </div>
-                {/* CONTAINER GERAL DE AÇÕES */}
-                <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center">
-                    {/* Search bar */}
-                    <div className="relative group w-full md:w-auto">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Pesquisar..."
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200Shadow-sm"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
-                                <X size={14} />
-                            </button>
-                        )}
+        <div className="animate-fade-in pb-20 relative">
+            {/* Header - Sticky */}
+            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
                     </div>
-
-                    <div className="flex flex-row gap-2 w-full md:w-auto">
-                        {/* Custom Date Picker */}
-                        <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
-                            <button
-                                onClick={() => setShowDatePicker(!showDatePicker)}
-                                className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-sm ${filterDate
-                                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
-                                    : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
-                                    }`}
-                            >
-                                <CalendarIcon size={16} />
-                                <span>{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
-                                {filterDate && (
-                                    <div
-                                        onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
-                                        className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
-                                    >
-                                        <X size={12} />
-                                    </div>
-                                )}
-                            </button>
-
-                            {showDatePicker && (
-                                <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
-                                        <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
-                                    </div>
-
-                                    <div className="grid grid-cols-7 gap-1 mb-2">
-                                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                                            <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
-                                        ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-7 gap-1">
-                                        {pickerDays.map((d, i) => {
-                                            if (d === null) return <div key={i} />;
-                                            const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                                            const isSelected = dateStr === filterDate;
-                                            const isToday = dateStr === todayStr;
-
-                                            return (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => selectDate(d)}
-                                                    className={`
-                                            h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
-                                            ${isSelected
-                                                            ? 'bg-primary-600 text-white shadow-md'
-                                                            : isToday
-                                                                ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
-                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
-                                                        }
-                                        `}
-                                                >
-                                                    {d}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                    {/* CONTAINER GERAL DE AÇÕES */}
+                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center">
+                        {/* Search bar */}
+                        <div className="relative group w-full md:w-auto">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Pesquisar..."
+                                className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200 shadow-sm"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
+                                    <X size={14} />
+                                </button>
                             )}
                         </div>
 
+                        <div className="flex flex-row gap-2 w-full md:w-auto">
+                            {/* Custom Date Picker */}
+                            <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
+                                <button
+                                    onClick={() => setShowDatePicker(!showDatePicker)}
+                                    className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-sm ${filterDate
+                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
+                                        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
+                                        }`}
+                                >
+                                    <CalendarIcon size={16} />
+                                    <span>{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
+                                    {filterDate && (
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
+                                            className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
+                                        >
+                                            <X size={12} />
+                                        </div>
+                                    )}
+                                </button>
+
+                                {showDatePicker && (
+                                    <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
+                                            <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
+                                        </div>
+
+                                        <div className="grid grid-cols-7 gap-1 mb-2">
+                                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
+                                                <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
+                                            ))}
+                                        </div>
+
+                                        <div className="grid grid-cols-7 gap-1">
+                                            {pickerDays.map((d, i) => {
+                                                if (d === null) return <div key={i} />;
+                                                const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                                                const isSelected = dateStr === filterDate;
+                                                const isToday = dateStr === todayStr;
+
+                                                return (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => selectDate(d)}
+                                                        className={`
+                                                h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
+                                                ${isSelected
+                                                                ? 'bg-primary-600 text-white shadow-md'
+                                                                : isToday
+                                                                    ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
+                                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                                            }
+                                            `}
+                                                    >
+                                                        {d}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => setShowPrintModal(true)}
+                                className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
+                                title="Imprimir Prazos"
+                            >
+                                <Printer size={20} />
+                            </button>
+                        </div>
+
                         <button
-                            onClick={() => setShowPrintModal(true)}
-                            className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
-                            title="Imprimir Prazos"
+                            onClick={() => setShowCalculator(true)}
+                            className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap"
                         >
-                            <Printer size={20} />
+                            <Plus size={20} /> Novo Prazo
                         </button>
                     </div>
-
-                    <button
-                        onClick={() => setShowCalculator(true)}
-                        className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap"
-                    >
-                        <Plus size={20} /> Novo Prazo
-                    </button>
                 </div>
             </div>
 
-            <div className="hidden md:block flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <table className="w-full text-left border-collapse">
-                    <thead className="sticky top-0 z-20 bg-slate-800 dark:bg-dark-950 text-white shadow-md">
-                        <tr>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-48">Processo</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
-                            <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {dates.map((dateStr, idx) => {
-                            const groupItems = groupedDeadlines[dateStr];
-                            const isAltGroup = idx % 2 !== 0;
-                            const parts = dateStr.split('-');
-                            let formattedDate = dateStr;
-                            let weekday = '';
-                            let isToday = dateStr === todayStr;
+            <div className="p-4 md:px-8 pt-2">
+                <div className="hidden md:block bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-800 dark:bg-dark-950 text-white transition-all">
+                            <tr>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-48">Processo</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dates.map((dateStr, idx) => {
+                                const groupItems = groupedDeadlines[dateStr];
+                                const isAltGroup = idx % 2 !== 0;
+                                const parts = dateStr.split('-');
+                                let formattedDate = dateStr;
+                                let weekday = '';
+                                let isToday = dateStr === todayStr;
 
-                            if (parts.length === 3) {
-                                const [y, m, d] = parts.map(Number);
-                                const dateObj = new Date(y, m - 1, d);
-                                if (!isNaN(dateObj.getTime())) {
-                                    weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
-                                    formattedDate = dateObj.toLocaleDateString('pt-BR');
+                                if (parts.length === 3) {
+                                    const [y, m, d] = parts.map(Number);
+                                    const dateObj = new Date(y, m - 1, d);
+                                    if (!isNaN(dateObj.getTime())) {
+                                        weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
+                                        formattedDate = dateObj.toLocaleDateString('pt-BR');
+                                    }
                                 }
+
+                                return (
+                                    <React.Fragment key={dateStr}>
+                                        <tr
+                                            className={`${getDateStyle(dateStr)} border-b-2 border-t-2 border-t-slate-800 dark:border-t-slate-400 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                            style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
+                                        >
+                                            <td colSpan={7} className="py-2 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
+                                                    <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
+                                                    {isToday && <span className="bg-slate-900 text-amber-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">HOJE</span>}
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        {groupItems.map(d => {
+                                            const relatedCase = getCaseDetails(d.caseId);
+                                            const status = getStatus(d);
+                                            const isFinished = status === 'Done' || status === 'Canceled';
+                                            // Fix Contrast: remove explicit dark:text-white when active to allow row style to dictate color
+                                            const textStyle = isFinished ? 'line-through text-slate-500 dark:text-slate-500 opacity-80' : '';
+                                            const displayCustomer = relatedCase?.clientName || d.customerName || 'Sem Cliente';
+                                            const displayCourt = relatedCase?.court || d.court || '-';
+                                            const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '-';
+
+                                            return (
+                                                <tr
+                                                    key={d.id}
+                                                    onDoubleClick={() => handleEditClick(d)}
+                                                    className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                                    style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
+                                                    title="Clique duplo para editar"
+                                                >
+                                                    <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
+                                                        {(d.startTime || '09:00').substring(0, 5)}
+                                                    </td>
+                                                    <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
+                                                        {d.title}
+                                                    </td>
+                                                    <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
+                                                        <div className="text-sm font-bold">{relatedCase?.number || '-'}</div>
+                                                        {(relatedCase?.tribunal || relatedCase?.area) && (
+                                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                                                                {relatedCase?.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
+                                                                {relatedCase?.area}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-2 px-4">
+                                                        <div className="flex flex-col gap-0.5 max-w-[200px]">
+                                                            <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium truncate ${isFinished
+                                                                ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
+                                                                : 'bg-white/80 border-slate-200 text-slate-700 shadow-sm dark:bg-dark-800/80 dark:border-slate-600 dark:text-slate-200'
+                                                                }`}>
+                                                                {displayCustomer}
+                                                            </div>
+                                                            {relatedCase?.opposingParty && (
+                                                                <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none ${isFinished ? 'line-through opacity-70' : ''}`}>
+                                                                    <span className="opacity-75">vs</span>
+                                                                    <span className="truncate" title={relatedCase.opposingParty}>{relatedCase.opposingParty}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className={`py-2 px-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
+                                                        {displayCourt}
+                                                    </td>
+                                                    <td className={`py-2 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
+                                                        {displayCity}
+                                                    </td>
+                                                    <td className="py-2 px-4 text-center">
+                                                        <StatusDropdown
+                                                            id={d.id}
+                                                            currentStatus={status}
+                                                            onUpdate={(id, s) => updateDeadlineStatus(id, s)}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </React.Fragment>
+                                );
+                            })}
+                            {dates.length === 0 && (
+                                <tr>
+                                    <td colSpan={7} className="p-8 text-center text-slate-400 bg-white dark:bg-dark-900 text-lg">
+                                        {searchTerm || filterDate ? 'Nenhum prazo encontrado para os filtros atuais.' : 'Nenhum prazo pendente.'}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="md:hidden flex flex-col gap-6 pb-20">
+                    {dates.map(dateStr => {
+                        const groupItems = groupedDeadlines[dateStr];
+                        let formattedDate = dateStr;
+                        let weekday = '';
+                        let isToday = dateStr === todayStr;
+                        let isPast = dateStr < todayStr;
+
+                        const parts = dateStr.split('-');
+                        if (parts.length === 3) {
+                            const [y, m, d] = parts.map(Number);
+                            const dateObj = new Date(y, m - 1, d);
+                            if (!isNaN(dateObj.getTime())) {
+                                weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
+                                formattedDate = dateObj.toLocaleDateString('pt-BR');
                             }
+                        }
 
-                            return (
-                                <React.Fragment key={dateStr}>
-                                    <tr
-                                        className={`${getDateStyle(dateStr)} border-b-2 border-t-2 border-t-slate-800 dark:border-t-slate-400 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
-                                        style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
-                                    >
-                                        <td colSpan={7} className="py-2 px-4">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
-                                                <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
-                                                {isToday && <span className="bg-slate-900 text-amber-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">HOJE</span>}
-                                            </div>
-                                        </td>
-                                    </tr>
+                        return (
+                            <div key={dateStr} className={`${!isToday ? 'border-t-4 border-slate-800 dark:border-slate-500 pt-4 mt-4' : ''}`}>
+                                <div className={`px-4 py-2 mb-2 rounded-lg shadow-sm flex items-center justify-between
+                        ${isToday ? 'bg-amber-400 text-slate-900 border-b-2 border-amber-500' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}
+                    `}>
+                                    <div className={`font-bold ${isToday ? 'text-lg' : ''}`}>{formattedDate} <span className="text-sm font-normal opacity-80 capitalize ml-1">{weekday}</span></div>
+                                    {isToday && <span className="bg-slate-900 text-amber-400 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse">HOJE</span>}
+                                </div>
 
+                                <div className="space-y-3">
                                     {groupItems.map(d => {
                                         const relatedCase = getCaseDetails(d.caseId);
                                         const status = getStatus(d);
                                         const isFinished = status === 'Done' || status === 'Canceled';
-                                        // Fix Contrast: remove explicit dark:text-white when active to allow row style to dictate color
                                         const textStyle = isFinished ? 'line-through text-slate-500 dark:text-slate-500 opacity-80' : '';
                                         const displayCustomer = relatedCase?.clientName || d.customerName || 'Sem Cliente';
                                         const displayCourt = relatedCase?.court || d.court || '-';
-                                        const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '-';
+                                        const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '';
 
                                         return (
-                                            <tr
-                                                key={d.id}
-                                                onDoubleClick={() => handleEditClick(d)}
-                                                className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
-                                                style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
-                                                title="Clique duplo para editar"
-                                            >
-                                                <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
-                                                    {(d.startTime || '09:00').substring(0, 5)}
-                                                </td>
-                                                <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
-                                                    {d.title}
-                                                </td>
-                                                <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
-                                                    <div className="text-sm font-bold">{relatedCase?.number || '-'}</div>
-                                                    {(relatedCase?.tribunal || relatedCase?.area) && (
-                                                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
-                                                            {relatedCase?.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
-                                                            {relatedCase?.area}
+                                            <div key={d.id} onDoubleClick={() => handleEditClick(d)} className={`bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative active:scale-[0.99] transition-transform ${isToday ? 'border-amber-200 bg-amber-50/50' : ''}`} title="Clique duplo para editar">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className={`bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-mono font-bold text-slate-600 dark:text-slate-300 ${textStyle}`}>
+                                                        {(d.startTime || '09:00').substring(0, 5)}
+                                                    </div>
+                                                    <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
+                                                        <StatusDropdown
+                                                            id={d.id}
+                                                            currentStatus={status}
+                                                            onUpdate={(id, s) => updateDeadlineStatus(id, s)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <h3 className={`font-bold mb-2 text-lg leading-tight text-slate-900 dark:text-white ${textStyle}`}>{d.title}</h3>
+                                                {relatedCase && (
+                                                    <div className="flex flex-col gap-1 mb-3">
+                                                        <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1 w-fit">
+                                                            <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
                                                         </div>
-                                                    )}
-                                                </td>
-                                                <td className="py-2 px-4">
-                                                    <div className="flex flex-col gap-0.5 max-w-[200px]">
-                                                        <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium truncate ${isFinished
-                                                            ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
-                                                            : 'bg-white/80 border-slate-200 text-slate-700 shadow-sm dark:bg-dark-800/80 dark:border-slate-600 dark:text-slate-200'
-                                                            }`}>
-                                                            {displayCustomer}
-                                                        </div>
+                                                        {(relatedCase.tribunal || relatedCase.area) && (
+                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">
+                                                                {relatedCase.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
+                                                                {relatedCase.area}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                <div className="text-sm text-slate-600 dark:text-slate-400 flex flex-col gap-1">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
                                                         {relatedCase?.opposingParty && (
-                                                            <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 leading-none ${isFinished ? 'line-through opacity-70' : ''}`}>
+                                                            <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${isFinished ? 'line-through opacity-70' : ''}`}>
                                                                 <span className="opacity-75">vs</span>
-                                                                <span className="truncate" title={relatedCase.opposingParty}>{relatedCase.opposingParty}</span>
+                                                                <span className="truncate">{relatedCase.opposingParty}</span>
                                                             </div>
                                                         )}
                                                     </div>
-                                                </td>
-                                                <td className={`py-2 px-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
-                                                    {displayCourt}
-                                                </td>
-                                                <td className={`py-2 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
-                                                    {displayCity}
-                                                </td>
-                                                <td className="py-2 px-4 text-center">
-                                                    <StatusDropdown
-                                                        id={d.id}
-                                                        currentStatus={status}
-                                                        onUpdate={(id, s) => updateDeadlineStatus(id, s)}
-                                                    />
-                                                </td>
-                                            </tr>
+                                                    <span className={`${textStyle}`}>{displayCourt} {displayCity && `• ${displayCity}`}</span>
+                                                </div>
+                                            </div>
                                         )
                                     })}
-                                </React.Fragment>
-                            );
-                        })}
-                        {dates.length === 0 && (
-                            <tr>
-                                <td colSpan={7} className="p-8 text-center text-slate-400 bg-white dark:bg-dark-900 text-lg">
-                                    {searchTerm || filterDate ? 'Nenhum prazo encontrado para os filtros atuais.' : 'Nenhum prazo pendente.'}
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* MOBILE LIST VIEW */}
-            <div className="md:hidden flex flex-col gap-6 overflow-y-auto pb-20 custom-scrollbar">
-                {dates.map(dateStr => {
-                    const groupItems = groupedDeadlines[dateStr];
-                    let formattedDate = dateStr;
-                    let weekday = '';
-                    let isToday = dateStr === todayStr;
-                    let isPast = dateStr < todayStr;
-
-                    const parts = dateStr.split('-');
-                    if (parts.length === 3) {
-                        const [y, m, d] = parts.map(Number);
-                        const dateObj = new Date(y, m - 1, d);
-                        if (!isNaN(dateObj.getTime())) {
-                            weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
-                            formattedDate = dateObj.toLocaleDateString('pt-BR');
-                        }
-                    }
-
-                    return (
-                        <div key={dateStr} className={`${!isToday ? 'border-t-4 border-slate-800 dark:border-slate-500 pt-4 mt-4' : ''}`}>
-                            <div className={`sticky top-0 z-10 px-4 py-2 mb-2 rounded-lg shadow-sm flex items-center justify-between
-                        ${isToday ? 'bg-amber-400 text-slate-900 border-b-2 border-amber-500' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}
-                    `}>
-                                <div className={`font-bold ${isToday ? 'text-lg' : ''}`}>{formattedDate} <span className="text-sm font-normal opacity-80 capitalize ml-1">{weekday}</span></div>
-                                {isToday && <span className="bg-slate-900 text-amber-400 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse">HOJE</span>}
+                                </div>
                             </div>
-
-                            <div className="space-y-3">
-                                {groupItems.map(d => {
-                                    const relatedCase = getCaseDetails(d.caseId);
-                                    const status = getStatus(d);
-                                    const isFinished = status === 'Done' || status === 'Canceled';
-                                    const textStyle = isFinished ? 'line-through text-slate-500 dark:text-slate-500 opacity-80' : '';
-                                    const displayCustomer = relatedCase?.clientName || d.customerName || 'Sem Cliente';
-                                    const displayCourt = relatedCase?.court || d.court || '-';
-                                    const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '';
-
-                                    return (
-                                        <div key={d.id} onDoubleClick={() => handleEditClick(d)} className={`bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative active:scale-[0.99] transition-transform ${isToday ? 'border-amber-200 bg-amber-50/50' : ''}`} title="Clique duplo para editar">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className={`bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-mono font-bold text-slate-600 dark:text-slate-300 ${textStyle}`}>
-                                                    {(d.startTime || '09:00').substring(0, 5)}
-                                                </div>
-                                                <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
-                                                    <StatusDropdown
-                                                        id={d.id}
-                                                        currentStatus={status}
-                                                        onUpdate={(id, s) => updateDeadlineStatus(id, s)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <h3 className={`font-bold mb-2 text-lg leading-tight text-slate-900 dark:text-white ${textStyle}`}>{d.title}</h3>
-                                            {relatedCase && (
-                                                <div className="flex flex-col gap-1 mb-3">
-                                                    <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1 w-fit">
-                                                        <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
-                                                    </div>
-                                                    {(relatedCase.tribunal || relatedCase.area) && (
-                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">
-                                                            {relatedCase.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
-                                                            {relatedCase.area}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <div className="text-sm text-slate-600 dark:text-slate-400 flex flex-col gap-1">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <div className={`font-medium bg-slate-50 dark:bg-dark-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700 inline-block w-fit ${textStyle}`}>{displayCustomer}</div>
-                                                    {relatedCase?.opposingParty && (
-                                                        <div className={`text-xs text-slate-500 dark:text-slate-400 pl-1 flex items-center gap-1 ${isFinished ? 'line-through opacity-70' : ''}`}>
-                                                            <span className="opacity-75">vs</span>
-                                                            <span className="truncate">{relatedCase.opposingParty}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <span className={`${textStyle}`}>{displayCourt} {displayCity && `• ${displayCity}`}</span>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })}
+                </div>
             </div>
 
             {/* Unified Calculator/Edit Modal */}

@@ -195,249 +195,253 @@ export const Cases: React.FC = () => {
     );
 
     return (
-        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-10">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Processos</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        {cases.length === 0 ? "Nenhum processo cadastrado." :
-                            filteredCases.length === cases.length ?
-                                `Total de ${cases.length} ${cases.length === 1 ? 'processo' : 'processos'}.` :
-                                `Exibindo ${filteredCases.length} de ${cases.length} processos.`
-                        }
-                    </p>
-                </div>
-                <div className="flex gap-2 md:gap-3 w-full md:w-auto">
-                    <button
-                        onClick={handlePrint}
-                        className="flex-1 md:flex-none bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 no-print"
-                    >
-                        <Printer size={20} /> Imprimir
-                    </button>
-                    <button
-                        onClick={handleOpenNew}
-                        className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95 no-print"
-                    >
-                        <Plus size={20} /> Novo Processo
-                    </button>
-                </div>
-            </div>
-
-            {/* Filters Bar */}
-            <div className="bg-white dark:bg-dark-800 p-2 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 md:mb-6 flex flex-col md:flex-row gap-2 md:gap-4 shadow-sm">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} md:size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all text-sm"
-                    />
-                </div>
-                <div className="flex gap-2 overflow-x-auto no-scrollbar items-center pb-1 md:pb-0">
-                    <Filter size={16} md:size={20} className="text-slate-400 mr-2 shrink-0" />
-                    {['all', CaseStatus.Active, CaseStatus.Archived].map(status => (
-                        <button
-                            key={status}
-                            onClick={() => setStatusFilter(status)}
-                            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium whitespace-nowrap transition-colors border ${statusFilter === status
-                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent'
-                                : 'bg-transparent text-slate-600 border-slate-200 hover:bg-slate-100 dark:hover:bg-dark-700 dark:text-slate-400 dark:border-slate-700'
-                                }`}
-                        >
-                            {status === 'all' ? 'Todos' : status}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Responsive List Container */}
-            <div className="bg-transparent md:bg-white md:dark:bg-dark-800 md:rounded-xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-700 flex-1 overflow-hidden flex flex-col">
-
-                {/* DESKTOP TABLE VIEW (Hidden on Mobile) */}
-                <div className="hidden md:block overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50">
-                                <th onClick={() => handleSort('number')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[30%] cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
-                                    <div className="flex items-center gap-1">Processo nº {sortConfig?.key === 'number' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
-                                </th>
-                                <th onClick={() => handleSort('clientName')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
-                                    <div className="flex items-center gap-1">Partes {sortConfig?.key === 'clientName' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
-                                </th>
-                                <th onClick={() => handleSort('court')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
-                                    <div className="flex items-center gap-1">Local {sortConfig?.key === 'court' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
-                                </th>
-                                <th onClick={() => handleSort('status')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
-                                    <div className="flex items-center gap-1">Status {sortConfig?.key === 'status' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
-                                </th>
-                                <th onClick={() => handleSort('folderNumber')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
-                                    <div className="flex items-center gap-1">Pasta {sortConfig?.key === 'folderNumber' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
-                                </th>
-                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                            {filteredCases.map(c => (
-                                <tr
-                                    key={c.id}
-                                    onDoubleClick={() => setSelectedCase(c)}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
-                                    title="Clique duplo para ver detalhes"
-                                >
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                                                <Briefcase size={18} />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</div>
-                                                {(c.tribunal || c.area) && (
-                                                    <div className="text-xs text-slate-400 mt-0.5">
-                                                        {c.tribunal && <span>{c.tribunal} {c.area && '- '}</span>}
-                                                        {c.area}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
-                                                <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[150px]">{c.clientName}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-slate-300" />
-                                                <span className="text-xs text-slate-500 truncate max-w-[150px]">vs {c.opposingParty}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="text-sm text-slate-700 dark:text-slate-300">{c.court}</div>
-                                        <div className="text-xs text-slate-500">{c.city} - {c.uf}</div>
-                                    </td>
-                                    <td className="p-4">
-                                        <StatusBadge status={c.status} />
-                                    </td>
-                                    <td className="p-4 text-sm font-mono text-slate-500">
-                                        {c.folderNumber || '-'}
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={(e) => handleDelete(c.id, e)}
-                                                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                title="Excluir Processo"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                            <ChevronRight size={20} className="text-slate-300 group-hover:text-primary-500 transition-colors" />
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* MOBILE CARDS VIEW (Hidden on Desktop) */}
-                <div className="md:hidden flex flex-col gap-4 overflow-y-auto pb-20 custom-scrollbar">
-                    {filteredCases.map(c => (
-                        <div
-                            key={c.id}
-                            onDoubleClick={() => setSelectedCase(c)}
-                            className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-transform"
-                            title="Clique duplo para ver detalhes"
-                        >
-                            {/* Header: Number & Status */}
-                            <div className="flex justify-between items-start mb-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                                        <Briefcase size={16} />
-                                    </div>
-                                    <span className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <StatusBadge status={c.status} />
-                                    <button
-                                        onClick={(e) => handleDelete(c.id, e)}
-                                        className="p-1 text-slate-300 hover:text-rose-500"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Parties */}
-                            <div className="mb-3 space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
-                                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{c.clientName}</span>
-                                </div>
-                                <div className="flex items-center gap-2 pl-3.5">
-                                    <span className="text-xs text-slate-400">vs</span>
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">{c.opposingParty}</span>
-                                </div>
-                            </div>
-
-                            {/* Footer: Location & Folder */}
-                            <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
-                                <div>
-                                    <p className="text-xs font-medium text-slate-900 dark:text-white">{c.court}</p>
-                                    <p className="text-xs text-slate-500">
-                                        {c.city} - {c.uf} • {c.tribunal && <span>{c.tribunal} - </span>}{c.area}
-                                    </p>
-                                </div>
-                                {c.folderNumber && (
-                                    <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-mono text-slate-500">
-                                        {c.folderNumber}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Detail Modal */}
-            {selectedCase && (
-                <CaseDetailModal
-                    c={selectedCase}
-                    onClose={() => setSelectedCase(null)}
-                    deadlines={deadlines.filter(d => d.caseId === selectedCase.id)}
-                    onEdit={() => handleOpenEdit(selectedCase)}
-                    onDelete={() => handleDelete(selectedCase.id)}
-                />
-            )}
-
-            {/* New/Edit Case Modal */}
-            {showNewCaseModal && (
-                <CaseModal
-                    onClose={() => setShowNewCaseModal(false)}
-                    onSave={(caseData) => {
-                        setIsLoading(true);
-                        setTimeout(() => {
-                            if (isEditing && newCase.id) {
-                                updateCase(caseData);
-                            } else {
-                                addCase(caseData);
+        <div className="animate-fade-in pb-20 relative">
+            {/* Header - Sticky */}
+            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Processos</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            {cases.length === 0 ? "Nenhum processo cadastrado." :
+                                filteredCases.length === cases.length ?
+                                    `Total de ${cases.length} ${cases.length === 1 ? 'processo' : 'processos'}.` :
+                                    `Exibindo ${filteredCases.length} de ${cases.length} processos.`
                             }
-                            setIsLoading(false);
-                            setShowNewCaseModal(false);
-                        }, 600);
-                    }}
-                    clients={clients}
-                    cases={cases}
-                    initialData={isEditing ? newCase : undefined}
-                    isEditing={isEditing}
-                />
-            )}
-            {/* Print Styles */}
-            <style dangerouslySetInnerHTML={{
-                __html: `
+                        </p>
+                    </div>
+                    <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+                        <button
+                            onClick={handlePrint}
+                            className="flex-1 md:flex-none bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 no-print"
+                        >
+                            <Printer size={20} /> Imprimir
+                        </button>
+                        <button
+                            onClick={handleOpenNew}
+                            className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95 no-print"
+                        >
+                            <Plus size={20} /> Novo Processo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-4 md:px-8 pt-2">
+
+                {/* Filters Bar */}
+                <div className="bg-white dark:bg-dark-800 p-2 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 md:mb-6 flex flex-col md:flex-row gap-2 md:gap-4 shadow-sm">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} md:size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all text-sm"
+                        />
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar items-center pb-1 md:pb-0">
+                        <Filter size={16} md:size={20} className="text-slate-400 mr-2 shrink-0" />
+                        {['all', CaseStatus.Active, CaseStatus.Archived].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium whitespace-nowrap transition-colors border ${statusFilter === status
+                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent'
+                                    : 'bg-transparent text-slate-600 border-slate-200 hover:bg-slate-100 dark:hover:bg-dark-700 dark:text-slate-400 dark:border-slate-700'
+                                    }`}
+                            >
+                                {status === 'all' ? 'Todos' : status}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Responsive List Container */}
+                <div className="bg-transparent md:bg-white md:dark:bg-dark-800 md:rounded-xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-700 flex-1 overflow-hidden flex flex-col">
+
+                    {/* DESKTOP TABLE VIEW (Hidden on Mobile) */}
+                    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50">
+                                    <th onClick={() => handleSort('number')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[30%] cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                        <div className="flex items-center gap-1">Processo nº {sortConfig?.key === 'number' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
+                                    </th>
+                                    <th onClick={() => handleSort('clientName')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                        <div className="flex items-center gap-1">Partes {sortConfig?.key === 'clientName' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
+                                    </th>
+                                    <th onClick={() => handleSort('court')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                        <div className="flex items-center gap-1">Local {sortConfig?.key === 'court' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
+                                    </th>
+                                    <th onClick={() => handleSort('status')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                        <div className="flex items-center gap-1">Status {sortConfig?.key === 'status' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
+                                    </th>
+                                    <th onClick={() => handleSort('folderNumber')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                        <div className="flex items-center gap-1">Pasta {sortConfig?.key === 'folderNumber' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
+                                    </th>
+                                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                {filteredCases.map(c => (
+                                    <tr
+                                        key={c.id}
+                                        onDoubleClick={() => setSelectedCase(c)}
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
+                                        title="Clique duplo para ver detalhes"
+                                    >
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                    <Briefcase size={18} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</div>
+                                                    {(c.tribunal || c.area) && (
+                                                        <div className="text-xs text-slate-400 mt-0.5">
+                                                            {c.tribunal && <span>{c.tribunal} {c.area && '- '}</span>}
+                                                            {c.area}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
+                                                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[150px]">{c.clientName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-slate-300" />
+                                                    <span className="text-xs text-slate-500 truncate max-w-[150px]">vs {c.opposingParty}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="text-sm text-slate-700 dark:text-slate-300">{c.court}</div>
+                                            <div className="text-xs text-slate-500">{c.city} - {c.uf}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            <StatusBadge status={c.status} />
+                                        </td>
+                                        <td className="p-4 text-sm font-mono text-slate-500">
+                                            {c.folderNumber || '-'}
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={(e) => handleDelete(c.id, e)}
+                                                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Excluir Processo"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                                <ChevronRight size={20} className="text-slate-300 group-hover:text-primary-500 transition-colors" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* MOBILE CARDS VIEW (Hidden on Desktop) */}
+                    <div className="md:hidden flex flex-col gap-4 overflow-y-auto pb-20 custom-scrollbar">
+                        {filteredCases.map(c => (
+                            <div
+                                key={c.id}
+                                onDoubleClick={() => setSelectedCase(c)}
+                                className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-transform"
+                                title="Clique duplo para ver detalhes"
+                            >
+                                {/* Header: Number & Status */}
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                            <Briefcase size={16} />
+                                        </div>
+                                        <span className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <StatusBadge status={c.status} />
+                                        <button
+                                            onClick={(e) => handleDelete(c.id, e)}
+                                            className="p-1 text-slate-300 hover:text-rose-500"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Parties */}
+                                <div className="mb-3 space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
+                                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{c.clientName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 pl-3.5">
+                                        <span className="text-xs text-slate-400">vs</span>
+                                        <span className="text-sm text-slate-600 dark:text-slate-400">{c.opposingParty}</span>
+                                    </div>
+                                </div>
+
+                                {/* Footer: Location & Folder */}
+                                <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-900 dark:text-white">{c.court}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {c.city} - {c.uf} • {c.tribunal && <span>{c.tribunal} - </span>}{c.area}
+                                        </p>
+                                    </div>
+                                    {c.folderNumber && (
+                                        <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-mono text-slate-500">
+                                            {c.folderNumber}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Detail Modal */}
+                {selectedCase && (
+                    <CaseDetailModal
+                        c={selectedCase}
+                        onClose={() => setSelectedCase(null)}
+                        deadlines={deadlines.filter(d => d.caseId === selectedCase.id)}
+                        onEdit={() => handleOpenEdit(selectedCase)}
+                        onDelete={() => handleDelete(selectedCase.id)}
+                    />
+                )}
+
+                {/* New/Edit Case Modal */}
+                {showNewCaseModal && (
+                    <CaseModal
+                        onClose={() => setShowNewCaseModal(false)}
+                        onSave={(caseData) => {
+                            setIsLoading(true);
+                            setTimeout(() => {
+                                if (isEditing && newCase.id) {
+                                    updateCase(caseData);
+                                } else {
+                                    addCase(caseData);
+                                }
+                                setIsLoading(false);
+                                setShowNewCaseModal(false);
+                            }, 600);
+                        }}
+                        clients={clients}
+                        cases={cases}
+                        initialData={isEditing ? newCase : undefined}
+                        isEditing={isEditing}
+                    />
+                )}
+                {/* Print Styles */}
+                <style dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         margin: 1cm;
@@ -496,6 +500,7 @@ export const Cases: React.FC = () => {
                     }
                 }
             ` }} />
+            </div>
         </div>
     );
 };
@@ -885,5 +890,5 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                 />
             )}
         </div>
-    )
-}
+    );
+};
