@@ -298,554 +298,556 @@ const Calculations: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:pt-6 md:px-8 animate-fade-in pb-20">
-            {/* Standard App Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-2 md:gap-4 no-print">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Cálculos</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Cálculo de débitos judiciais de natureza cível (TJRJ).
-                    </p>
-                </div>
-                <div className="flex gap-2 md:gap-3 w-full md:w-auto">
-                    {result && (
+        <div className="animate-fade-in pb-20 relative">
+            {/* Header - Sticky */}
+            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Cálculos</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            Cálculo de débitos judiciais de natureza cível (TJRJ).
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-white dark:bg-dark-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                         <button
-                            onClick={() => window.print()}
-                            className="flex-1 md:flex-none bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 no-print"
+                            onClick={() => { setActiveTab('civic'); setResult(null); }}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'civic' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
                         >
-                            <Printer size={20} /> Imprimir
+                            Natureza Cível
                         </button>
-                    )}
+                        <button
+                            onClick={() => { setActiveTab('batch'); setResult(null); }}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'batch' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
+                        >
+                            Múltiplos Valores
+                        </button>
+                    </div>
+
+                    <div className="flex gap-2">
+                        {result && (
+                            <button
+                                onClick={() => window.print()}
+                                className="bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-4 py-2 rounded-lg flex items-center gap-2 font-bold transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95"
+                            >
+                                <Printer size={18} /> Imprimir
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto w-full px-0">
-                {/* Tabs */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 bg-white dark:bg-dark-800 rounded-xl overflow-hidden shadow-sm no-print">
-                    <button
-                        onClick={() => { setActiveTab('civic'); setResult(null); }}
-                        className={`flex-1 md:flex-none px-6 py-3 text-sm font-semibold transition-colors ${activeTab === 'civic' ? 'bg-primary-600 text-white' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
-                    >
-                        Natureza Cível
-                    </button>
-                    <button
-                        onClick={() => { setActiveTab('batch'); setResult(null); }}
-                        className={`flex-1 md:flex-none px-6 py-3 text-sm font-semibold transition-colors ${activeTab === 'batch' ? 'bg-primary-600 text-white' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
-                    >
-                        Múltiplos Valores
-                    </button>
-                    <button className="flex-1 md:flex-none px-6 py-3 text-slate-500 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-dark-700 transition-colors cursor-not-allowed opacity-50">
-                        ITD
-                    </button>
-                </div>
+            <div className="p-4 md:px-8 pt-6">
 
-                {/* Form Container */}
-                <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8">
-                    {activeTab === 'civic' ? (
-                        <>
-                            <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8">Cálculo de Natureza Cível</h2>
-                            <div className="space-y-4 max-w-lg mx-auto print:hidden">
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Inicial*:</label>
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
-                                </div>
+                <div className="max-w-4xl mx-auto w-full px-0">
 
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Final:</label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Valor em R$:</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0,00"
-                                        value={value}
-                                        onChange={(e) => setValue(e.target.value)}
-                                        className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Tipo de Juros:</label>
-                                    <select
-                                        value={interestType}
-                                        onChange={(e) => setInterestType(e.target.value)}
-                                        className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                                    >
-                                        <option value="0">Sem juros (somente correção monetária)</option>
-                                        <option value="6">Juros Simples 6% a.a</option>
-                                        <option value="12">Juros Simples 12% a.a</option>
-                                    </select>
-                                </div>
-
-                                {interestType !== '0' && (
-                                    <div className="grid grid-cols-3 items-center gap-4 animate-in fade-in slide-in-from-top-2">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data de Incidência:</label>
+                    {/* Form Container */}
+                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8">
+                        {activeTab === 'civic' ? (
+                            <>
+                                <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8">Cálculo de Natureza Cível</h2>
+                                <div className="space-y-4 max-w-lg mx-auto print:hidden">
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Inicial*:</label>
                                         <input
                                             type="date"
-                                            value={interestStartDate}
-                                            onChange={(e) => setInterestStartDate(e.target.value)}
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
                                             className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
                                         />
                                     </div>
-                                )}
 
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Honorários (%):</label>
-                                    <input
-                                        type="text"
-                                        placeholder="0,00"
-                                        value={fees}
-                                        onChange={(e) => setFees(e.target.value)}
-                                        className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-3 items-center gap-4">
-                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate">Art. 523 § 1º CPC:</label>
-                                    <div className="col-span-2 flex gap-4">
-                                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            <input type="checkbox" checked={hasFine523} onChange={(e) => setHasFine523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
-                                            10% Multa
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            <input type="checkbox" checked={hasFees523} onChange={(e) => setHasFees523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
-                                            10% Honorários
-                                        </label>
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Final:</label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                        />
                                     </div>
-                                </div>
-                                <div className="flex gap-4 pt-6 justify-center">
-                                    <button onClick={handleCalculateCivic} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
-                                        <Calculator size={18} /> CALCULAR
-                                    </button>
-                                    <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2">
-                                        <RotateCcw size={18} /> LIMPAR
-                                    </button>
-                                    {result && !result.isBatch && (
-                                        <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
-                                            <Printer size={18} /> IMPRIMIR
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8 border-b border-slate-100 dark:border-slate-700 pb-4">Cálculo em Lote / Múltiplos Valores</h2>
 
-                            <div className="space-y-6 animate-fade-in">
-                                {/* Batch Generator Tool */}
-                                <div className="bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-dashed border-primary-200 dark:border-primary-900/30 mb-8 no-print">
-                                    <h3 className="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                        <Plus size={16} /> Gerador de Parcelas em Lote
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Inicial</label>
-                                            <input type="month" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Final</label>
-                                            <input type="month" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase">Valor Base (R$)</label>
-                                            <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
-                                        </div>
-                                        <button onClick={handleGenerateRows} className="bg-primary-600 hover:bg-primary-700 text-white p-2 text-sm font-bold rounded transition-colors shadow-sm">
-                                            GERAR PARCELAS
-                                        </button>
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Valor em R$:</label>
+                                        <input
+                                            type="text"
+                                            placeholder="0,00"
+                                            value={value}
+                                            onChange={(e) => setValue(e.target.value)}
+                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                        />
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white dark:bg-dark-800 p-0 rounded-xl mb-4">
-                                    <div className="space-y-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Data Final de Atualização</label>
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Tipo de Juros:</label>
+                                        <select
+                                            value={interestType}
+                                            onChange={(e) => setInterestType(e.target.value)}
+                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                        >
+                                            <option value="0">Sem juros (somente correção monetária)</option>
+                                            <option value="6">Juros Simples 6% a.a</option>
+                                            <option value="12">Juros Simples 12% a.a</option>
+                                        </select>
+                                    </div>
+
+                                    {interestType !== '0' && (
+                                        <div className="grid grid-cols-3 items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                                            <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data de Incidência:</label>
                                             <input
                                                 type="date"
-                                                value={batchEndDate}
-                                                onChange={(e) => setBatchEndDate(e.target.value)}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                value={interestStartDate}
+                                                onChange={(e) => setInterestStartDate(e.target.value)}
+                                                className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
                                             />
                                         </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de Juros</label>
-                                            <select
-                                                value={batchInterestType}
-                                                onChange={(e) => setBatchInterestType(e.target.value)}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
-                                            >
-                                                <option value="0">Sem juros</option>
-                                                <option value="6">Juros Simples 6% a.a</option>
-                                                <option value="12">Juros Simples 12% a.a</option>
-                                            </select>
+                                    )}
+
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Honorários (%):</label>
+                                        <input
+                                            type="text"
+                                            placeholder="0,00"
+                                            value={fees}
+                                            onChange={(e) => setFees(e.target.value)}
+                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 items-center gap-4">
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate">Art. 523 § 1º CPC:</label>
+                                        <div className="col-span-2 flex gap-4">
+                                            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                <input type="checkbox" checked={hasFine523} onChange={(e) => setHasFine523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                                10% Multa
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                <input type="checkbox" checked={hasFees523} onChange={(e) => setHasFees523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                                10% Honorários
+                                            </label>
                                         </div>
-
-                                        {batchInterestType !== '0' && (
-                                            <div className="bg-slate-50 dark:bg-dark-900/30 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50 space-y-3">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Configuração de Incidência de Juros</label>
-                                                <div className="flex flex-col gap-2">
-                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                        <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
-                                                        Data Fixa Igualmente (ex: citação)
-                                                    </label>
-                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                        <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
-                                                        Data Individual por Linha
-                                                    </label>
-                                                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                        <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
-                                                        Mesma Data Inicial de cada Parcela
-                                                    </label>
-                                                </div>
-
-                                                {interestMode === 'fixed' && (
-                                                    <div className="mt-3 flex flex-col gap-1.5 animate-in fade-in duration-300">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data Fixa de Juros</label>
-                                                        <input
-                                                            type="date"
-                                                            value={batchInterestStartDate}
-                                                            onChange={(e) => setBatchInterestStartDate(e.target.value)}
-                                                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
+                                    </div>
+                                    <div className="flex gap-4 pt-6 justify-center">
+                                        <button onClick={handleCalculateCivic} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
+                                            <Calculator size={18} /> CALCULAR
+                                        </button>
+                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2">
+                                            <RotateCcw size={18} /> LIMPAR
+                                        </button>
+                                        {result && !result.isBatch && (
+                                            <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
+                                                <Printer size={18} /> IMPRIMIR
+                                            </button>
                                         )}
                                     </div>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8 border-b border-slate-100 dark:border-slate-700 pb-4">Cálculo em Lote / Múltiplos Valores</h2>
 
-                                    <div className="space-y-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Honorários Sugeridos (%)</label>
-                                            <input
-                                                type="text"
-                                                placeholder="0,00"
-                                                value={batchFees}
-                                                onChange={(e) => setBatchFees(e.target.value)}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
-                                            />
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Batch Generator Tool */}
+                                    <div className="bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-dashed border-primary-200 dark:border-primary-900/30 mb-8 no-print">
+                                        <h3 className="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <Plus size={16} /> Gerador de Parcelas em Lote
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Inicial</label>
+                                                <input type="month" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Final</label>
+                                                <input type="month" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Valor Base (R$)</label>
+                                                <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                            </div>
+                                            <button onClick={handleGenerateRows} className="bg-primary-600 hover:bg-primary-700 text-white p-2 text-sm font-bold rounded transition-colors shadow-sm">
+                                                GERAR PARCELAS
+                                            </button>
                                         </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Penalidades (Art. 523 § 1º CPC)</label>
-                                            <div className="flex flex-col gap-2 p-1">
-                                                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                    <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
-                                                    10% Multa
-                                                </label>
-                                                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                    <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
-                                                    10% Honorários
-                                                </label>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white dark:bg-dark-800 p-0 rounded-xl mb-4">
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Data Final de Atualização</label>
+                                                <input
+                                                    type="date"
+                                                    value={batchEndDate}
+                                                    onChange={(e) => setBatchEndDate(e.target.value)}
+                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de Juros</label>
+                                                <select
+                                                    value={batchInterestType}
+                                                    onChange={(e) => setBatchInterestType(e.target.value)}
+                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                >
+                                                    <option value="0">Sem juros</option>
+                                                    <option value="6">Juros Simples 6% a.a</option>
+                                                    <option value="12">Juros Simples 12% a.a</option>
+                                                </select>
+                                            </div>
+
+                                            {batchInterestType !== '0' && (
+                                                <div className="bg-slate-50 dark:bg-dark-900/30 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50 space-y-3">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Configuração de Incidência de Juros</label>
+                                                    <div className="flex flex-col gap-2">
+                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                            <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
+                                                            Data Fixa Igualmente (ex: citação)
+                                                        </label>
+                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                            <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
+                                                            Data Individual por Linha
+                                                        </label>
+                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                            <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
+                                                            Mesma Data Inicial de cada Parcela
+                                                        </label>
+                                                    </div>
+
+                                                    {interestMode === 'fixed' && (
+                                                        <div className="mt-3 flex flex-col gap-1.5 animate-in fade-in duration-300">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data Fixa de Juros</label>
+                                                            <input
+                                                                type="date"
+                                                                value={batchInterestStartDate}
+                                                                onChange={(e) => setBatchInterestStartDate(e.target.value)}
+                                                                className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Honorários Sugeridos (%)</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="0,00"
+                                                    value={batchFees}
+                                                    onChange={(e) => setBatchFees(e.target.value)}
+                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Penalidades (Art. 523 § 1º CPC)</label>
+                                                <div className="flex flex-col gap-2 p-1">
+                                                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                        <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
+                                                        10% Multa
+                                                    </label>
+                                                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                        <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
+                                                        10% Honorários
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Compact Items Table */}
-                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-950">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="bg-slate-50 dark:bg-dark-900/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
-                                                <th className="p-2 pl-4">#</th>
-                                                <th className="p-2">Data Inicial*</th>
-                                                <th className="p-2">Valor Principal*</th>
-                                                {batchInterestType !== '0' && interestMode === 'individual' && (
-                                                    <th className="p-2">Data Juros</th>
-                                                )}
-                                                <th className="p-2 pr-4 text-right">Ação</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                            {batchItems.map((item, index) => (
-                                                <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-dark-900/30 transition-colors">
-                                                    <td className="p-2 pl-4 text-xs font-medium text-slate-400">{index + 1}</td>
-                                                    <td className="p-2">
-                                                        <input
-                                                            type="date"
-                                                            value={item.startDate}
-                                                            onChange={(e) => {
-                                                                const newItems = [...batchItems];
-                                                                newItems[index].startDate = e.target.value;
-                                                                if (interestMode === 'same-as-start') {
-                                                                    newItems[index].interestStartDate = e.target.value;
-                                                                }
-                                                                setBatchItems(newItems);
-                                                            }}
-                                                            className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
-                                                        />
-                                                    </td>
-                                                    <td className="p-2">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="0,00"
-                                                            value={item.value}
-                                                            onChange={(e) => {
-                                                                const newItems = [...batchItems];
-                                                                newItems[index].value = e.target.value;
-                                                                setBatchItems(newItems);
-                                                            }}
-                                                            className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
-                                                        />
-                                                    </td>
+                                    {/* Compact Items Table */}
+                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-950">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-50 dark:bg-dark-900/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                                    <th className="p-2 pl-4">#</th>
+                                                    <th className="p-2">Data Inicial*</th>
+                                                    <th className="p-2">Valor Principal*</th>
                                                     {batchInterestType !== '0' && interestMode === 'individual' && (
+                                                        <th className="p-2">Data Juros</th>
+                                                    )}
+                                                    <th className="p-2 pr-4 text-right">Ação</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {batchItems.map((item, index) => (
+                                                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-dark-900/30 transition-colors">
+                                                        <td className="p-2 pl-4 text-xs font-medium text-slate-400">{index + 1}</td>
                                                         <td className="p-2">
                                                             <input
                                                                 type="date"
-                                                                value={item.interestStartDate || ''}
+                                                                value={item.startDate}
                                                                 onChange={(e) => {
                                                                     const newItems = [...batchItems];
-                                                                    newItems[index].interestStartDate = e.target.value;
+                                                                    newItems[index].startDate = e.target.value;
+                                                                    if (interestMode === 'same-as-start') {
+                                                                        newItems[index].interestStartDate = e.target.value;
+                                                                    }
                                                                     setBatchItems(newItems);
                                                                 }}
                                                                 className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
                                                             />
                                                         </td>
-                                                    )}
-                                                    <td className="p-2 pr-4 text-right">
-                                                        <button
-                                                            onClick={() => setBatchItems(batchItems.filter(i => i.id !== item.id))}
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                            disabled={batchItems.length === 1}
-                                                        >
-                                                            <RotateCcw size={14} className="rotate-45" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                    <div className="p-3 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print">
-                                        <span className="text-[10px] text-slate-400 font-medium">{batchItems.length} item(ns) na listagem</span>
-                                        <button
-                                            onClick={() => setBatchItems([...batchItems, { id: crypto.randomUUID(), startDate: '', value: '' }])}
-                                            className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
-                                        >
-                                            <Plus size={14} /> ADICIONAR NOVA LINHA
+                                                        <td className="p-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="0,00"
+                                                                value={item.value}
+                                                                onChange={(e) => {
+                                                                    const newItems = [...batchItems];
+                                                                    newItems[index].value = e.target.value;
+                                                                    setBatchItems(newItems);
+                                                                }}
+                                                                className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                            />
+                                                        </td>
+                                                        {batchInterestType !== '0' && interestMode === 'individual' && (
+                                                            <td className="p-2">
+                                                                <input
+                                                                    type="date"
+                                                                    value={item.interestStartDate || ''}
+                                                                    onChange={(e) => {
+                                                                        const newItems = [...batchItems];
+                                                                        newItems[index].interestStartDate = e.target.value;
+                                                                        setBatchItems(newItems);
+                                                                    }}
+                                                                    className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                                />
+                                                            </td>
+                                                        )}
+                                                        <td className="p-2 pr-4 text-right">
+                                                            <button
+                                                                onClick={() => setBatchItems(batchItems.filter(i => i.id !== item.id))}
+                                                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                                disabled={batchItems.length === 1}
+                                                            >
+                                                                <RotateCcw size={14} className="rotate-45" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        <div className="p-3 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print">
+                                            <span className="text-[10px] text-slate-400 font-medium">{batchItems.length} item(ns) na listagem</span>
+                                            <button
+                                                onClick={() => setBatchItems([...batchItems, { id: crypto.randomUUID(), startDate: '', value: '' }])}
+                                                className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
+                                            >
+                                                <Plus size={14} /> ADICIONAR NOVA LINHA
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-6 justify-center">
+                                        <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-10 py-3 rounded shadow-lg hover:shadow-primary-500/10 transition-all flex items-center gap-2 font-bold active:scale-95">
+                                            <Calculator size={18} /> CALCULAR TUDO
                                         </button>
+                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3 rounded transition-all flex items-center gap-2 active:scale-95">
+                                            <RotateCcw size={18} /> LIMPAR
+                                        </button>
+                                        {result && result.isBatch && (
+                                            <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-10 py-3 rounded shadow-lg transition-all flex items-center gap-2 font-bold active:scale-95">
+                                                <Printer size={18} /> IMPRIMIR
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
+                            </>
+                        )}
 
-                                <div className="flex gap-4 pt-6 justify-center">
-                                    <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-10 py-3 rounded shadow-lg hover:shadow-primary-500/10 transition-all flex items-center gap-2 font-bold active:scale-95">
-                                        <Calculator size={18} /> CALCULAR TUDO
-                                    </button>
-                                    <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3 rounded transition-all flex items-center gap-2 active:scale-95">
-                                        <RotateCcw size={18} /> LIMPAR
-                                    </button>
-                                    {result && result.isBatch && (
-                                        <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-10 py-3 rounded shadow-lg transition-all flex items-center gap-2 font-bold active:scale-95">
-                                            <Printer size={18} /> IMPRIMIR
-                                        </button>
-                                    )}
+                        <div className="mt-10 text-[10px] text-slate-500 dark:text-slate-400 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-4 print:hidden">
+                            <p>* Campos de preenchimento obrigatório</p>
+                            <p>O cálculo acima não possui valor legal. Trata-se apenas de uma ferramenta de auxílio na elaboração de contas.</p>
+                            <p>Datas devem ser informadas no formato dd/mm/aaaa.</p>
+                            <p>Os Cálculos são realizados considerando o ano comercial (360 dias) e juros simples, quando aplicados.</p>
+                            <p>Os honorários serão calculados sobre o valor corrigido somado aos juros.</p>
+                        </div>
+
+                        {/* Results Display */}
+                        {result && (
+                            <div className="mt-12 overflow-hidden border border-slate-200 dark:border-slate-700 rounded-lg animate-in fade-in duration-500 shadow-xl no-print-break">
+                                <div className="bg-slate-50 dark:bg-dark-900 border-b border-slate-200 dark:border-slate-700 p-6">
+                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                        <Briefcase className="text-primary-500" size={20} /> Memória de Cálculo
+                                    </h3>
+                                </div>
+
+                                <div className="p-0 bg-white dark:bg-dark-950 overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {!result.isBatch ? (
+                                                <>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Valor a ser atualizado:</td>
+                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.initialValue)}</td>
+                                                    </tr>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período de atualização monetária:</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                            de {formatDate(result.startDate)} até {formatDate(result.endDate)} ({result.daysDiffCorrection} dias)
+                                                        </td>
+                                                    </tr>
+                                                    {result.interestRate > 0 && (
+                                                        <>
+                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Tipo de juros:</td>
+                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">Juros Simples (360 dias no ano)</td>
+                                                            </tr>
+                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Taxa de juros:</td>
+                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate}% a.a</td>
+                                                            </tr>
+                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período dos juros:</td>
+                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                                    de {formatDate(result.interestStartDate)} até {formatDate(result.endDate)} ({result.daysDiffInterest} dias)
+                                                                </td>
+                                                            </tr>
+                                                        </>
+                                                    )}
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Honorários (%):</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
+                                                    </tr>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Inicial:</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                            {getUfirValue(new Date(result.startDate + 'T12:00:00'))?.toFixed(4)}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Final (Ano {new Date(result.endDate + 'T12:00:00').getFullYear()}):</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                            {getUfirValue(new Date(result.endDate + 'T12:00:00'))?.toFixed(4)}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-dark-900/50">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Índice de correção monetária:</td>
+                                                        <td className="p-4 text-right font-mono font-medium text-slate-900 dark:text-white">{result.correctionFactor.toFixed(6)}</td>
+                                                    </tr>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor Principal Corrigido:</td>
+                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue)}</td>
+                                                    </tr>
+                                                    {result.interestRate > 0 && (
+                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor dos juros:</td>
+                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.interestValue)}</td>
+                                                        </tr>
+                                                    )}
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor corrigido + juros:</td>
+                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue + result.interestValue)}</td>
+                                                    </tr>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Total de honorários:</td>
+                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.feesValue)}</td>
+                                                    </tr>
+                                                </>
+                                            ) : (
+                                                <tr className="bg-slate-50/50 dark:bg-dark-900/50">
+                                                    <td colSpan={2} className="p-0">
+                                                        <table className="w-full text-xs border-b border-slate-100 dark:border-slate-800">
+                                                            <thead className="bg-slate-100/50 dark:bg-dark-800/50 text-slate-500 dark:text-slate-400">
+                                                                <tr>
+                                                                    <th className="p-3 text-left font-bold uppercase tracking-wider">Data Inicial</th>
+                                                                    <th className="p-3 text-right font-bold uppercase tracking-wider">Valor Principal</th>
+                                                                    <th className="p-3 text-right font-bold uppercase tracking-wider">Fator</th>
+                                                                    <th className="p-3 text-right font-bold uppercase tracking-wider">Corrigido</th>
+                                                                    <th className="p-3 text-right font-bold uppercase tracking-wider">Juros</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                                                                {result.batchDetails?.map((item) => (
+                                                                    <tr key={item.id} className="hover:bg-white dark:hover:bg-dark-900">
+                                                                        <td className="p-3 text-slate-700 dark:text-slate-300">{formatDate(item.startDate)}</td>
+                                                                        <td className="p-3 text-right text-slate-700 dark:text-slate-300">{formatCurrency(item.initialValue)}</td>
+                                                                        <td className="p-3 text-right text-slate-500 font-mono">{item.factor.toFixed(6)}</td>
+                                                                        <td className="p-3 text-right font-medium text-slate-900 dark:text-white">{formatCurrency(item.correctedValue)}</td>
+                                                                        <td className="p-3 text-right text-amber-600 dark:text-amber-400 font-medium">+{formatCurrency(item.interestValue)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                            <tfoot className="bg-slate-50 dark:bg-dark-900">
+                                                                <tr>
+                                                                    <td className="p-3 font-bold text-slate-900 dark:text-white">TOTAIS:</td>
+                                                                    <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.initialValue)}</td>
+                                                                    <td></td>
+                                                                    <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue)}</td>
+                                                                    <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.interestValue)}</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            )}
+
+                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Taxa de juros:</td>
+                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
+                                            </tr>
+
+                                            {result.isBatch && result.interestRate > 0 && (
+                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Incidência dos juros:</td>
+                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                        desde {formatDate(result.interestStartDate)} ({result.daysDiffInterest} dias)
+                                                    </td>
+                                                </tr>
+                                            )}
+
+                                            {result.isBatch && (
+                                                <>
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Honorários (%):</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
+                                                    </tr>
+
+                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Atualizado até:</td>
+                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{formatDate(result.endDate)}</td>
+                                                    </tr>
+                                                </>
+                                            )}
+
+                                            <tr className="bg-slate-50 dark:bg-dark-900 border-t border-slate-200 dark:border-slate-700">
+                                                <td className="p-4 text-slate-900 dark:text-white font-bold uppercase">Subtotal:</td>
+                                                <td className="p-4 text-right font-bold text-lg text-primary-600 dark:text-primary-400">{formatCurrency(result.subtotal)}</td>
+                                            </tr>
+
+                                            {(result.fine523 > 0 || result.fees523 > 0) && (
+                                                <>
+                                                    <tr className="bg-slate-50 dark:bg-dark-900 font-medium">
+                                                        <td colSpan={2} className="p-4 text-slate-800 dark:text-white uppercase tracking-wider text-xs">Art. 523 § 1º CPC</td>
+                                                    </tr>
+                                                    {result.fine523 > 0 && (
+                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                            <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Multa - 10%:</td>
+                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fine523)}</td>
+                                                        </tr>
+                                                    )}
+                                                    {result.fees523 > 0 && (
+                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                            <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Honorários - 10%:</td>
+                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fees523)}</td>
+                                                        </tr>
+                                                    )}
+                                                </>
+                                            )}
+                                            <tr className="bg-primary-50 dark:bg-primary-900/20 border-t-2 border-primary-500">
+                                                <td className="p-6 text-primary-900 dark:text-primary-400 font-black text-lg uppercase">Total Geral:</td>
+                                                <td className="p-6 text-right font-black text-2xl text-primary-600 dark:text-primary-400">{formatCurrency(result.total)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </>
-                    )}
-
-                    <div className="mt-10 text-[10px] text-slate-500 dark:text-slate-400 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-4 print:hidden">
-                        <p>* Campos de preenchimento obrigatório</p>
-                        <p>O cálculo acima não possui valor legal. Trata-se apenas de uma ferramenta de auxílio na elaboração de contas.</p>
-                        <p>Datas devem ser informadas no formato dd/mm/aaaa.</p>
-                        <p>Os Cálculos são realizados considerando o ano comercial (360 dias) e juros simples, quando aplicados.</p>
-                        <p>Os honorários serão calculados sobre o valor corrigido somado aos juros.</p>
+                        )}
                     </div>
-
-                    {/* Results Display */}
-                    {result && (
-                        <div className="mt-12 overflow-hidden border border-slate-200 dark:border-slate-700 rounded-lg animate-in fade-in duration-500 shadow-xl no-print-break">
-                            <div className="bg-slate-50 dark:bg-dark-900 border-b border-slate-200 dark:border-slate-700 p-6">
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <Briefcase className="text-primary-500" size={20} /> Memória de Cálculo
-                                </h3>
-                            </div>
-
-                            <div className="p-0 bg-white dark:bg-dark-950 overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {!result.isBatch ? (
-                                            <>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Valor a ser atualizado:</td>
-                                                    <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.initialValue)}</td>
-                                                </tr>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período de atualização monetária:</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">
-                                                        de {formatDate(result.startDate)} até {formatDate(result.endDate)} ({result.daysDiffCorrection} dias)
-                                                    </td>
-                                                </tr>
-                                                {result.interestRate > 0 && (
-                                                    <>
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Tipo de juros:</td>
-                                                            <td className="p-4 text-right text-slate-700 dark:text-slate-300">Juros Simples (360 dias no ano)</td>
-                                                        </tr>
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Taxa de juros:</td>
-                                                            <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate}% a.a</td>
-                                                        </tr>
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período dos juros:</td>
-                                                            <td className="p-4 text-right text-slate-700 dark:text-slate-300">
-                                                                de {formatDate(result.interestStartDate)} até {formatDate(result.endDate)} ({result.daysDiffInterest} dias)
-                                                            </td>
-                                                        </tr>
-                                                    </>
-                                                )}
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Honorários (%):</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
-                                                </tr>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Inicial:</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">
-                                                        {getUfirValue(new Date(result.startDate + 'T12:00:00'))?.toFixed(4)}
-                                                    </td>
-                                                </tr>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Final (Ano {new Date(result.endDate + 'T12:00:00').getFullYear()}):</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">
-                                                        {getUfirValue(new Date(result.endDate + 'T12:00:00'))?.toFixed(4)}
-                                                    </td>
-                                                </tr>
-                                                <tr className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-dark-900/50">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Índice de correção monetária:</td>
-                                                    <td className="p-4 text-right font-mono font-medium text-slate-900 dark:text-white">{result.correctionFactor.toFixed(6)}</td>
-                                                </tr>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor Principal Corrigido:</td>
-                                                    <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue)}</td>
-                                                </tr>
-                                                {result.interestRate > 0 && (
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor dos juros:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.interestValue)}</td>
-                                                    </tr>
-                                                )}
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor corrigido + juros:</td>
-                                                    <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue + result.interestValue)}</td>
-                                                </tr>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Total de honorários:</td>
-                                                    <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.feesValue)}</td>
-                                                </tr>
-                                            </>
-                                        ) : (
-                                            <tr className="bg-slate-50/50 dark:bg-dark-900/50">
-                                                <td colSpan={2} className="p-0">
-                                                    <table className="w-full text-xs border-b border-slate-100 dark:border-slate-800">
-                                                        <thead className="bg-slate-100/50 dark:bg-dark-800/50 text-slate-500 dark:text-slate-400">
-                                                            <tr>
-                                                                <th className="p-3 text-left font-bold uppercase tracking-wider">Data Inicial</th>
-                                                                <th className="p-3 text-right font-bold uppercase tracking-wider">Valor Principal</th>
-                                                                <th className="p-3 text-right font-bold uppercase tracking-wider">Fator</th>
-                                                                <th className="p-3 text-right font-bold uppercase tracking-wider">Corrigido</th>
-                                                                <th className="p-3 text-right font-bold uppercase tracking-wider">Juros</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                                                            {result.batchDetails?.map((item) => (
-                                                                <tr key={item.id} className="hover:bg-white dark:hover:bg-dark-900">
-                                                                    <td className="p-3 text-slate-700 dark:text-slate-300">{formatDate(item.startDate)}</td>
-                                                                    <td className="p-3 text-right text-slate-700 dark:text-slate-300">{formatCurrency(item.initialValue)}</td>
-                                                                    <td className="p-3 text-right text-slate-500 font-mono">{item.factor.toFixed(6)}</td>
-                                                                    <td className="p-3 text-right font-medium text-slate-900 dark:text-white">{formatCurrency(item.correctedValue)}</td>
-                                                                    <td className="p-3 text-right text-amber-600 dark:text-amber-400 font-medium">+{formatCurrency(item.interestValue)}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                        <tfoot className="bg-slate-50 dark:bg-dark-900">
-                                                            <tr>
-                                                                <td className="p-3 font-bold text-slate-900 dark:text-white">TOTAIS:</td>
-                                                                <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.initialValue)}</td>
-                                                                <td></td>
-                                                                <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue)}</td>
-                                                                <td className="p-3 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.interestValue)}</td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        )}
-
-                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Taxa de juros:</td>
-                                            <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
-                                        </tr>
-
-                                        {result.isBatch && result.interestRate > 0 && (
-                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Incidência dos juros:</td>
-                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">
-                                                    desde {formatDate(result.interestStartDate)} ({result.daysDiffInterest} dias)
-                                                </td>
-                                            </tr>
-                                        )}
-
-                                        {result.isBatch && (
-                                            <>
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Honorários (%):</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
-                                                </tr>
-
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Atualizado até:</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">{formatDate(result.endDate)}</td>
-                                                </tr>
-                                            </>
-                                        )}
-
-                                        <tr className="bg-slate-50 dark:bg-dark-900 border-t border-slate-200 dark:border-slate-700">
-                                            <td className="p-4 text-slate-900 dark:text-white font-bold uppercase">Subtotal:</td>
-                                            <td className="p-4 text-right font-bold text-lg text-primary-600 dark:text-primary-400">{formatCurrency(result.subtotal)}</td>
-                                        </tr>
-
-                                        {(result.fine523 > 0 || result.fees523 > 0) && (
-                                            <>
-                                                <tr className="bg-slate-50 dark:bg-dark-900 font-medium">
-                                                    <td colSpan={2} className="p-4 text-slate-800 dark:text-white uppercase tracking-wider text-xs">Art. 523 § 1º CPC</td>
-                                                </tr>
-                                                {result.fine523 > 0 && (
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Multa - 10%:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fine523)}</td>
-                                                    </tr>
-                                                )}
-                                                {result.fees523 > 0 && (
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Honorários - 10%:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fees523)}</td>
-                                                    </tr>
-                                                )}
-                                            </>
-                                        )}
-                                        <tr className="bg-primary-50 dark:bg-primary-900/20 border-t-2 border-primary-500">
-                                            <td className="p-6 text-primary-900 dark:text-primary-400 font-black text-lg uppercase">Total Geral:</td>
-                                            <td className="p-6 text-right font-black text-2xl text-primary-600 dark:text-primary-400">{formatCurrency(result.total)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
                 </div>
-            </div>
 
-            <style>{`
+                <style>{`
         @media print {
           .flex-col { background: white !important; }
           .max-w-4xl { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
@@ -862,6 +864,7 @@ const Calculations: React.FC = () => {
           .no-print-break { break-inside: avoid; }
         }
       `}</style>
+            </div>
         </div>
     );
 };

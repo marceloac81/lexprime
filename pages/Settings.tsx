@@ -130,114 +130,125 @@ export const Settings: React.FC = () => {
     };
 
     return (
-        <div className="p-8 h-full animate-fade-in max-w-3xl mx-auto overflow-y-auto custom-scrollbar">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Configurações</h1>
-
-            <div className="space-y-6 pb-20">
-                {/* Profile Section */}
-                <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-3xl font-bold text-primary-600">
-                        {currentUser?.name.charAt(0)}
-                    </div>
+        <div className="animate-fade-in pb-20 relative h-full flex flex-col">
+            {/* Header - Sticky */}
+            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">{currentUser?.name}</h2>
-                        <p className="text-slate-500">{currentUser?.email}</p>
-                        <span className="inline-block mt-2 text-xs font-bold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300 uppercase">{currentUser?.role}</span>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Configurações</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gerencie suas preferências e dados do sistema.</p>
                     </div>
                 </div>
+            </div>
 
-                {/* Appearance */}
-                <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Aparência</h3>
-                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
-                        <div className="flex items-center gap-3">
-                            {isDarkMode ? <Moon className="text-purple-500" /> : <Sun className="text-orange-500" />}
-                            <div>
-                                <p className="font-medium text-slate-900 dark:text-white">Tema Escuro</p>
-                                <p className="text-xs text-slate-500">Ajuste para ambientes com pouca luz</p>
-                            </div>
+            <div className="p-4 md:px-8 pt-8 flex-1 flex flex-col max-w-4xl mx-auto w-full">
+
+                <div className="space-y-6 pb-20">
+                    {/* Profile Section */}
+                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-6">
+                        <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-3xl font-bold text-primary-600">
+                            {currentUser?.name.charAt(0)}
                         </div>
-                        <button
-                            onClick={toggleTheme}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${isDarkMode ? 'bg-primary-600' : 'bg-slate-300'}`}
-                        >
-                            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
-                        </button>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{currentUser?.name}</h2>
+                            <p className="text-slate-500">{currentUser?.email}</p>
+                            <span className="inline-block mt-2 text-xs font-bold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300 uppercase">{currentUser?.role}</span>
+                        </div>
                     </div>
-                </div>
 
-                {/* Data Management */}
-                <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Shield size={20} className="text-primary-600" /> Gestão de Dados (CSV)
-                    </h3>
-
-                    <div className="space-y-4">
-                        <input type="file" accept=".csv" ref={casesInputRef} className="hidden" onChange={handleImport('cases')} />
-                        <input type="file" accept=".csv" ref={clientsInputRef} className="hidden" onChange={handleImport('clients')} />
-                        <input type="file" accept=".csv" ref={deadlinesInputRef} className="hidden" onChange={handleImport('deadlines')} />
-                        <input type="file" accept=".csv" ref={teamInputRef} className="hidden" onChange={handleImport('team')} />
-                        <input type="file" accept=".csv" ref={holidayInputRef} className="hidden" onChange={handleImport('holidays')} />
-
-                        {[
-                            { label: 'Processos', count: cases.length, ref: casesInputRef, exportFn: () => downloadCSV(generateCasesCSV(cases), 'processos.csv') },
-                            { label: 'Contatos', count: clients.length, ref: clientsInputRef, exportFn: () => downloadCSV(generateContactsCSV(clients), 'contatos.csv') },
-                            { label: 'Prazos', count: deadlines.length, ref: deadlinesInputRef, exportFn: () => downloadCSV(generateDeadlinesCSV(deadlines, cases), 'prazos.csv') },
-                            { label: 'Equipe', count: teamMembers.length, ref: teamInputRef, exportFn: () => downloadCSV(generateTeamCSV(teamMembers), 'equipe.csv') },
-                            { label: 'Feriados', count: holidays.length, ref: holidayInputRef, exportFn: () => downloadCSV(generateHolidaysCSV(holidays), 'feriados.csv') },
-                        ].map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-slate-800 dark:text-white">{item.label}</span>
-                                    <span className="text-xs text-slate-500">{item.count} registros</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => item.ref.current?.click()}
-                                        className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-                                        title="Importar"
-                                    >
-                                        <Upload size={18} />
-                                    </button>
-                                    <button
-                                        onClick={item.exportFn}
-                                        className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
-                                        title="Exportar"
-                                    >
-                                        <Download size={18} />
-                                    </button>
-                                    {item.label === 'Feriados' && (
-                                        <button
-                                            onClick={resetHolidays}
-                                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                            title="Restaurar Feriados Padrão"
-                                        >
-                                            <RotateCcw size={18} />
-                                        </button>
-                                    )}
+                    {/* Appearance */}
+                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Aparência</h3>
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                {isDarkMode ? <Moon className="text-purple-500" /> : <Sun className="text-orange-500" />}
+                                <div>
+                                    <p className="font-medium text-slate-900 dark:text-white">Tema Escuro</p>
+                                    <p className="text-xs text-slate-500">Ajuste para ambientes com pouca luz</p>
                                 </div>
                             </div>
-                        ))}
+                            <button
+                                onClick={toggleTheme}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${isDarkMode ? 'bg-primary-600' : 'bg-slate-300'}`}
+                            >
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
+                    </div>
 
-                        <div className="pt-4 flex flex-col gap-3">
-                            <button
-                                onClick={syncData}
-                                disabled={isLoading}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
-                            >
-                                {isLoading ? (
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <Shield size={20} />
-                                )}
-                                Sincronizar Tudo com Supabase
-                            </button>
-                            <button
-                                onClick={handleBackupAll}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-dark-700 transition-all"
-                            >
-                                <Download size={20} /> Exportar Backup Completo (ZIP/CSV)
-                            </button>
+                    {/* Data Management */}
+                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <Shield size={20} className="text-primary-600" /> Gestão de Dados (CSV)
+                        </h3>
+
+                        <div className="space-y-4">
+                            <input type="file" accept=".csv" ref={casesInputRef} className="hidden" onChange={handleImport('cases')} />
+                            <input type="file" accept=".csv" ref={clientsInputRef} className="hidden" onChange={handleImport('clients')} />
+                            <input type="file" accept=".csv" ref={deadlinesInputRef} className="hidden" onChange={handleImport('deadlines')} />
+                            <input type="file" accept=".csv" ref={teamInputRef} className="hidden" onChange={handleImport('team')} />
+                            <input type="file" accept=".csv" ref={holidayInputRef} className="hidden" onChange={handleImport('holidays')} />
+
+                            {[
+                                { label: 'Processos', count: cases.length, ref: casesInputRef, exportFn: () => downloadCSV(generateCasesCSV(cases), 'processos.csv') },
+                                { label: 'Contatos', count: clients.length, ref: clientsInputRef, exportFn: () => downloadCSV(generateContactsCSV(clients), 'contatos.csv') },
+                                { label: 'Prazos', count: deadlines.length, ref: deadlinesInputRef, exportFn: () => downloadCSV(generateDeadlinesCSV(deadlines, cases), 'prazos.csv') },
+                                { label: 'Equipe', count: teamMembers.length, ref: teamInputRef, exportFn: () => downloadCSV(generateTeamCSV(teamMembers), 'equipe.csv') },
+                                { label: 'Feriados', count: holidays.length, ref: holidayInputRef, exportFn: () => downloadCSV(generateHolidaysCSV(holidays), 'feriados.csv') },
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-slate-800 dark:text-white">{item.label}</span>
+                                        <span className="text-xs text-slate-500">{item.count} registros</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => item.ref.current?.click()}
+                                            className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                                            title="Importar"
+                                        >
+                                            <Upload size={18} />
+                                        </button>
+                                        <button
+                                            onClick={item.exportFn}
+                                            className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                            title="Exportar"
+                                        >
+                                            <Download size={18} />
+                                        </button>
+                                        {item.label === 'Feriados' && (
+                                            <button
+                                                onClick={resetHolidays}
+                                                className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                                title="Restaurar Feriados Padrão"
+                                            >
+                                                <RotateCcw size={18} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="pt-4 flex flex-col gap-3">
+                                <button
+                                    onClick={syncData}
+                                    disabled={isLoading}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                                >
+                                    {isLoading ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <Shield size={20} />
+                                    )}
+                                    Sincronizar Tudo com Supabase
+                                </button>
+                                <button
+                                    onClick={handleBackupAll}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-dark-700 transition-all"
+                                >
+                                    <Download size={20} /> Exportar Backup Completo (ZIP/CSV)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
