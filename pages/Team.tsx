@@ -1,7 +1,7 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/Store';
-import { User, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle } from '../components/Icons';
+import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle } from '../components/Icons';
 import { TeamMember } from '../types';
 import { normalizeText } from '../utils/textUtils';
 
@@ -18,6 +18,35 @@ const maskPhone = (value: string) => {
 const maskCPF = (value: string) => value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 const maskCEP = (value: string) => value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
 const removeMask = (value: string) => value.replace(/\D/g, '');
+
+const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrameId: number;
+
+        const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const runtime = currentTime - startTime;
+            const progress = Math.min(runtime / duration, 1);
+
+            // Ease out quint
+            const easedProgress = 1 - Math.pow(1 - progress, 5);
+
+            setCount(Math.floor(easedProgress * target));
+
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [target, duration]);
+
+    return <span>{count}</span>;
+};
 
 export const Team: React.FC = () => {
     const { teamMembers, addTeamMember, updateTeamMember, deleteTeamMember, clearTeamMembers, addNotification, isLoading, setIsLoading } = useStore();
@@ -186,7 +215,23 @@ export const Team: React.FC = () => {
             <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Equipe</h1>
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Equipe</h1>
+
+                            {/* Animated Badge */}
+                            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 px-3 py-1.5 rounded-full animate-badge-entrance">
+                                <div className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </div>
+                                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                    <Users size={14} className="text-blue-600 dark:text-blue-400" />
+                                    <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                                        <AnimatedCounter target={teamMembers.length} /> Ativos
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {teamMembers.length === 0 ? "Nenhum membro cadastrado." :
                                 filteredMembers.length === teamMembers.length ?
