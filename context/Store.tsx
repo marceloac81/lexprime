@@ -473,6 +473,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             startTime: d.start_time,
             countType: d.count_type,
             isDone: d.is_done,
+            court: d.court,
+            city: d.city,
+            uf: d.uf,
           })));
         }
 
@@ -1047,6 +1050,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         is_done: updated.isDone,
         priority: updated.priority,
         type: updated.type,
+        court: updated.court,
+        city: updated.city,
+        uf: updated.uf,
         created_at: updated.createdAt,
         updated_at: updated.updatedAt
       });
@@ -1082,6 +1088,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         is_done: updated.isDone,
         priority: updated.priority,
         type: updated.type,
+        court: updated.court,
+        city: updated.city,
+        uf: updated.uf,
         updated_at: updated.updatedAt
       }).eq('id', updated.id);
 
@@ -1408,6 +1417,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           is_done: d.isDone,
           priority: d.priority,
           type: d.type,
+          court: d.court,
+          city: d.city,
+          uf: d.uf,
           created_at: d.createdAt,
           updated_at: d.updatedAt
         }));
