@@ -56,7 +56,8 @@ import {
   RotateCcw,
   Smartphone,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Newspaper
 } from 'lucide-react';
 
 
@@ -117,5 +118,6 @@ export {
   RotateCcw,
   Smartphone,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Newspaper
 };

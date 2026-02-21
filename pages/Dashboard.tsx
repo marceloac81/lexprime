@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useStore } from '../context/Store';
-import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3 } from '../components/Icons';
+import { supabase } from '../utils/supabaseClient';
+import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3, Newspaper } from '../components/Icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Label, LabelList } from 'recharts';
 import { CaseStatus } from '../types';
 
@@ -26,6 +27,78 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext }: any) => (
     </div>
   </div>
 );
+
+const LegalNewsCard = () => {
+  const [news, setNews] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const { cases } = useStore(); // Just to trigger a re-render if needed, but we'll import supabase below
+
+  React.useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        console.log("Invoking get-legal-news function...");
+        const { data, error } = await supabase.functions.invoke('get-legal-news');
+
+        if (error) {
+          console.error('Supabase function error:', error);
+          return;
+        }
+
+        console.log("Function response data:", data);
+        if (Array.isArray(data)) {
+          setNews(data);
+        }
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
+
+  return (
+    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col overflow-hidden">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Newspaper size={20} className="text-primary-500" /> Notícias Jurídicas
+        </h3>
+        <span className="text-[10px] bg-slate-100 dark:bg-dark-900 px-2 py-0.5 rounded text-slate-400 font-bold uppercase tracking-wider">ConJur RSS</span>
+      </div>
+
+      <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1">
+        {loading ? (
+          <div className="flex items-center justify-center h-full gap-2 text-slate-400">
+            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm">Carregando notícias...</span>
+          </div>
+        ) : news.length > 0 ? (
+          news.map((item, idx) => (
+            <a
+              key={idx}
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block group p-3 -mx-2 rounded-lg hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+            >
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
+                    <span className="text-[10px] font-bold text-slate-400 mr-2 tabular-nums">{item.time} —</span>
+                    {item.title}
+                  </p>
+                </div>
+                <ChevronRight size={14} className="text-slate-300 group-hover:text-primary-400 group-hover:translate-x-1 transition-all self-center shrink-0" />
+              </div>
+            </a>
+          ))
+        ) : (
+          <div className="text-center py-8 text-slate-400 italic text-xs">Não foi possível carregar as notícias.</div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const { cases, deadlines, appointments, currentUser, clients, setPendingAction } = useStore();
@@ -69,12 +142,12 @@ export const Dashboard: React.FC = () => {
   const upcomingDeadlines = deadlines
     .filter(d => !d.isDone && d.status !== 'Canceled' && d.dueDate >= today)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 7);
+    .slice(0, 12);
 
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]
     .sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime())
-    .slice(0, 4); // Top 4
+    .slice(0, 5); // Increased to 5 for better alignment
 
   return (
     <div className="animate-fade-in pb-20 relative h-full flex flex-col">
@@ -297,6 +370,9 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Legal News Widget */}
+            <LegalNewsCard />
 
             {/* Recent Activity (Real Data) */}
             <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
