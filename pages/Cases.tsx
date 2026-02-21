@@ -8,6 +8,35 @@ import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
 import { formatCurrency, maskCurrency, parseCurrency } from '../utils/currencyUtils';
 
+const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
+    const [count, setCount] = useState(0);
+
+    React.useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrameId: number;
+
+        const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const runtime = currentTime - startTime;
+            const progress = Math.min(runtime / duration, 1);
+
+            // Ease out quint
+            const easedProgress = 1 - Math.pow(1 - progress, 5);
+
+            setCount(Math.floor(easedProgress * target));
+
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [target, duration]);
+
+    return <span>{count}</span>;
+};
+
 export const Cases: React.FC = () => {
     const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -204,15 +233,15 @@ export const Cases: React.FC = () => {
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {cases.length === 0 ? "Nenhum processo cadastrado." :
                                 filteredCases.length === cases.length ?
-                                    `Total de ${cases.length} ${cases.length === 1 ? 'processo' : 'processos'}.` :
-                                    `Exibindo ${filteredCases.length} de ${cases.length} processos.`
+                                    <span key="total">Total de <AnimatedCounter target={cases.length} /> {cases.length === 1 ? 'processo' : 'processos'}.</span> :
+                                    <span key="filtered">Exibindo <AnimatedCounter target={filteredCases.length} /> de {cases.length} processos.</span>
                             }
                         </p>
                     </div>
                     <div className="flex gap-2 md:gap-3 w-full md:w-auto">
                         <button
                             onClick={handlePrint}
-                            className="flex-1 md:flex-none bg-white dark:bg-dark-700 hover:bg-slate-50 dark:hover:bg-dark-600 text-slate-700 dark:text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 no-print"
+                            className="flex-1 md:flex-none bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 no-print"
                         >
                             <Printer size={20} /> Imprimir
                         </button>
@@ -284,11 +313,12 @@ export const Cases: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {filteredCases.map(c => (
+                                {filteredCases.map((c, index) => (
                                     <tr
                                         key={c.id}
                                         onDoubleClick={() => setSelectedCase(c)}
-                                        className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-md transition-all cursor-pointer group animate-stagger-slide-in opacity-0"
+                                        style={{ animationDelay: `${index * 40}ms` }}
                                         title="Clique duplo para ver detalhes"
                                     >
                                         <td className="p-4">
@@ -349,11 +379,12 @@ export const Cases: React.FC = () => {
 
                     {/* MOBILE CARDS VIEW (Hidden on Desktop) */}
                     <div className="md:hidden flex flex-col gap-4 overflow-y-auto pb-20 custom-scrollbar">
-                        {filteredCases.map(c => (
+                        {filteredCases.map((c, index) => (
                             <div
                                 key={c.id}
                                 onDoubleClick={() => setSelectedCase(c)}
-                                className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-transform"
+                                className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-all animate-stagger-slide-in opacity-0"
+                                style={{ animationDelay: `${index * 50}ms` }}
                                 title="Clique duplo para ver detalhes"
                             >
                                 {/* Header: Number & Status */}

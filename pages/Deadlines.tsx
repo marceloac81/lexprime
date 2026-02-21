@@ -7,6 +7,36 @@ import { normalizeText } from '../utils/textUtils';
 import { Deadline } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
+import { Clock } from 'lucide-react';
+
+const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrameId: number;
+
+        const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const runtime = currentTime - startTime;
+            const progress = Math.min(runtime / duration, 1);
+
+            // Ease out quint
+            const easedProgress = 1 - Math.pow(1 - progress, 5);
+
+            setCount(Math.floor(easedProgress * target));
+
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [target, duration]);
+
+    return <span>{count}</span>;
+};
 
 export const Deadlines: React.FC = () => {
     const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode } = useStore();
@@ -284,8 +314,24 @@ export const Deadlines: React.FC = () => {
             {/* Header - Sticky */}
             <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+
+                            {/* Animated Pending Badge */}
+                            {deadlines.filter(d => getStatus(d) === 'Pending').length > 0 && (
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/30 backdrop-blur-md shadow-sm animate-badge-entrance origin-left group">
+                                    <div className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                    </div>
+                                    <Clock size={14} className="text-amber-600 dark:text-amber-400" />
+                                    <span className="text-xs font-bold text-amber-700 dark:text-amber-300 whitespace-nowrap">
+                                        <AnimatedCounter target={deadlines.filter(d => getStatus(d) === 'Pending').length} /> Prazos Pendentes
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
                     </div>
                     {/* CONTAINER GERAL DE AÇÕES */}

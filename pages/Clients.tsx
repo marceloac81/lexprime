@@ -62,6 +62,35 @@ const maskCEP = (value: string) => {
 
 const removeMask = (value: string) => value.replace(/\D/g, '');
 
+const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrameId: number;
+
+        const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const runtime = currentTime - startTime;
+            const progress = Math.min(runtime / duration, 1);
+
+            // Ease out quint
+            const easedProgress = 1 - Math.pow(1 - progress, 5);
+
+            setCount(Math.floor(easedProgress * target));
+
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [target, duration]);
+
+    return <span>{count}</span>;
+};
+
 export const Clients: React.FC = () => {
     const { clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading } = useStore();
 
@@ -466,9 +495,9 @@ export const Clients: React.FC = () => {
                             {clients.length === 0 ? (
                                 "Nenhum contato cadastrado."
                             ) : filteredClients.length === clients.length ? (
-                                `Total de ${clients.length} ${clients.length === 1 ? 'contato' : 'contatos'}.`
+                                <>Total de <AnimatedCounter target={clients.length} /> {clients.length === 1 ? 'contato' : 'contatos'}.</>
                             ) : (
-                                `Exibindo ${filteredClients.length} de ${clients.length} contatos.`
+                                <>Exibindo <AnimatedCounter target={filteredClients.length} /> de {clients.length} contatos.</>
                             )}
                         </p>
                     </div>
@@ -499,8 +528,8 @@ export const Clients: React.FC = () => {
                             <button
                                 key={t}
                                 onClick={() => setTypeFilter(t as any)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors whitespace-nowrap ${typeFilter === t
-                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all duration-300 active:scale-90 whitespace-nowrap ${typeFilter === t
+                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
                                     : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'
                                     }`}
                             >
@@ -527,8 +556,11 @@ export const Clients: React.FC = () => {
 
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-20 custom-scrollbar">
-                        {sortedClients.map(client => (
-                            <div key={client.id} className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group relative">
+                        {sortedClients.map((client, index) => (
+                            <div key={client.id}
+                                className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group relative animate-stagger-fade-in opacity-0"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-xl font-bold text-slate-600 dark:text-slate-300">
                                         {client.name.charAt(0)}
@@ -617,8 +649,13 @@ export const Clients: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                    {sortedClients.map(client => (
-                                        <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group" onDoubleClick={() => handleOpenDetails(client)} title="Clique duplo para ver detalhes">
+                                    {sortedClients.map((client, index) => (
+                                        <tr key={client.id}
+                                            className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group animate-stagger-fade-in opacity-0"
+                                            style={{ animationDelay: `${index * 30}ms` }}
+                                            onDoubleClick={() => handleOpenDetails(client)}
+                                            title="Clique duplo para ver detalhes"
+                                        >
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
