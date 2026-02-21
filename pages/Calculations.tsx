@@ -309,19 +309,31 @@ const Calculations: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white dark:bg-dark-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <button
-                            onClick={() => { setActiveTab('civic'); setResult(null); }}
-                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'civic' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
-                        >
-                            Natureza Cível
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab('batch'); setResult(null); }}
-                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'batch' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
-                        >
-                            Múltiplos Valores
-                        </button>
+                    {/* Modern Segmented Control */}
+                    <div className="flex-1 flex justify-center">
+                        <div className="relative bg-slate-100 dark:bg-dark-800 p-1 rounded-xl flex items-center w-full max-w-[400px] border border-slate-200 dark:border-slate-700 shadow-sm">
+                            {/* Animated Background Pill */}
+                            <div
+                                className="absolute h-[calc(100%-8px)] rounded-lg bg-blue-600 shadow-md transition-all duration-300 ease-out"
+                                style={{
+                                    width: 'calc(50% - 4px)',
+                                    left: activeTab === 'civic' ? '4px' : 'calc(50%)'
+                                }}
+                            />
+
+                            <button
+                                onClick={() => { setActiveTab('civic'); setResult(null); }}
+                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'civic' ? 'text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                            >
+                                Natureza Cível
+                            </button>
+                            <button
+                                onClick={() => { setActiveTab('batch'); setResult(null); }}
+                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'batch' ? 'text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                            >
+                                Múltiplos Valores
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex gap-2">
@@ -428,10 +440,10 @@ const Calculations: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex gap-4 pt-6 justify-center">
-                                        <button onClick={handleCalculateCivic} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
+                                        <button onClick={handleCalculateCivic} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg hover:shadow-[#2d3a4f]/20 transition-all flex items-center gap-2 font-bold active:scale-95">
                                             <Calculator size={18} /> CALCULAR
                                         </button>
-                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2">
+                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2 active:scale-95">
                                             <RotateCcw size={18} /> LIMPAR
                                         </button>
                                         {result && !result.isBatch && (
@@ -448,46 +460,88 @@ const Calculations: React.FC = () => {
 
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Batch Generator Tool */}
-                                    <div className="bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-dashed border-primary-200 dark:border-primary-900/30 mb-8 no-print">
-                                        <h3 className="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <Plus size={16} /> Gerador de Parcelas em Lote
+                                    {/* Modern Batch Generator Tool */}
+                                    <div className="bg-slate-50 dark:bg-dark-900/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 relative overflow-hidden group/gen no-print">
+                                        <div className="absolute top-0 right-0 p-8 bg-primary-500/5 rounded-full -mr-4 -mt-4 blur-2xl group-hover/gen:bg-primary-500/10 transition-colors" />
+
+                                        <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-5 flex items-center gap-2">
+                                            <div className="p-1.5 bg-primary-600 text-white rounded-lg shadow-md shadow-primary-500/20">
+                                                <Plus size={14} />
+                                            </div>
+                                            Gerador de Parcelas em Lote
                                         </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Inicial</label>
-                                                <input type="month" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-end relative z-10">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <Calendar size={12} /> Mês/Ano Inicial
+                                                </label>
+                                                <div className="relative">
+                                                    <input type="month" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all" />
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Mês/Ano Final</label>
-                                                <input type="month" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <Calendar size={12} /> Mês/Ano Final
+                                                </label>
+                                                <div className="relative">
+                                                    <input type="month" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all" />
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase">Valor Base (R$)</label>
-                                                <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white" />
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <DollarSign size={12} /> Valor Base (R$)
+                                                </label>
+                                                <div className="relative">
+                                                    <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all font-medium" />
+                                                </div>
                                             </div>
-                                            <button onClick={handleGenerateRows} className="bg-primary-600 hover:bg-primary-700 text-white p-2 text-sm font-bold rounded transition-colors shadow-sm">
+                                            <button
+                                                onClick={handleGenerateRows}
+                                                className="bg-primary-600 hover:bg-primary-700 text-white h-[42px] px-4 text-xs font-bold rounded-xl transition-all shadow-lg shadow-primary-500/20 active:scale-95 flex items-center justify-center gap-2"
+                                            >
+                                                <RotateCcw size={14} className="group-hover/gen:rotate-180 transition-transform duration-500" />
                                                 GERAR PARCELAS
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white dark:bg-dark-800 p-0 rounded-xl mb-4">
-                                        <div className="space-y-4">
+                                    {/* General Settings Grid - Optimized for Vertical Density */}
+                                    <div className="p-5 bg-slate-50/50 dark:bg-dark-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Data Final de Atualização</label>
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <Calendar size={12} className="text-primary-500" /> Data Final de Atualização
+                                                </label>
                                                 <input
                                                     type="date"
                                                     value={batchEndDate}
                                                     onChange={(e) => setBatchEndDate(e.target.value)}
-                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
                                                 />
                                             </div>
+
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de Juros</label>
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <Percent size={12} className="text-primary-500" /> Honorários (%)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="0,00"
+                                                    value={batchFees}
+                                                    onChange={(e) => setBatchFees(e.target.value)}
+                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <Percent size={12} className="text-primary-500" /> Tipo de Juros
+                                                </label>
                                                 <select
                                                     value={batchInterestType}
                                                     onChange={(e) => setBatchInterestType(e.target.value)}
-                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
                                                 >
                                                     <option value="0">Sem juros</option>
                                                     <option value="6">Juros Simples 6% a.a</option>
@@ -495,62 +549,49 @@ const Calculations: React.FC = () => {
                                                 </select>
                                             </div>
 
-                                            {batchInterestType !== '0' && (
-                                                <div className="bg-slate-50 dark:bg-dark-900/30 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50 space-y-3">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Configuração de Incidência de Juros</label>
-                                                    <div className="flex flex-col gap-2">
-                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                            <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
-                                                            Data Fixa Igualmente (ex: citação)
+                                            {/* Penalties & Interest Mode - Spans 3 columns or stacks */}
+                                            <div className={`col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100 dark:border-slate-800/50 mt-1`}>
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Penalidades (Art. 523 § 1º CPC)</label>
+                                                    <div className="flex gap-4">
+                                                        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer group">
+                                                            <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition-all" />
+                                                            <span className="group-hover:text-primary-600 transition-colors">10% Multa</span>
                                                         </label>
-                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                            <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
-                                                            Data Individual por Linha
-                                                        </label>
-                                                        <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                            <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
-                                                            Mesma Data Inicial de cada Parcela
+                                                        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer group">
+                                                            <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition-all" />
+                                                            <span className="group-hover:text-primary-600 transition-colors">10% Honorários</span>
                                                         </label>
                                                     </div>
+                                                </div>
 
-                                                    {interestMode === 'fixed' && (
-                                                        <div className="mt-3 flex flex-col gap-1.5 animate-in fade-in duration-300">
-                                                            <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data Fixa de Juros</label>
+                                                {batchInterestType !== '0' && (
+                                                    <div className="space-y-3 animate-fade-in">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Modo de Incidência de Juros</label>
+                                                        <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
+                                                                <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
+                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Fixa</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
+                                                                <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
+                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Individual</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
+                                                                <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
+                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Pela Parcela</span>
+                                                            </label>
+                                                        </div>
+                                                        {interestMode === 'fixed' && (
                                                             <input
                                                                 type="date"
                                                                 value={batchInterestStartDate}
                                                                 onChange={(e) => setBatchInterestStartDate(e.target.value)}
-                                                                className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white"
+                                                                className="w-full p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 outline-none animate-in fade-in slide-in-from-top-1"
                                                             />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Honorários Sugeridos (%)</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="0,00"
-                                                    value={batchFees}
-                                                    onChange={(e) => setBatchFees(e.target.value)}
-                                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Penalidades (Art. 523 § 1º CPC)</label>
-                                                <div className="flex flex-col gap-2 p-1">
-                                                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                        <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
-                                                        10% Multa
-                                                    </label>
-                                                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                        <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="rounded text-primary-500 shadow-sm" />
-                                                        10% Honorários
-                                                    </label>
-                                                </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -628,26 +669,29 @@ const Calculations: React.FC = () => {
                                                 ))}
                                             </tbody>
                                         </table>
-                                        <div className="p-3 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print">
-                                            <span className="text-[10px] text-slate-400 font-medium">{batchItems.length} item(ns) na listagem</span>
+                                        <div className="p-4 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print border-t border-slate-100 dark:border-slate-800">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+                                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{batchItems.length} parcelas listadas</span>
+                                            </div>
                                             <button
                                                 onClick={() => setBatchItems([...batchItems, { id: crypto.randomUUID(), startDate: '', value: '' }])}
-                                                className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
+                                                className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-2 transition-all hover:gap-3 px-3 py-1.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 active:scale-95"
                                             >
-                                                <Plus size={14} /> ADICIONAR NOVA LINHA
+                                                <Plus size={16} /> ADICIONAR NOVA LINHA
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4 pt-6 justify-center">
-                                        <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-10 py-3 rounded shadow-lg hover:shadow-primary-500/10 transition-all flex items-center gap-2 font-bold active:scale-95">
+                                    <div className="flex flex-wrap gap-4 pt-8 justify-center no-print">
+                                        <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#324158] text-white px-10 py-3.5 rounded-xl shadow-xl shadow-[#2d3a4f]/20 hover:shadow-[#2d3a4f]/40 transition-all flex items-center gap-3 font-bold active:scale-95">
                                             <Calculator size={18} /> CALCULAR TUDO
                                         </button>
-                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3 rounded transition-all flex items-center gap-2 active:scale-95">
+                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3.5 rounded-xl transition-all flex items-center gap-3 font-bold active:scale-95 border-b-4 border-b-slate-100 dark:border-b-dark-900 active:border-b-0">
                                             <RotateCcw size={18} /> LIMPAR
                                         </button>
                                         {result && result.isBatch && (
-                                            <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-10 py-3 rounded shadow-lg transition-all flex items-center gap-2 font-bold active:scale-95">
+                                            <button onClick={() => window.print()} className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-3.5 rounded-xl shadow-xl shadow-primary-500/20 transition-all flex items-center gap-3 font-bold active:scale-95">
                                                 <Printer size={18} /> IMPRIMIR
                                             </button>
                                         )}
