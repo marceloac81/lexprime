@@ -57,7 +57,8 @@ import {
   Smartphone,
   Maximize2,
   Minimize2,
-  Newspaper
+  Newspaper,
+  ExternalLink
 } from 'lucide-react';
 
 
@@ -119,5 +120,6 @@ export {
   Smartphone,
   Maximize2,
   Minimize2,
-  Newspaper
+  Newspaper,
+  ExternalLink
 };

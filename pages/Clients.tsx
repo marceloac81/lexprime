@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign } from '../components/Icons';
+import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign, ExternalLink } from '../components/Icons';
 import { Client } from '../types';
 import { normalizeText } from '../utils/textUtils';
 import { PowerOfAttorneyModal } from '../components/PowerOfAttorneyModal';
@@ -208,6 +208,11 @@ export const Clients: React.FC = () => {
     const handleOpenDetails = (client: Client) => {
         setSelectedClient(client);
         setShowDetailModal(true);
+    };
+
+    const handleNavigateToCase = (caseId: string) => {
+        setPendingAction(`editCase:${caseId}`);
+        setShowDetailModal(false);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -1214,11 +1219,61 @@ export const Clients: React.FC = () => {
                                             </div>
                                         </div>
                                     )}
+
+                                    {(() => {
+                                        const linkedCases = cases.filter(c => c.clientId === selectedClient.id || c.clientName === selectedClient.name);
+                                        if (linkedCases.length === 0) return null;
+
+                                        return (
+                                            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-700">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <Briefcase size={16} className="text-slate-400" />
+                                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Processos Vinculados ({linkedCases.length})</h3>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {linkedCases.map(c => (
+                                                        <div key={c.id} className="bg-slate-50 dark:bg-dark-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-mono bg-white dark:bg-dark-800 px-2 py-0.5 rounded shadow-sm">
+                                                                        {c.number || 'Sem número'}
+                                                                    </span>
+                                                                    {c.status && (
+                                                                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded 
+                                                                            ${c.status === 'Ativo' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : ''}
+                                                                            ${c.status === 'Encerrado' ? 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300' : ''}
+                                                                            ${c.status === 'Suspenso' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : ''}
+                                                                        `}>
+                                                                            {c.status}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-xs text-slate-800 dark:text-slate-200 font-medium truncate">
+                                                                    {c.clientName} X {c.opposingParty}
+                                                                </p>
+                                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                                                    {c.court} - {c.city}, {c.uf}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleNavigateToCase(c.id!)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all shadow-sm shrink-0 whitespace-nowrap"
+                                                            >
+                                                                <ExternalLink size={14} /> Acessar
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
 
-                                <div className="px-8 pb-8 text-xs text-slate-400 flex items-center gap-2">
-                                    <CalendarIcon size={12} /> Cadastrado em {new Date(selectedClient.createdAt).toLocaleDateString()}
-                                </div>
+                                {selectedClient.createdAt && (
+                                    <div className="px-8 pb-8 text-xs text-slate-400 flex items-center gap-2">
+                                        <CalendarIcon size={12} /> Cadastrado em {new Date(selectedClient.createdAt).toLocaleDateString('pt-BR')}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )
