@@ -163,6 +163,11 @@ export const parseCasesCSV = (text: string): any[] => {
             value: Number(cols[map['VALOR']]) || 0,
             status: (cols[map['STATUS']] || 'Ativo') as any,
             folderNumber: cols[map['PASTA']] || '',
+            tribunal: cols[map['TRIBUNAL']] || '',
+            subject: cols[map['ASSUNTO']] || '',
+            probability: cols[map['PROBABILIDADE']] || '',
+            valueDate: parseImportDate(cols[map['DATA_VALOR']] || ''),
+            relatedType: cols[map['TIPO_DESDOBRAMENTO']] || '',
             createdAt: new Date().toISOString()
         });
     }
@@ -192,6 +197,11 @@ export const parseDeadlinesCSV = (text: string): any[] => {
             customerName: cols[map['CLIENTE']] || '',
             status: cols[map['STATUS']] || 'Pending',
             isDone: cols[map['STATUS']] === 'Done',
+            priority: (cols[map['PRIORIDADE']] || 'Medium') as any,
+            type: (cols[map['TIPO']] || 'Prazo Processual') as any,
+            days: Number(cols[map['DIAS']]) || undefined,
+            countType: (cols[map['TIPO_CONTAGEM']] || undefined) as any,
+            startDate: parseImportDate(cols[map['DATA_INICIO']] || ''),
         });
     }
     return parsedDeadlines;
@@ -338,9 +348,10 @@ export const generateContactsCSV = (clients: Client[]): string => {
 // --- NEW EXPORT HELPERS ---
 
 export const generateCasesCSV = (cases: any[]): string => {
-    const headers = ['NUMERO', 'CLIENTE', 'POLO', 'PARTE_CONTRARIA', 'LOCAL', 'UF', 'CIDADE', 'AREA', 'VALOR', 'STATUS', 'PASTA'];
+    const headers = ['NUMERO', 'TITULO', 'CLIENTE', 'POLO', 'PARTE_CONTRARIA', 'LOCAL', 'UF', 'CIDADE', 'AREA', 'VALOR', 'DATA_VALOR', 'STATUS', 'PASTA', 'TRIBUNAL', 'ASSUNTO', 'PROBABILIDADE', 'TIPO_DESDOBRAMENTO'];
     const rows = cases.map(c => [
         c.number,
+        c.title || '',
         c.clientName,
         c.clientPosition,
         c.opposingParty,
@@ -349,14 +360,19 @@ export const generateCasesCSV = (cases: any[]): string => {
         c.city,
         c.area,
         c.value || '',
+        formatDateForExport(c.valueDate || ''),
         c.status,
-        c.folderNumber || ''
+        c.folderNumber || '',
+        c.tribunal || '',
+        c.subject || '',
+        c.probability || '',
+        c.relatedType || ''
     ]);
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
 };
 
 export const generateDeadlinesCSV = (deadlines: any[], cases: any[]): string => {
-    const headers = ['DATA', 'HORA', 'ATIVIDADE', 'PROCESSO', 'CLIENTE', 'VARA', 'CIDADE', 'UF', 'STATUS'];
+    const headers = ['DATA', 'HORA', 'ATIVIDADE', 'PROCESSO', 'CLIENTE', 'VARA', 'CIDADE', 'UF', 'STATUS', 'PRIORIDADE', 'TIPO', 'DIAS', 'TIPO_CONTAGEM', 'DATA_INICIO'];
     const rows = deadlines.map(d => {
         const relCase = cases.find(c => c.id === d.caseId);
         return [
@@ -368,7 +384,12 @@ export const generateDeadlinesCSV = (deadlines: any[], cases: any[]): string => 
             relCase?.court || d.court || '-',
             relCase?.city || d.city || '-',
             relCase?.uf || d.uf || '-',
-            (d.status || (d.isDone ? 'Done' : 'Pending'))
+            (d.status || (d.isDone ? 'Done' : 'Pending')),
+            d.priority || 'Medium',
+            d.type || 'Prazo Processual',
+            d.days || '',
+            d.countType || '',
+            d.startDate || ''
         ];
     });
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
