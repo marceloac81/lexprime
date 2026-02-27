@@ -5,7 +5,7 @@ import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
-import { sanitizeCNJ } from '../utils/cnjUtils';
+import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -573,7 +573,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                 {item.nomeOrgao}
                                             </h3>
                                             <p className="text-sm text-slate-500 dark:text-slate-400 font-mono mt-1.5">
-                                                {item.numero_processo}
+                                                {formatCNJ(item.numero_processo)}
                                             </p>
                                         </div>
 
@@ -594,7 +594,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                     return (
                                                         <button
                                                             onClick={() => {
-                                                                setPendingProcessNumber(item.numero_processo);
+                                                                setPendingProcessNumber(formatCNJ(item.numero_processo));
                                                                 setShowCaseModal(true);
                                                             }}
                                                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-600 hover:text-white transition-all active:scale-95"

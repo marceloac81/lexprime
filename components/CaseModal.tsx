@@ -33,7 +33,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
 }) => {
     // --- Form State ---
     const [newCase, setNewCase] = useState<Partial<Case>>({
-        number: initialNumber || initialData?.number || '',
+        number: formatCNJ(initialNumber) || initialData?.number || '',
         title: initialData?.title || '',
         clientName: initialData?.clientName || '',
         clientPosition: initialData?.clientPosition || 'Ativo',
