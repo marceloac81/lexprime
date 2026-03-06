@@ -154,7 +154,7 @@ export const Calendario: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Calendário</h1>

@@ -312,7 +312,7 @@ export const Deadlines: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3">
@@ -334,8 +334,8 @@ export const Deadlines: React.FC = () => {
                         </div>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
                     </div>
-                    {/* CONTAINER GERAL DE AÇÕES */}
-                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center">
+                    {/* CONTAINER DE AÇÕES - Fix para Mobile (espaçamento e bloco único) */}
+                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center mt-3 md:mt-0">
                         {/* Search bar */}
                         <div className="relative group w-full md:w-auto">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />

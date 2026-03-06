@@ -7,7 +7,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
     return (
-        <div className="md:hidden bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between shrink-0 z-30">
+        <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between z-[100]">
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

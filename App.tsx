@@ -75,7 +75,7 @@ const AppContent: React.FC = () => {
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden animate-fade-in"
+          className="fixed inset-0 bg-black/50 z-[110] md:hidden animate-fade-in"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -89,7 +89,7 @@ const AppContent: React.FC = () => {
         toggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative pt-16 md:pt-0">
         <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
 
         <SearchModal

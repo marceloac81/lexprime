@@ -212,7 +212,7 @@ export const Team: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative h-full flex flex-col">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div className="flex items-center gap-4">
@@ -241,7 +241,7 @@ export const Team: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+                    <div className="flex gap-2 md:gap-3 w-full md:w-auto mt-3 md:mt-0">
                         <button
                             onClick={handleOpenNew}
                             className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-all shadow-lg shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
