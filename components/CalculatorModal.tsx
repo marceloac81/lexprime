@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
-import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon } from './Icons';
+import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
+import { CpcReferenceCatalog } from './CpcReferenceCatalog';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
 import { normalizeText } from '../utils/textUtils';
 
@@ -89,6 +90,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const [result, setResult] = useState<{ date: Date, logs: string[], simulation: import('../types').SimulationStep[] } | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [showTempestividade, setShowTempestividade] = useState(false);
+    const [showCpcCatalog, setShowCpcCatalog] = useState(false);
 
     // Dropdown container ref for click-outside detection
     const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -402,7 +404,19 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Dias</label>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Dias</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCpcCatalog(true)}
+                                        className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800/50 transition-all active:scale-95"
+                                        title="Consultar tabela de prazos do CPC/2015"
+                                    >
+                                        <BookOpen size={12} />
+                                        <span className="hidden sm:inline">Consultar CPC</span>
+                                        <span className="sm:hidden">CPC</span>
+                                    </button>
+                                </div>
                                 <input type="number" min="0" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={days} onChange={e => setDays(Number(e.target.value))} />
                             </div>
@@ -528,6 +542,17 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                     )}
                 </div>
             </div>
+
+            {showCpcCatalog && (
+                <CpcReferenceCatalog
+                    onClose={() => setShowCpcCatalog(false)}
+                    onSelect={(dias, descricao) => {
+                        setDays(dias);
+                        setTitle(descricao);
+                        setShowCpcCatalog(false);
+                    }}
+                />
+            )}
 
             {showTempestividade && result && (
                 <TempestividadeModal

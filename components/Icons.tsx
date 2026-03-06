@@ -58,7 +58,8 @@ import {
   Maximize2,
   Minimize2,
   Newspaper,
-  ExternalLink
+  ExternalLink,
+  BookOpen
 } from 'lucide-react';
 
 
@@ -121,5 +122,6 @@ export {
   Maximize2,
   Minimize2,
   Newspaper,
-  ExternalLink
+  ExternalLink,
+  BookOpen
 };
