@@ -300,48 +300,216 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             <style>
                 {`
                 @media print {
-                    @page { margin: 15mm; }
-                    .no-print { display: none !important; }
-                    .print-only { display: block !important; }
-                    
-                    html, body, #root, .animate-fade-in { 
+                    @page {
+                        margin: 12mm 10mm;
+                        size: A4;
+                    }
+
+                    /* ===== 1. HIDE ALL UI / BRANDING ===== */
+                    /* Sidebar, logo, branding */
+                    aside,
+                    nav,
+                    .no-print {
+                        display: none !important;
+                    }
+
+                    /* ===== 2. RESET GLOBAL LAYOUT ===== */
+                    html, body, #root {
                         display: block !important;
-                        height: auto !important; 
+                        width: 100% !important;
+                        height: auto !important;
                         overflow: visible !important;
                         margin: 0 !important;
                         padding: 0 !important;
+                        position: relative !important;
+                        background: white !important;
+                        color: #000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
 
-                    .space-y-8 > * + * { margin-top: 0 !important; }
-                    .space-y-4 > * + * { margin-top: 0 !important; }
-
-                    .print-card { 
+                    /* Remove any fixed/absolute positioning on wrappers */
+                    .animate-fade-in,
+                    [class*="animate-"] {
                         display: block !important;
-                        box-shadow: none !important; 
-                        border: 1px solid #c7d2e0 !important; 
-                        margin-bottom: 2rem !important;
-                        page-break-inside: avoid !important;
-                        padding: 0 !important;
+                        width: 100% !important;
                         height: auto !important;
                         overflow: visible !important;
+                        position: relative !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        animation: none !important;
                     }
+
+                    /* Reset main content area to fill the page */
+                    main, [role="main"], .flex-1 {
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                    }
+
+                    /* Remove spacing helpers that cause gaps */
+                    .space-y-8 > * + *,
+                    .space-y-4 > * + * {
+                        margin-top: 8px !important;
+                    }
+
+                    /* ===== 3. PUBLICATION CARD ===== */
+                    .print-card {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                        position: relative !important;
+                        box-shadow: none !important;
+                        border: 1px solid #000 !important;
+                        border-radius: 0 !important;
+                        margin-bottom: 12px !important;
+                        padding: 0 !important;
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                        background: white !important;
+                        /* Reset any ring/glow effects from selection */
+                        ring: none !important;
+                        outline: none !important;
+                        --tw-ring-shadow: none !important;
+                        --tw-shadow: none !important;
+                    }
+
+                    /* Show ONLY selected cards */
                     .print-card-selected {
                         display: block !important;
                     }
                     .print-card-not-selected {
                         display: none !important;
                     }
+
+                    /* ===== 4. PROCESS HEADER BAR ===== */
+                    .print-card > div:first-child {
+                        background: #f0f0f0 !important;
+                        border-bottom: 1px solid #000 !important;
+                        border-radius: 0 !important;
+                        padding: 6px 12px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: space-between !important;
+                    }
+                    /* Process number text: pure black, bold */
+                    .print-card > div:first-child span {
+                        color: #000 !important;
+                        font-weight: 700 !important;
+                        font-size: 11pt !important;
+                    }
+
+                    /* ===== 5. TWO-COLUMN GRID ===== */
                     .pub-card-grid {
                         display: flex !important;
+                        flex-direction: row !important;
+                        flex-wrap: nowrap !important;
+                        width: 100% !important;
                     }
+
+                    /* Left column: Metadata (30%) */
                     .pub-card-meta {
                         width: 30% !important;
-                        border-right: 1px solid #c7d2e0 !important;
+                        min-width: 30% !important;
+                        max-width: 30% !important;
+                        flex: 0 0 30% !important;
+                        border-right: 1px solid #000 !important;
+                        border-bottom: none !important;
+                        padding: 8px 10px !important;
+                        background: #fafafa !important;
+                        border-radius: 0 !important;
+                        box-sizing: border-box !important;
                     }
+
+                    /* Right column: Text (70%) */
                     .pub-card-content {
                         width: 70% !important;
+                        min-width: 70% !important;
+                        max-width: 70% !important;
+                        flex: 0 0 70% !important;
+                        padding: 8px 12px !important;
+                        background: white !important;
+                        border-radius: 0 !important;
+                        box-sizing: border-box !important;
                     }
-                    body { background: white !important; }
+
+                    /* ===== 6. TYPOGRAPHY & COLORS ===== */
+                    /* All text: pure black */
+                    .pub-card-meta p,
+                    .pub-card-meta span,
+                    .pub-card-meta li,
+                    .pub-card-meta ul,
+                    .pub-card-content p,
+                    .pub-card-content span {
+                        color: #000 !important;
+                    }
+
+                    /* Metadata labels */
+                    .pub-card-meta .uppercase {
+                        color: #333 !important;
+                        font-size: 7pt !important;
+                    }
+
+                    /* Metadata values */
+                    .pub-card-meta p:not(.uppercase) {
+                        font-size: 9pt !important;
+                        line-height: 1.4 !important;
+                    }
+
+                    /* Publication text body */
+                    .pub-card-content p {
+                        font-size: 9pt !important;
+                        line-height: 1.5 !important;
+                        color: #000 !important;
+                        text-align: justify !important;
+                    }
+
+                    /* Team lawyer highlight: just bold in print, no blue bg */
+                    .pub-card-meta .font-bold {
+                        color: #000 !important;
+                        font-weight: 700 !important;
+                    }
+
+                    /* Lucide icons: make them visible but subtle */
+                    .pub-card-meta svg {
+                        color: #333 !important;
+                    }
+
+                    /* ===== 7. HIDE ACTION BAR INSIDE CARDS ===== */
+                    /* The action bar is the first child of pub-card-content */
+                    .pub-card-content > div:first-child {
+                        display: none !important;
+                    }
+
+                    /* ===== 8. MISC CLEANUP ===== */
+                    /* Remove all gradients */
+                    [class*="bg-gradient"] {
+                        background: #f0f0f0 !important;
+                    }
+
+                    /* Remove rounded corners everywhere */
+                    [class*="rounded"] {
+                        border-radius: 0 !important;
+                    }
+
+                    /* Kill all shadows */
+                    [class*="shadow"] {
+                        box-shadow: none !important;
+                    }
+
+                    /* Kill all ring effects */
+                    [class*="ring"] {
+                        --tw-ring-shadow: 0 0 transparent !important;
+                        box-shadow: none !important;
+                    }
+
+                    /* Sticky header: make it static */
+                    .sticky {
+                        position: static !important;
+                    }
                 }
                 `}
             </style>
