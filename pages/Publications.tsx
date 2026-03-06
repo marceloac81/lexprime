@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, AlertCircle, FileText, Calendar as CalendarIcon, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer } from 'lucide-react';
+import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer } from 'lucide-react';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
@@ -300,7 +300,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             <style>
                 {`
                 @media print {
-                    @page { margin: 20mm; }
+                    @page { margin: 15mm; }
                     .no-print { display: none !important; }
                     .print-only { display: block !important; }
                     
@@ -318,10 +318,10 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     .print-card { 
                         display: block !important;
                         box-shadow: none !important; 
-                        border: 1px solid #e2e8f0 !important; 
-                        margin-bottom: 3rem !important;
+                        border: 1px solid #c7d2e0 !important; 
+                        margin-bottom: 2rem !important;
                         page-break-inside: avoid !important;
-                        padding: 2rem !important;
+                        padding: 0 !important;
                         height: auto !important;
                         overflow: visible !important;
                     }
@@ -330,6 +330,16 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     }
                     .print-card-not-selected {
                         display: none !important;
+                    }
+                    .pub-card-grid {
+                        display: flex !important;
+                    }
+                    .pub-card-meta {
+                        width: 30% !important;
+                        border-right: 1px solid #c7d2e0 !important;
+                    }
+                    .pub-card-content {
+                        width: 70% !important;
                     }
                     body { background: white !important; }
                 }
@@ -540,114 +550,170 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             {results.map((item) => (
                                 <div
                                     key={item.id}
-                                    className={`group bg-white dark:bg-dark-900 rounded-2xl p-6 border transition-all duration-300 relative print-card ${selectedItems.has(item.id)
-                                        ? 'border-blue-500 shadow-xl bg-blue-50/10 dark:bg-blue-900/5 print-card-selected'
-                                        : 'border-slate-200 dark:border-dark-800 shadow-sm hover:shadow-xl hover:border-blue-200 dark:hover:border-dark-700 print-card-not-selected'
+                                    className={`group bg-white dark:bg-dark-900 rounded-2xl border transition-all duration-300 relative print-card overflow-hidden shadow-md hover:shadow-xl ${selectedItems.has(item.id)
+                                        ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900 bg-blue-50/10 dark:bg-blue-900/5 print-card-selected'
+                                        : 'border-slate-200 dark:border-dark-800 hover:border-blue-200 dark:hover:border-dark-700 print-card-not-selected'
                                         }`}
                                 >
-                                    {/* Selection Checkbox */}
-                                    <div className="absolute top-4 left-4 no-print">
-                                        <div
-                                            onClick={() => toggleSelection(item.id)}
-                                            className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${selectedItems.has(item.id)
-                                                ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-500/30'
-                                                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-dark-800 hover:border-blue-400'
-                                                }`}
-                                        >
-                                            {selectedItems.has(item.id) && <Check size={14} className="text-white" strokeWidth={3} />}
+                                    {/* Process Number Header Bar */}
+                                    <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-slate-700 to-slate-800 dark:from-dark-800 dark:to-dark-900 border-b border-slate-300 dark:border-dark-700">
+                                        <div className="flex items-center gap-3">
+                                            {/* Selection Checkbox */}
+                                            <div className="no-print">
+                                                <div
+                                                    onClick={() => toggleSelection(item.id)}
+                                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${selectedItems.has(item.id)
+                                                        ? 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/30'
+                                                        : 'border-slate-400 bg-white/10 hover:border-blue-400'
+                                                        }`}
+                                                >
+                                                    {selectedItems.has(item.id) && <Check size={14} className="text-white" strokeWidth={3} />}
+                                                </div>
+                                            </div>
+                                            <span className="text-sm font-bold text-white tracking-wide flex items-center gap-2">
+                                                Processo {formatCNJ(item.numero_processo)}
+                                            </span>
                                         </div>
+                                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-white/15 text-white border border-white/20 tracking-wider">
+                                            {item.siglaTribunal}
+                                        </span>
                                     </div>
 
-                                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4 pl-8 no-print:pl-8">
-                                        <div className="pl-6 no-print:pl-6">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="px-3 py-1 rounded-lg text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
-                                                    {item.siglaTribunal}
-                                                </span>
-                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
-                                                    <CalendarIcon className="h-3.5 w-3.5" />
-                                                    Disp: {formatDateForDisplay(item.data_disponibilizacao)}
-                                                </span>
+                                    {/* Two-column body */}
+                                    <div className="pub-card-grid flex flex-col md:flex-row">
+                                        {/* LEFT COLUMN — Metadata */}
+                                        <div className="pub-card-meta w-full md:w-[30%] border-b md:border-b-0 md:border-r border-slate-200 dark:border-dark-700 px-5 py-5 bg-slate-50/60 dark:bg-dark-950/40 space-y-4 text-sm">
+
+                                            {/* Órgão */}
+                                            {item.nomeOrgao && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Órgão</p>
+                                                    <p className="text-slate-800 dark:text-slate-200 font-semibold leading-snug">{item.nomeOrgao}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Data de Disponibilização */}
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Data de disponibilização</p>
+                                                <p className="text-slate-700 dark:text-slate-300 font-medium">{formatDateForDisplay(item.data_disponibilizacao)}</p>
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                                                {item.nomeOrgao}
-                                            </h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-mono mt-1.5">
-                                                {formatCNJ(item.numero_processo)}
-                                            </p>
-                                        </div>
 
-                                        <div className="flex flex-wrap items-center gap-3 no-print">
-                                            {(() => {
-                                                const existingCase = findProcessInDatabase(item.numero_processo);
-                                                if (existingCase) {
-                                                    return (
-                                                        <button
-                                                            onClick={() => handleCreateDeadline(item.numero_processo)}
-                                                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
-                                                        >
-                                                            <Plus className="h-3.5 w-3.5" />
-                                                            Criar Prazo
-                                                        </button>
-                                                    );
-                                                } else {
-                                                    return (
-                                                        <button
-                                                            onClick={() => {
-                                                                setPendingProcessNumber(formatCNJ(item.numero_processo));
-                                                                setShowCaseModal(true);
-                                                            }}
-                                                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
-                                                        >
-                                                            <Plus className="h-3.5 w-3.5" />
-                                                            Cadastrar Processo
-                                                        </button>
-                                                    );
-                                                }
-                                            })()}
+                                            {/* Tipo de Comunicação */}
+                                            {item.tipoComunicacao && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Tipo de comunicação</p>
+                                                    <p className="text-slate-700 dark:text-slate-300 font-medium">{item.tipoComunicacao}</p>
+                                                </div>
+                                            )}
 
-                                            {item.link && (
-                                                <a
-                                                    href={item.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-50 dark:bg-dark-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-dark-700 hover:bg-slate-900 hover:text-white transition-all"
-                                                >
-                                                    <FileText className="h-3.5 w-3.5" />
-                                                    Ver Original
-                                                    <ExternalLink className="h-3 w-3 opacity-50" />
-                                                </a>
+                                            {/* Meio */}
+                                            {item.meiocompleto && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Meio</p>
+                                                    <p className="text-slate-700 dark:text-slate-300 font-medium text-xs">{item.meiocompleto}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Partes */}
+                                            {item.destinatarios && item.destinatarios.length > 0 && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Parte(s)</p>
+                                                    <ul className="space-y-1.5">
+                                                        {item.destinatarios.map((dest, idx) => (
+                                                            <li key={idx} className="flex items-start gap-2">
+                                                                <span className="mt-0.5 shrink-0 text-blue-500 dark:text-blue-400">
+                                                                    <User size={12} />
+                                                                </span>
+                                                                <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                                                                    {dest.nome}
+                                                                    {dest.polo && (
+                                                                        <span className="ml-1 text-[9px] uppercase text-slate-400 dark:text-slate-500 font-semibold">({dest.polo})</span>
+                                                                    )}
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {/* Advogados */}
+                                            {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Advogado(s)</p>
+                                                    <ul className="space-y-1.5">
+                                                        {item.destinatarioadvogados.map((adv) => {
+                                                            const isTeam = isTeamLawyer(adv.advogado.nome);
+                                                            return (
+                                                                <li key={adv.id} className="flex items-start gap-2">
+                                                                    <span className={`mt-0.5 shrink-0 ${isTeam ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                                        <Briefcase size={12} />
+                                                                    </span>
+                                                                    <span className={`text-xs leading-snug ${isTeam
+                                                                        ? 'text-blue-700 dark:text-blue-300 font-bold'
+                                                                        : 'text-slate-600 dark:text-slate-400'
+                                                                        }`}>
+                                                                        {adv.advogado.nome} – OAB {adv.advogado.uf_oab}/{adv.advogado.numero_oab}
+                                                                    </span>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
 
-                                    <div className="bg-slate-50/50 dark:bg-dark-950/40 p-5 rounded-2xl border border-slate-100 dark:border-dark-800 mb-4 transition-colors group-hover:bg-white dark:group-hover:bg-dark-950/70 border-dashed print:bg-white print:p-0 print:border-none">
-                                        <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed transition-all text-justify">
-                                            {sanitizeText(item.texto)}
-                                        </p>
-                                    </div>
+                                        {/* RIGHT COLUMN — Actions + Text */}
+                                        <div className="pub-card-content w-full md:w-[70%] flex flex-col">
+                                            {/* Action Bar */}
+                                            <div className="flex items-center justify-end gap-2 px-5 py-3 border-b border-slate-100 dark:border-dark-800 no-print">
+                                                {item.link && (
+                                                    <a
+                                                        href={item.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-dark-700 hover:bg-slate-800 hover:text-white dark:hover:bg-slate-600 transition-all"
+                                                    >
+                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                        Ver Original
+                                                    </a>
+                                                )}
+                                                {(() => {
+                                                    const existingCase = findProcessInDatabase(item.numero_processo);
+                                                    if (existingCase) {
+                                                        return (
+                                                            <button
+                                                                onClick={() => handleCreateDeadline(item.numero_processo)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white transition-all active:scale-95"
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                                Criar Prazo
+                                                            </button>
+                                                        );
+                                                    } else {
+                                                        return (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setPendingProcessNumber(formatCNJ(item.numero_processo));
+                                                                    setShowCaseModal(true);
+                                                                }}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                                Cadastrar Processo
+                                                            </button>
+                                                        );
+                                                    }
+                                                })()}
+                                            </div>
 
-                                    {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
-                                        <div className="border-t border-slate-100 dark:border-dark-800 pt-4 no-print">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Advogados Intimados</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {item.destinatarioadvogados.map((adv) => {
-                                                    const isTeam = isTeamLawyer(adv.advogado.nome);
-                                                    return (
-                                                        <span
-                                                            key={adv.id}
-                                                            className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${isTeam
-                                                                ? 'bg-blue-600 text-white font-bold border-blue-700 shadow-lg shadow-blue-500/30 scale-105 z-10'
-                                                                : 'bg-white dark:bg-dark-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-dark-750'
-                                                                }`}
-                                                        >
-                                                            {adv.advogado.nome} ({adv.advogado.numero_oab}/{adv.advogado.uf_oab})
-                                                        </span>
-                                                    );
-                                                })}
+                                            {/* Publication Text */}
+                                            <div className="flex-1 px-6 py-5">
+                                                <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed text-justify">
+                                                    {sanitizeText(item.texto)}
+                                                </p>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             ))}
                         </>
