@@ -12,6 +12,7 @@ export const Settings: React.FC = () => {
         isDarkMode, toggleTheme, currentUser, resetHolidays,
         holidays, importHolidays, addNotification, clients, importClients, cases, importCases,
         deadlines, importDeadlines, teamMembers, importTeamMembers,
+        appointments, importAppointments,
         syncData, isLoading
     } = useStore();
     const clientsInputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +20,7 @@ export const Settings: React.FC = () => {
     const deadlinesInputRef = useRef<HTMLInputElement>(null);
     const teamInputRef = useRef<HTMLInputElement>(null);
     const holidayInputRef = useRef<HTMLInputElement>(null);
+    const appointmentsInputRef = useRef<HTMLInputElement>(null);
 
     // Track when import is complete and needs sync
     const [pendingSync, setPendingSync] = useState<{ type: string; expectedCount: number } | null>(null);
@@ -34,6 +36,7 @@ export const Settings: React.FC = () => {
                 case 'deadlines': currentCount = deadlines.length; break;
                 case 'team': currentCount = teamMembers.length; break;
                 case 'holidays': currentCount = holidays.length; break;
+                case 'appointments': currentCount = appointments.length; break;
             }
 
             // Only sync if we have the expected count (state update completed)
@@ -44,7 +47,7 @@ export const Settings: React.FC = () => {
         }
     }, [clients, cases, deadlines, teamMembers, holidays, pendingSync, syncData]);
 
-    const handleImport = (type: 'clients' | 'cases' | 'deadlines' | 'team' | 'holidays') => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = (type: 'clients' | 'cases' | 'deadlines' | 'team' | 'holidays' | 'appointments') => async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -83,6 +86,13 @@ export const Settings: React.FC = () => {
                         importHolidays(parsed);
                         count = parsed.length;
                     }
+                } else if (type === 'appointments') {
+                    const { parseAppointmentsCSV } = await import('../utils/importHelpers');
+                    const parsed = parseAppointmentsCSV(text);
+                    if (parsed.length > 0) {
+                        importAppointments(parsed);
+                        count = parsed.length;
+                    }
                 }
 
                 if (count > 0) {
@@ -92,7 +102,8 @@ export const Settings: React.FC = () => {
                         type === 'cases' ? cases.length :
                             type === 'deadlines' ? deadlines.length :
                                 type === 'team' ? teamMembers.length :
-                                    holidays.length;
+                                    type === 'holidays' ? holidays.length :
+                                        appointments.length;
                     setPendingSync({ type, expectedCount: currentCount + count });
                 }
             } catch (err) {
@@ -124,6 +135,11 @@ export const Settings: React.FC = () => {
 
         if (holidays.length > 0) {
             setTimeout(() => downloadCSV(generateHolidaysCSV(holidays), `feriados_${dateStr}.csv`), 2000);
+        }
+
+        if (appointments.length > 0) {
+            const { generateAppointmentsCSV } = require('../utils/importHelpers');
+            setTimeout(() => downloadCSV(generateAppointmentsCSV(appointments), `appointments_${dateStr}.csv`), 2500);
         }
 
         addNotification("Backup iniciado! Os arquivos serão baixados sequencialmente.", 'success');
@@ -188,6 +204,7 @@ export const Settings: React.FC = () => {
                             <input type="file" accept=".csv" ref={deadlinesInputRef} className="hidden" onChange={handleImport('deadlines')} />
                             <input type="file" accept=".csv" ref={teamInputRef} className="hidden" onChange={handleImport('team')} />
                             <input type="file" accept=".csv" ref={holidayInputRef} className="hidden" onChange={handleImport('holidays')} />
+                            <input type="file" accept=".csv" ref={appointmentsInputRef} className="hidden" onChange={handleImport('appointments')} />
 
                             {[
                                 { label: 'Processos', count: cases.length, ref: casesInputRef, exportFn: () => downloadCSV(generateCasesCSV(cases), 'processos.csv') },
@@ -195,6 +212,15 @@ export const Settings: React.FC = () => {
                                 { label: 'Prazos', count: deadlines.length, ref: deadlinesInputRef, exportFn: () => downloadCSV(generateDeadlinesCSV(deadlines, cases), 'prazos.csv') },
                                 { label: 'Equipe', count: teamMembers.length, ref: teamInputRef, exportFn: () => downloadCSV(generateTeamCSV(teamMembers), 'equipe.csv') },
                                 { label: 'Feriados', count: holidays.length, ref: holidayInputRef, exportFn: () => downloadCSV(generateHolidaysCSV(holidays), 'feriados.csv') },
+                                {
+                                    label: 'Compromissos',
+                                    count: appointments.length,
+                                    ref: appointmentsInputRef,
+                                    exportFn: async () => {
+                                        const { generateAppointmentsCSV } = await import('../utils/importHelpers');
+                                        downloadCSV(generateAppointmentsCSV(appointments), 'compromissos.csv');
+                                    }
+                                },
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg border border-slate-200 dark:border-slate-700">
                                     <div className="flex flex-col">

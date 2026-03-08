@@ -41,6 +41,7 @@ interface StoreContextType {
 
   appointments: Appointment[];
   addAppointment: (a: Appointment) => void;
+  importAppointments: (newAppointments: Appointment[]) => void;
 
   holidays: Holiday[]; // New
   setHolidays: React.Dispatch<React.SetStateAction<Holiday[]>>;
@@ -1210,6 +1211,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const importAppointments = (newAppointments: Appointment[]) => {
+    setAppointments(prev => {
+      const existingKeys = new Set(prev.map(a => `${a.title}|${a.date}`));
+      const toAdd = newAppointments.filter(a => !existingKeys.has(`${a.title}|${a.date}`));
+      const added = toAdd.length;
+      if (added > 0) {
+        addNotification(`${added} novos compromissos importados.`, 'success');
+      } else {
+        addNotification(`Nenhum compromisso novo encontrado.`, 'info');
+      }
+      return [...toAdd, ...prev];
+    });
+  };
+
   const importHolidays = (newHolidays: Holiday[]) => {
     setHolidays(prev => {
       const existingDates = new Set(prev.map(h => h.date));
@@ -1531,7 +1546,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       clients, setClients, addClient, updateClient, deleteClient, importClients, clearClients,
       teamMembers, setTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember, importTeamMembers, clearTeamMembers,
       deadlines, setDeadlines, addDeadline, updateDeadline, toggleDeadline, updateDeadlineStatus, deleteDeadline, importDeadlines, clearDeadlines,
-      appointments, addAppointment,
+      appointments, addAppointment, importAppointments,
       holidays, setHolidays, importHolidays, resetHolidays,
       currentUser, login, signUp, logout,
       isDarkMode, toggleTheme,

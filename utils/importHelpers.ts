@@ -122,12 +122,19 @@ export const parseContactsCSV = (text: string): Client[] => {
 
                 // --- REPRESENTATIVE / PJ / ESPOLIO ---
                 representative: repName,
+                representativeGender: cols[map['REPRESENTANTE_GENERO']] as any || '',
+                representativeId: cols[map['REPRESENTANTE_DOC']] || '',
                 representativeQualification: cols[map['QUALIFICACAO_REP']] || '',
-                // Removed specific Rep details as per user feedback - relying on full qualification string
+                representativeAddress: cols[map['REPRESENTANTE_ENDERECO']] || '',
 
                 notes: cols[map['OBSERVACAO']] || '',
-                createdAt: new Date().toISOString()
+                createdAt: cols[map['CRIADO_EM']] || new Date().toISOString()
             };
+
+            // If ID is provided, use it
+            if (cols[map['ID']] && cols[map['ID']] !== '') {
+                newClient.id = cols[map['ID']];
+            }
 
             parsedClients.push(newClient);
         }
@@ -146,30 +153,49 @@ export const parseCasesCSV = (text: string): any[] => {
 
     const parsedCases: any[] = [];
     for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i].split(separator).map(c => c.trim().replace(/"/g, ''));
+        const rowStr = rows[i].trim();
+        if (!rowStr) continue;
+        const cols = splitCSVLine(rowStr, separator);
         if (cols.length < 2 || !cols[map['NUMERO']]) continue;
 
-        parsedCases.push({
-            id: crypto.randomUUID(),
+        const c: any = {
+            id: cols[map['ID']] || crypto.randomUUID(),
             number: cols[map['NUMERO']],
-            title: cols[map['TITULO']] || cols[map['NÚMERO']] || 'Importado',
+            title: cols[map['TITULO']] || 'Importado',
+            clientId: cols[map['CLIENTE_ID']] || '',
             clientName: cols[map['CLIENTE']] || '',
-            clientPosition: cols[map['POLO']] || 'Ativo',
+            clientPosition: (cols[map['POLO']] || 'Ativo') as any,
             opposingParty: cols[map['PARTE_CONTRARIA']] || '',
             court: cols[map['LOCAL']] || '',
             uf: cols[map['UF']] || '',
             city: cols[map['CIDADE']] || '',
             area: cols[map['AREA']] || '',
             value: Number(cols[map['VALOR']]) || 0,
+            valueDate: parseImportDate(cols[map['DATA_VALOR']] || ''),
             status: (cols[map['STATUS']] || 'Ativo') as any,
             folderNumber: cols[map['PASTA']] || '',
             tribunal: cols[map['TRIBUNAL']] || '',
             subject: cols[map['ASSUNTO']] || '',
             probability: cols[map['PROBABILIDADE']] || '',
-            valueDate: parseImportDate(cols[map['DATA_VALOR']] || ''),
             relatedType: cols[map['TIPO_DESDOBRAMENTO']] || '',
-            createdAt: new Date().toISOString()
-        });
+            parentId: cols[map['PAI_ID']] || '',
+            description: cols[map['DESCRICAO']] || '',
+            createdAt: cols[map['CRIADO_EM']] || new Date().toISOString()
+        };
+
+        // Handle JSON fields
+        try {
+            if (cols[map['TAGS']]) c.tags = JSON.parse(cols[map['TAGS']]);
+            if (cols[map['OCORRENCIAS']]) c.occurrences = JSON.parse(cols[map['OCORRENCIAS']]);
+            if (cols[map['HISTORICO']]) c.history = JSON.parse(cols[map['HISTORICO']]);
+        } catch (e) {
+            console.warn("Error parsing JSON fields for case", c.number);
+            c.tags = [];
+            c.occurrences = [];
+            c.history = [];
+        }
+
+        parsedCases.push(c);
     }
     return parsedCases;
 };
@@ -185,14 +211,17 @@ export const parseDeadlinesCSV = (text: string): any[] => {
 
     const parsedDeadlines: any[] = [];
     for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i].split(separator).map(c => c.trim().replace(/"/g, ''));
+        const rowStr = rows[i].trim();
+        if (!rowStr) continue;
+        const cols = rowStr.split(separator).map(c => c.trim().replace(/"/g, ''));
         if (cols.length < 2 || !cols[map['ATIVIDADE']]) continue;
 
-        parsedDeadlines.push({
-            id: crypto.randomUUID(),
+        const d: any = {
+            id: cols[map['ID']] || crypto.randomUUID(),
             title: cols[map['ATIVIDADE']],
             dueDate: parseImportDate(cols[map['DATA']] || ''),
             startTime: cols[map['HORA']] || '09:00',
+            caseId: cols[map['PROCESSO_ID']] || '',
             caseTitle: cols[map['PROCESSO']] || '',
             customerName: cols[map['CLIENTE']] || '',
             status: cols[map['STATUS']] || 'Pending',
@@ -202,7 +231,19 @@ export const parseDeadlinesCSV = (text: string): any[] => {
             days: Number(cols[map['DIAS']]) || undefined,
             countType: (cols[map['TIPO_CONTAGEM']] || undefined) as any,
             startDate: parseImportDate(cols[map['DATA_INICIO']] || ''),
-        });
+            court: cols[map['VARA']] || '',
+            city: cols[map['CIDADE']] || '',
+            uf: cols[map['UF']] || '',
+        };
+
+        // Handle Array field
+        try {
+            if (cols[map['RESPONSAVEIS_IDS']]) d.assignedIds = JSON.parse(cols[map['RESPONSAVEIS_IDS']]);
+        } catch (e) {
+            d.assignedIds = [];
+        }
+
+        parsedDeadlines.push(d);
     }
     return parsedDeadlines;
 };
@@ -224,7 +265,7 @@ export const parseTeamCSV = (text: string): any[] => {
         if (cols.length < 3 || !cols[map['EMAIL']]) continue;
 
         parsedMembers.push({
-            id: crypto.randomUUID(),
+            id: cols[map['ID']] || crypto.randomUUID(),
             name: cols[map['NOME']],
             role: cols[map['CARGO']] || 'Membro',
             email: cols[map['EMAIL']],
@@ -241,8 +282,13 @@ export const parseTeamCSV = (text: string): any[] => {
             addressNeighborhood: cols[map['BAIRRO']] || '',
             addressCity: cols[map['CIDADE']] || '',
             addressState: cols[map['ESTADO']] || '',
-            active: true,
-            createdAt: new Date().toISOString()
+            active: cols[map['ATIVO']] === 'true',
+            isAdmin: cols[map['ADMIN']] === 'true',
+            joinDate: cols[map['DATA_ADESAO']] || new Date().toISOString().split('T')[0],
+            avatarColor: cols[map['COR_AVATAR']] || '',
+            initials: cols[map['INICIAIS']] || '',
+            photo: cols[map['FOTO']] || '',
+            createdAt: cols[map['CRIADO_EM']] || new Date().toISOString()
         });
     }
     return parsedMembers;
@@ -287,13 +333,42 @@ export const parseHolidaysCSV = (text: string): any[] => {
 
         if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
             parsedHolidays.push({
-                id: crypto.randomUUID(),
+                id: cols[map['ID']] || crypto.randomUUID(),
                 date: dateStr,
                 name: holidayName.trim()
             });
         }
     }
     return parsedHolidays;
+};
+
+export const parseAppointmentsCSV = (text: string): any[] => {
+    const rows = text.split('\n');
+    if (rows.length < 2) return [];
+
+    const separator = rows[0].includes(';') ? ';' : ',';
+    const headers = rows[0].split(separator).map(h => h.trim().toUpperCase().replace(/"/g, ''));
+    const map: any = {};
+    headers.forEach((h, i) => map[h] = i);
+
+    const parsed: any[] = [];
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i].trim();
+        if (!row) continue;
+        const cols = splitCSVLine(row, separator);
+        if (cols.length < 2) continue;
+
+        parsed.push({
+            id: cols[map['ID']] || crypto.randomUUID(),
+            title: cols[map['TITULO']],
+            date: cols[map['DATA']] || '',
+            type: (cols[map['TIPO']] || 'Reunião') as any,
+            caseId: cols[map['PROCESSO_ID']] || '',
+            description: cols[map['DESCRICAO']] || '',
+            createdAt: cols[map['CRIADO_EM']] || new Date().toISOString()
+        });
+    }
+    return parsed;
 };
 
 // --- EXPORT HELPERS ---
@@ -306,14 +381,16 @@ const formatDateForExport = (dateStr: string) => {
 
 export const generateContactsCSV = (clients: Client[]): string => {
     const headers = [
-        'NOME', 'CPF/CNPJ', 'RG', 'DATA_NASCIMENTO', 'GENERO', 'NACIONALIDADE', 'ESTADO_CIVIL', 'PROFISSAO',
+        'ID', 'NOME', 'CPF/CNPJ', 'RG', 'DATA_NASCIMENTO', 'GENERO', 'NACIONALIDADE', 'ESTADO_CIVIL', 'PROFISSAO',
         'FONE_CEL', 'FONE_CASA', 'FONE_TRAB1', 'FONE_TRAB2', 'E_MAIL', 'GRUPO',
         'ENDERECO', 'NUMERO', 'COMPLEMENTO', 'BAIRRO', 'CIDADE', 'ESTADO', 'CEP', 'PAIS',
-        'REPRESENTANTE', 'QUALIFICACAO_REP', 'OBSERVACAO'
+        'REPRESENTANTE', 'REPRESENTANTE_GENERO', 'REPRESENTANTE_DOC', 'QUALIFICACAO_REP', 'REPRESENTANTE_ENDERECO',
+        'OBSERVACAO', 'CRIADO_EM'
     ];
 
     const rows = clients.map(c => {
         return [
+            c.id,
             c.name,
             c.document, // Already formatted
             c.rg || '',
@@ -337,8 +414,12 @@ export const generateContactsCSV = (clients: Client[]): string => {
             c.zip || '',
             c.country || '',
             c.representative || '',
+            c.representativeGender || '',
+            c.representativeId || '',
             c.representativeQualification || '',
-            c.notes || ''
+            c.representativeAddress || '',
+            c.notes || '',
+            c.createdAt || ''
         ].map(val => `"${val}"`).join(';'); // Use ; for Excel compatibility in BR
     });
 
@@ -348,10 +429,16 @@ export const generateContactsCSV = (clients: Client[]): string => {
 // --- NEW EXPORT HELPERS ---
 
 export const generateCasesCSV = (cases: any[]): string => {
-    const headers = ['NUMERO', 'TITULO', 'CLIENTE', 'POLO', 'PARTE_CONTRARIA', 'LOCAL', 'UF', 'CIDADE', 'AREA', 'VALOR', 'DATA_VALOR', 'STATUS', 'PASTA', 'TRIBUNAL', 'ASSUNTO', 'PROBABILIDADE', 'TIPO_DESDOBRAMENTO'];
+    const headers = [
+        'ID', 'NUMERO', 'TITULO', 'CLIENTE_ID', 'CLIENTE', 'POLO', 'PARTE_CONTRARIA', 'LOCAL', 'UF', 'CIDADE', 'AREA',
+        'VALOR', 'DATA_VALOR', 'STATUS', 'PASTA', 'TRIBUNAL', 'ASSUNTO', 'PROBABILIDADE', 'TIPO_DESDOBRAMENTO',
+        'PAI_ID', 'TAGS', 'DESCRICAO', 'OCORRENCIAS', 'HISTORICO', 'CRIADO_EM'
+    ];
     const rows = cases.map(c => [
+        c.id,
         c.number,
         c.title || '',
+        c.clientId || '',
         c.clientName,
         c.clientPosition,
         c.opposingParty,
@@ -366,20 +453,31 @@ export const generateCasesCSV = (cases: any[]): string => {
         c.tribunal || '',
         c.subject || '',
         c.probability || '',
-        c.relatedType || ''
+        c.relatedType || '',
+        c.parentId || '',
+        JSON.stringify(c.tags || []),
+        c.description || '',
+        JSON.stringify(c.occurrences || []),
+        JSON.stringify(c.history || []),
+        c.createdAt || ''
     ]);
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
 };
 
 export const generateDeadlinesCSV = (deadlines: any[], cases: any[]): string => {
-    const headers = ['DATA', 'HORA', 'ATIVIDADE', 'PROCESSO', 'CLIENTE', 'VARA', 'CIDADE', 'UF', 'STATUS', 'PRIORIDADE', 'TIPO', 'DIAS', 'TIPO_CONTAGEM', 'DATA_INICIO'];
+    const headers = [
+        'ID', 'DATA', 'HORA', 'ATIVIDADE', 'PROCESSO_ID', 'PROCESSO', 'CLIENTE', 'VARA', 'CIDADE', 'UF',
+        'STATUS', 'PRIORIDADE', 'TIPO', 'DIAS', 'TIPO_CONTAGEM', 'DATA_INICIO', 'RESPONSAVEIS_IDS'
+    ];
     const rows = deadlines.map(d => {
         const relCase = cases.find(c => c.id === d.caseId);
         return [
+            d.id,
             d.dueDate,
             d.startTime || '09:00',
             d.title,
-            relCase?.number || '-',
+            d.caseId || '',
+            relCase?.number || d.caseTitle || '-',
             relCase?.clientName || d.customerName || '-',
             relCase?.court || d.court || '-',
             relCase?.city || d.city || '-',
@@ -389,7 +487,8 @@ export const generateDeadlinesCSV = (deadlines: any[], cases: any[]): string => 
             d.type || 'Prazo Processual',
             d.days || '',
             d.countType || '',
-            d.startDate || ''
+            d.startDate || '',
+            JSON.stringify(d.assignedIds || [])
         ];
     });
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
@@ -397,21 +496,32 @@ export const generateDeadlinesCSV = (deadlines: any[], cases: any[]): string => 
 
 export const generateTeamCSV = (members: any[]): string => {
     const headers = [
-        'NOME', 'CARGO', 'EMAIL', 'TELEFONE', 'OAB', 'CPF', 'NACIONALIDADE', 'ESTADO_CIVIL', 'GENERO',
-        'CEP', 'RUA', 'NUMERO', 'COMPLEMENTO', 'BAIRRO', 'CIDADE', 'ESTADO'
+        'ID', 'NOME', 'CARGO', 'EMAIL', 'TELEFONE', 'OAB', 'CPF', 'NACIONALIDADE', 'ESTADO_CIVIL', 'GENERO',
+        'CEP', 'RUA', 'NUMERO', 'COMPLEMENTO', 'BAIRRO', 'CIDADE', 'ESTADO', 'ATIVO', 'ADMIN', 'DATA_ADESAO',
+        'COR_AVATAR', 'INICIAIS', 'FOTO', 'CRIADO_EM'
     ];
     const rows = members.map(m => [
-        m.name, m.role, m.email, m.phone, m.oab || '', m.cpf || '',
+        m.id, m.name, m.role, m.email, m.phone, m.oab || '', m.cpf || '',
         m.nationality || '', m.maritalStatus || '', m.gender || '',
         m.addressZip || '', m.addressStreet || '', m.addressNumber || '', m.addressComplement || '',
-        m.addressNeighborhood || '', m.addressCity || '', m.addressState || ''
+        m.addressNeighborhood || '', m.addressCity || '', m.addressState || '',
+        String(m.active), String(m.isAdmin || false), m.joinDate || '',
+        m.avatarColor || '', m.initials || '', m.photo || '', m.createdAt || ''
     ]);
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
 };
 
 export const generateHolidaysCSV = (holidays: any[]): string => {
-    const headers = ['DATA', 'NOME'];
-    const rows = holidays.map(h => [h.date, h.name]);
+    const headers = ['ID', 'DATA', 'NOME'];
+    const rows = holidays.map(h => [h.id, h.date, h.name]);
+    return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
+};
+
+export const generateAppointmentsCSV = (appointments: any[]): string => {
+    const headers = ['ID', 'TITULO', 'DATA', 'TIPO', 'PROCESSO_ID', 'DESCRICAO', 'CRIADO_EM'];
+    const rows = appointments.map(a => [
+        a.id, a.title, a.date, a.type, a.caseId || '', a.description || '', a.createdAt || ''
+    ]);
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
 };
 
