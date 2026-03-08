@@ -480,7 +480,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             city: d.city,
             uf: d.uf,
             createdBy: d.created_by,
-            assignedTo: d.assigned_to,
+            assignedIds: d.assigned_ids || [],
           })));
         }
 
@@ -524,13 +524,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Auth Listener
   useEffect(() => {
     const fetchUserRole = async (user: any) => {
-      const { data } = await supabase.from('team_members').select('role, name, is_admin').eq('email', user.email).single();
+      const { data } = await supabase.from('team_members').select('role, name, is_admin, avatar_color, photo_url, initials').eq('email', user.email).single() as { data: any };
       setCurrentUser({
         id: user.id,
         name: user.user_metadata.full_name || data?.name || 'Usuário',
         email: user.email || '',
         role: data?.role || 'user',
-        isAdmin: data?.is_admin || false
+        isAdmin: data?.is_admin || false,
+        avatarColor: data?.avatar_color || 'blue',
+        photo: data?.photo_url,
+        initials: data?.initials
       });
     };
 
@@ -932,7 +935,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         role: updated.role,
         email: updated.email,
         phone: updated.phone,
-        photo_url: updated.photo,
+        photo_url: updated.photo || null,
         active: updated.active,
         join_date: updated.joinDate || null,
         oab: updated.oab,
@@ -948,6 +951,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         address_state: updated.addressState,
         address_zip: updated.addressZip,
         avatar_color: updated.avatarColor || null,
+        initials: updated.initials || null,
         created_at: updated.createdAt,
         updated_at: updated.updatedAt
       });
@@ -974,7 +978,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         role: updated.role,
         email: updated.email,
         phone: updated.phone,
-        photo_url: updated.photo,
+        photo_url: updated.photo || null,
         active: updated.active,
         join_date: updated.joinDate || null,
         oab: updated.oab,
@@ -990,11 +994,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         address_state: updated.addressState,
         address_zip: updated.addressZip,
         avatar_color: updated.avatarColor || null,
+        initials: updated.initials || null,
         updated_at: updated.updatedAt
       }).eq('id', updated.id);
 
       if (error) throw error;
       setTeamMembers(prev => prev.map(t => t.id === updated.id ? updated : t));
+
+      // Sync currentUser if updating self
+      if (currentUser && currentUser.email === updated.email) {
+        setCurrentUser(prev => prev ? ({
+          ...prev,
+          name: updated.name,
+          role: updated.role,
+          avatarColor: updated.avatarColor,
+          photo: updated.photo,
+          initials: updated.initials
+        }) : null);
+      }
+
       addNotification('Dados atualizados!', 'success');
     } catch (err: any) {
       addNotification(`Erro ao atualizar: ${err.message}`, 'warning');
@@ -1061,7 +1079,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         court: updated.court,
         city: updated.city,
         uf: updated.uf,
-        assigned_to: toUUID(updated.assignedTo),
+        assigned_ids: (updated.assignedIds || []).map(id => toUUID(id)).filter(id => id !== null),
         created_at: updated.createdAt,
         updated_at: updated.updatedAt
       });
@@ -1100,7 +1118,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         court: updated.court,
         city: updated.city,
         uf: updated.uf,
-        assigned_to: toUUID(updated.assignedTo),
+        assigned_ids: (updated.assignedIds || []).map(id => toUUID(id)).filter(id => id !== null),
         updated_at: updated.updatedAt
       }).eq('id', updated.id);
 
@@ -1432,7 +1450,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           uf: d.uf,
           created_at: d.createdAt,
           updated_at: d.updatedAt,
-          assigned_to: d.assignedTo || null
+          assigned_ids: d.assignedIds || []
         }));
         const { error } = await supabase.from('deadlines').upsert(payload, { onConflict: 'id' });
         if (error) throw error;
@@ -1446,7 +1464,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           role: t.role,
           email: t.email,
           phone: t.phone,
-          photo_url: t.photo,
+          photo_url: t.photo || null,
           active: t.active,
           join_date: t.joinDate || null,
           oab: t.oab,
@@ -1462,6 +1480,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           address_state: t.addressState,
           address_zip: t.addressZip,
           avatar_color: t.avatarColor || null,
+          initials: t.initials || null,
           created_at: t.createdAt,
           updated_at: t.updatedAt
         }));

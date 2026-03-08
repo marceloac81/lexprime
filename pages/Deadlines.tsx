@@ -546,24 +546,46 @@ export const Deadlines: React.FC = () => {
                                                         {displayCity}
                                                     </td>
                                                     <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                                                        {d.assignedTo ? (() => {
-                                                            const member = teamMembers.find(t => t.id === d.assignedTo);
-                                                            if (!member) return <UserIcon size={16} className="mx-auto text-slate-300 dark:text-slate-600" />;
-                                                            const avatarStyle = isFinished
-                                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 border-slate-300'
-                                                                : `${getAvatarColorStyles(member.avatarColor || 'blue')} border-opacity-30`;
+                                                        <div className="flex -space-x-2 justify-center items-center">
+                                                            {(d.assignedIds || (d.assignedTo ? [d.assignedTo] : [])).length > 0 ? (() => {
+                                                                const ids = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
+                                                                const displayIds = ids.slice(0, ids.length > 3 ? 2 : 3);
+                                                                const remainingCount = ids.length - displayIds.length;
 
-                                                            return (
-                                                                <div
-                                                                    className={`w-7 h-7 mx-auto rounded-full ${avatarStyle} border flex items-center justify-center text-[10px] font-bold ${isFinished ? 'opacity-50 grayscale' : 'shadow-sm'}`}
-                                                                    title={member.name}
-                                                                >
-                                                                    {getInitials(member.name)}
-                                                                </div>
-                                                            );
-                                                        })() : (
-                                                            <UserIcon size={16} className={`mx-auto text-slate-300 dark:text-slate-600 ${isFinished ? 'opacity-30' : ''}`} title="Sem Responsável" />
-                                                        )}
+                                                                return (
+                                                                    <>
+                                                                        {displayIds.map((id, index) => {
+                                                                            const member = teamMembers.find(t => t.id === id);
+                                                                            if (!member) return <div key={id} className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200"><UserIcon size={12} className="text-slate-300" /></div>;
+                                                                            const avatarStyle = isFinished
+                                                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 border-slate-300'
+                                                                                : `${getAvatarColorStyles(member.avatarColor || 'blue')} border-opacity-30`;
+
+                                                                            return (
+                                                                                <div
+                                                                                    key={id}
+                                                                                    className={`w-7 h-7 rounded-full ${avatarStyle} border flex items-center justify-center text-[10px] font-bold ${isFinished ? 'opacity-50 grayscale' : 'shadow-sm'} relative overflow-hidden z-[${10 - index}]`}
+                                                                                    title={member.name}
+                                                                                >
+                                                                                    {member.photo ? (
+                                                                                        <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                                                    ) : (
+                                                                                        getInitials(member.name, member.initials)
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                        {remainingCount > 0 && (
+                                                                            <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-dark-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-500 dark:text-slate-400 z-0">
+                                                                                +{remainingCount}
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })() : (
+                                                                <UserIcon size={16} className={`mx-auto text-slate-300 dark:text-slate-600 ${isFinished ? 'opacity-30' : ''}`} title="Sem Responsável" />
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="py-2 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                                                         <StatusDropdown
@@ -668,27 +690,46 @@ export const Deadlines: React.FC = () => {
 
                                                 {/* Assigned User - Mobile */}
                                                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-                                                    <span className="text-xs text-slate-500 font-medium">Responsável:</span>
-                                                    {d.assignedTo ? (() => {
-                                                        const member = teamMembers.find(t => t.id === d.assignedTo);
-                                                        if (!member) return <UserIcon size={14} className="text-slate-300 dark:text-slate-600" />;
-                                                        return (
-                                                            <div
-                                                                className={`flex items-center gap-1.5 ${isFinished ? 'opacity-50 grayscale' : ''}`}
-                                                                title={member.name}
-                                                            >
-                                                                <div className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 flex items-center justify-center text-[8px] font-bold ring-1 ring-primary-200 dark:ring-primary-800">
-                                                                    {getInitials(member.name)}
-                                                                </div>
-                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{member.name.split(' ')[0]}</span>
+                                                    <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Resps:</span>
+                                                    <div className="flex -space-x-1.5 items-center">
+                                                        {(d.assignedIds || (d.assignedTo ? [d.assignedTo] : [])).length > 0 ? (() => {
+                                                            const ids = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
+                                                            const displayIds = ids.slice(0, 3);
+                                                            const remainingCount = ids.length - displayIds.length;
+
+                                                            return (
+                                                                <>
+                                                                    {displayIds.map((id, index) => {
+                                                                        const member = teamMembers.find(t => t.id === id);
+                                                                        if (!member) return <div key={id} className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200"><UserIcon size={10} className="text-slate-300" /></div>;
+                                                                        return (
+                                                                            <div
+                                                                                key={id}
+                                                                                className={`w-5 h-5 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} border-opacity-30 text-primary-700 dark:text-primary-300 flex items-center justify-center text-[7px] font-bold ring-1 ring-primary-200 dark:ring-primary-800 ${isFinished ? 'opacity-50 grayscale' : ''} relative overflow-hidden z-[${10 - index}]`}
+                                                                                title={member.name}
+                                                                            >
+                                                                                {member.photo ? (
+                                                                                    <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                                                ) : (
+                                                                                    getInitials(member.name, member.initials)
+                                                                                )}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                    {remainingCount > 0 && (
+                                                                        <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-dark-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-[7px] font-bold text-slate-500 dark:text-slate-400 z-0">
+                                                                            +{remainingCount}
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        })() : (
+                                                            <div className="flex items-center gap-1.5 opacity-50">
+                                                                <UserIcon size={14} className="text-slate-400" />
+                                                                <span className="text-[10px] text-slate-400 font-medium italic">Não Atribuído</span>
                                                             </div>
-                                                        );
-                                                    })() : (
-                                                        <div className="flex items-center gap-1.5 opacity-50">
-                                                            <UserIcon size={14} className="text-slate-400" />
-                                                            <span className="text-[10px] text-slate-400 font-medium italic">Não Atribuído</span>
-                                                        </div>
-                                                    )}
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         );

@@ -139,8 +139,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
       <div className={`p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className={`bg-slate-50 dark:bg-dark-800 rounded-xl p-3 flex items-center gap-3 border border-slate-100 dark:border-slate-700 ${collapsed ? 'justify-center p-2' : ''}`}>
-          <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm`}>
-            {getInitials(currentUser?.name || '')}
+          <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
+            {currentUser?.photo ? (
+              <img src={currentUser.photo} className="w-full h-full object-cover" alt={currentUser.name} />
+            ) : (
+              getInitials(currentUser?.name || '', currentUser?.initials)
+            )}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">

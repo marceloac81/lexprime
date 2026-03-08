@@ -75,6 +75,7 @@ export interface TeamMember {
   addressState?: string;
   addressZip?: string;
   avatarColor?: string;
+  initials?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -166,7 +167,8 @@ export interface Deadline {
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
-  assignedTo?: string; // New: UUID referencing team_members
+  assignedTo?: string; // Deprecated: use assignedIds
+  assignedIds?: string[]; // New: Array of UUIDs referencing team_members
 }
 
 export interface Appointment {
@@ -186,7 +188,10 @@ export interface User {
   email: string;
   role: string | 'Admin' | 'Advogado' | 'Estagiário';
   isAdmin: boolean;
-  avatar?: string;
+  avatar?: string; // Standard avatar (initials or generic)
+  avatarColor?: string; // Custom color
+  photo?: string; // Profile photo URL/base64
+  initials?: string; // Custom initials override
 }
 
 export interface Holiday {

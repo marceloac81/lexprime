@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
-import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen } from './Icons';
+import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen, ChevronDown } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
 import { CpcReferenceCatalog } from './CpcReferenceCatalog';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
-import { normalizeText } from '../utils/textUtils';
+import { normalizeText, getInitials } from '../utils/textUtils';
+import { getAvatarColorStyles } from '../utils/styleUtils';
 
 interface CalculatorModalProps {
     onClose: () => void;
@@ -68,7 +69,10 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
     const [title, setTitle] = useState(initialData?.title || '');
     const [status, setStatus] = useState<'Pending' | 'Done' | 'Canceled'>(initialData?.status || 'Pending');
-    const [assignedTo, setAssignedTo] = useState(initialData?.assignedTo || '');
+    const [assignedIds, setAssignedIds] = useState<string[]>(initialData?.assignedIds || (initialData?.assignedTo ? [initialData.assignedTo] : []));
+    const [isAssigneeDropdownOpen, setIsAssigneeDropdownOpen] = useState(false);
+    const [assigneeSearch, setAssigneeSearch] = useState('');
+    const assigneeDropdownRef = React.useRef<HTMLDivElement>(null);
 
     // Case & Customer & Location
     const [selectedCaseId, setSelectedCaseId] = useState(initialData?.caseId || '');
@@ -103,6 +107,9 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsCaseDropdownOpen(false);
+            }
+            if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
+                setIsAssigneeDropdownOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -223,7 +230,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
             days,
             startDate,
             startTime,
-            assignedTo: assignedTo || undefined
+            assignedIds: assignedIds.length > 0 ? assignedIds : undefined
         });
     };
 
@@ -385,18 +392,90 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsável</label>
-                            <select
-                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
-                                value={assignedTo}
-                                onChange={e => setAssignedTo(e.target.value)}
+                        {/* Multi-assignee Combobox */}
+                        <div className="relative" ref={assigneeDropdownRef}>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsáveis</label>
+                            <div
+                                className="w-full flex flex-wrap gap-2 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none transition-all focus-within:ring-2 focus-within:ring-primary-500 min-h-[50px] cursor-text"
+                                onClick={() => setIsAssigneeDropdownOpen(true)}
                             >
-                                <option value="">Sem Atribuição</option>
-                                {teamMembers.filter(t => t.active).map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
+                                {assignedIds.map(id => {
+                                    const member = teamMembers.find(m => m.id === id);
+                                    if (!member) return null;
+                                    const avatarStyle = getAvatarColorStyles(member.avatarColor || 'blue');
+                                    const firstName = member.name.trim().split(' ')[0];
+                                    return (
+                                        <span key={id} className={`flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-slate-100 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold animate-scale-in shadow-sm`}>
+                                            <div className={`w-6 h-6 rounded-full ${avatarStyle} flex items-center justify-center text-[8px] font-bold border border-opacity-20 overflow-hidden`}>
+                                                {member.photo ? (
+                                                    <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                ) : (
+                                                    getInitials(member.name, member.initials)
+                                                )}
+                                            </div>
+                                            {firstName}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setAssignedIds(prev => prev.filter(mid => mid !== id));
+                                                }}
+                                                className="ml-1 hover:text-red-500 transition-colors"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </span>
+                                    );
+                                })}
+                                <input
+                                    className="flex-1 bg-transparent border-none outline-none text-sm dark:text-white placeholder:text-slate-400 min-w-[120px]"
+                                    placeholder={assignedIds.length === 0 ? "Selecionar responsáveis..." : ""}
+                                    value={assigneeSearch}
+                                    onChange={e => {
+                                        setAssigneeSearch(e.target.value);
+                                        setIsAssigneeDropdownOpen(true);
+                                    }}
+                                    onFocus={() => setIsAssigneeDropdownOpen(true)}
+                                />
+                                <ChevronDown className={`shrink-0 text-slate-400 transition-transform ${isAssigneeDropdownOpen ? 'rotate-180' : ''}`} size={18} />
+                            </div>
+
+                            {isAssigneeDropdownOpen && (
+                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 animate-scale-in custom-scrollbar">
+                                    {teamMembers
+                                        .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
+                                        .map(member => (
+                                            <div
+                                                key={member.id}
+                                                onClick={() => {
+                                                    setAssignedIds(prev =>
+                                                        prev.includes(member.id)
+                                                            ? prev.filter(id => id !== member.id)
+                                                            : [...prev, member.id]
+                                                    );
+                                                    setAssigneeSearch('');
+                                                }}
+                                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-9 h-9 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} flex items-center justify-center text-xs font-bold border border-opacity-20 shadow-sm overflow-hidden`}>
+                                                        {member.photo ? (
+                                                            <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                        ) : (
+                                                            getInitials(member.name, member.initials)
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-sm ${assignedIds.includes(member.id) ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                        {member.name}
+                                                    </span>
+                                                </div>
+                                                {assignedIds.includes(member.id) && <Check size={16} className="text-primary-500" />}
+                                            </div>
+                                        ))}
+                                    {teamMembers.filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch))).length === 0 && (
+                                        <div className="p-4 text-center text-sm text-slate-400 italic">Nenhum membro encontrado.</div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div>

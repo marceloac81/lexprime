@@ -4,7 +4,7 @@ import { useStore } from '../context/Store';
 import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle, Check } from '../components/Icons';
 import { TeamMember } from '../types';
 import { normalizeText, getInitials } from '../utils/textUtils';
-import { AVATAR_COLORS } from '../utils/styleUtils';
+import { AVATAR_COLORS, getAvatarColorStyles } from '../utils/styleUtils';
 
 // Mask helpers
 const maskPhone = (value: string) => {
@@ -61,7 +61,7 @@ export const Team: React.FC = () => {
         name: '', role: 'Advogado', email: '', phone: '', active: true, oab: '',
         nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino',
         addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: '',
-        avatarColor: 'blue'
+        avatarColor: 'blue', initials: ''
     } as any);
 
     const fileRef = useRef<HTMLInputElement>(null);
@@ -113,7 +113,7 @@ export const Team: React.FC = () => {
             joinDate: new Date().toISOString().split('T')[0],
             nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino',
             addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: '',
-            avatarColor: 'blue'
+            avatarColor: 'blue', initials: ''
         });
         setFormErrors([]);
         setShowModal(true);
@@ -300,11 +300,11 @@ export const Team: React.FC = () => {
                                     <tr key={member.id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border ${getAvatarColorStyles(member.avatarColor || 'blue')}`}>
                                                     {member.photo ? (
                                                         <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <span className="font-bold text-slate-500 dark:text-slate-300">{member.name.charAt(0)}</span>
+                                                        <span className="font-bold text-xs">{getInitials(member.name, member.initials)}</span>
                                                     )}
                                                 </div>
                                                 <div>
@@ -374,18 +374,72 @@ export const Team: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Avatar Section */}
-                                <div className="flex justify-center mb-4">
-                                    <div className="relative w-24 h-24 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 cursor-pointer overflow-hidden hover:border-primary-500 transition-colors" onClick={() => fileRef.current?.click()}>
-                                        {formData.photo ? (
-                                            <img src={formData.photo} className="w-full h-full object-cover" alt="Preview" />
-                                        ) : (
-                                            <div className="flex flex-col items-center text-slate-400">
-                                                <Camera size={24} />
-                                                <span className="text-[10px] mt-1">Foto</span>
-                                            </div>
-                                        )}
+                                {/* Avatar Section - Refactored Side-by-Side */}
+                                <div className="flex flex-col md:flex-row items-center gap-6 mb-8 bg-slate-50 dark:bg-dark-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                    <div className="relative group">
+                                        <div className="relative w-24 h-24 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 cursor-pointer overflow-hidden hover:border-primary-500 transition-colors shadow-inner" onClick={() => fileRef.current?.click()}>
+                                            {formData.photo ? (
+                                                <img src={formData.photo} className="w-full h-full object-cover" alt="Preview" />
+                                            ) : (
+                                                <div className={`w-full h-full flex items-center justify-center text-2xl font-bold ${getAvatarColorStyles(formData.avatarColor || 'blue')}`}>
+                                                    {getInitials(formData.name || '', formData.initials)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="absolute -bottom-1 -right-1 flex gap-1">
+                                            {formData.photo && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormData({ ...formData, photo: null as any });
+                                                    }}
+                                                    className="bg-white dark:bg-dark-800 p-2 rounded-full shadow-lg border border-rose-200 dark:border-rose-900/50 text-rose-600 hover:scale-110 hover:bg-rose-50 transition-all"
+                                                    title="Remover Foto"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    fileRef.current?.click();
+                                                }}
+                                                className="bg-white dark:bg-dark-800 p-2 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 text-primary-600 hover:scale-110 transition-transform"
+                                                title="Alterar Foto"
+                                            >
+                                                <Camera size={16} />
+                                            </button>
+                                        </div>
                                         <input type="file" ref={fileRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+                                    </div>
+
+                                    <div className="flex-1 space-y-4 w-full">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Cor do Avatar</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {AVATAR_COLORS.map(c => (
+                                                    <button
+                                                        key={c.id}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, avatarColor: c.id })}
+                                                        className={`w-8 h-8 rounded-full ${c.bg} ${c.text} ${c.border} border flex items-center justify-center transition-all ${formData.avatarColor === c.id ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-dark-900 scale-110' : 'opacity-40 hover:opacity-100'}`}
+                                                    >
+                                                        {formData.avatarColor === c.id && <Check size={14} />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Iniciais (Max 3)</label>
+                                            <input
+                                                className="w-full md:w-32 p-2 rounded-lg bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500 uppercase text-center font-bold tracking-tighter"
+                                                value={formData.initials || ''}
+                                                onChange={e => setFormData({ ...formData, initials: e.target.value.toUpperCase().substring(0, 3) })}
+                                                placeholder={getInitials(formData.name || '')}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -432,22 +486,6 @@ export const Team: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Cor do Avatar (Estilo Pastel + Texto Escuro)</label>
-                                        <div className="flex flex-wrap gap-3">
-                                            {AVATAR_COLORS.map(c => (
-                                                <button
-                                                    key={c.id}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, avatarColor: c.id })}
-                                                    className={`w-10 h-10 rounded-full ${c.bg} ${c.text} ${c.border} border flex items-center justify-center transition-all ${formData.avatarColor === c.id ? 'ring-4 ring-primary-500/30 scale-110 shadow-lg' : 'opacity-60 hover:opacity-100 hover:scale-105'}`}
-                                                    title={c.name}
-                                                >
-                                                    {formData.avatarColor === c.id && <Check size={18} />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
                                 </div>
 
                                 {/* Qualification & Address */}
