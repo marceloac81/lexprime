@@ -252,60 +252,127 @@ export const Deadlines: React.FC = () => {
 
 
     const handlePrint = () => {
-
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
         const filtered = deadlines.filter(d => d.dueDate >= printRange.start && d.dueDate <= printRange.end)
             .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
+        // Group by date for the list layout
+        const grouped: Record<string, Deadline[]> = {};
+        filtered.forEach(d => {
+            if (!grouped[d.dueDate]) grouped[d.dueDate] = [];
+            grouped[d.dueDate].push(d);
+        });
+
+        const sortedDates = Object.keys(grouped).sort();
+
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>Relatório de Prazos - LexPrime</title>
+                    <title>&nbsp;</title>
                     <style>
-                        body { font-family: sans-serif; padding: 20px; color: #333; }
-                        h1 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 12px; }
-                        th { bg-color: #f8fafc; font-weight: bold; }
-                        .footer { margin-top: 30px; font-size: 10px; color: #64748b; text-align: center; }
-                        .status { font-weight: bold; text-transform: uppercase; font-size: 10px; }
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            padding: 40px; 
+                            color: #000; 
+                            line-height: 1.4;
+                        }
+                        .header { margin-bottom: 30px; }
+                        .office-name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+                        
+                        .date-section { margin-top: 25px; page-break-inside: avoid; }
+                        .date-header { 
+                            border-bottom: 2px solid #000; 
+                            padding-bottom: 5px; 
+                            margin-bottom: 15px;
+                            display: flex;
+                            align-items: baseline;
+                            gap: 15px;
+                        }
+                        .date-text { font-size: 16px; font-weight: bold; }
+                        .weekday-text { font-size: 14px; text-transform: capitalize; }
+                        
+                        .deadline-row { 
+                            display: grid;
+                            grid-template-columns: 80px 1fr 220px;
+                            gap: 20px;
+                            padding-bottom: 12px;
+                            margin-bottom: 12px;
+                            border-bottom: 0.5px solid #eee;
+                            page-break-inside: avoid;
+                        }
+                        .deadline-row:last-child {
+                            border-bottom: none;
+                        }
+                        .time { font-size: 13px; font-weight: bold; font-style: italic; }
+                        .description { font-size: 13px; }
+                        .desc-title { font-weight: bold; }
+                        .desc-location { font-size: 12px; color: #333; margin-top: 2px; }
+                        
+                        .process-info { text-align: right; font-size: 13px; }
+                        .process-number { font-weight: bold; }
+                        .folder-info { font-size: 12px; color: #333; margin-top: 2px; }
+
+                        @media print {
+                            body { padding: 0; }
+                            @page { margin: 1.5cm; }
+                        }
                     </style>
                 </head>
                 <body>
-                    <h1>Relatório de Prazos: ${formatDate(printRange.start)} - ${formatDate(printRange.end)}</h1>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Hora</th>
-                                <th>Atividade</th>
-                                <th>Processo / Cliente</th>
-                                <th>Local</th>
-                                <th>Resp.</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filtered.map(d => {
-            const relCase = getCaseDetails(d.caseId);
+                    <div class="header">
+                        <div class="office-name">Escritório de Advocacia</div>
+                    </div>
+
+                    ${sortedDates.map(dateStr => {
+            const items = grouped[dateStr];
+            const dateObj = new Date(dateStr + 'T12:00:00');
+            const formattedDate = dateObj.toLocaleDateString('pt-BR');
+            const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
+
             return `
-                                    <tr>
-                                        <td>${formatDate(d.dueDate)}</td>
-                                        <td>${(d.startTime || '09:00').substring(0, 5)}</td>
-                                        <td><strong>${d.title}</strong></td>
-                                        <td>${relCase?.number || '-'}<br/><small>${relCase?.clientName || d.customerName || '-'}</small></td>
-                                        <td>${relCase?.court || d.court || '-'}<br/><small>${relCase?.city || d.city || '-'} - ${relCase?.uf || d.uf || '-'}</small></td>
-                                        <td>${d.assignedTo ? teamMembers.find(t => t.id === d.assignedTo)?.name || '-' : '-'}</td>
-                                        <td class="status">${getStatus(d)}</td>
-                                    </tr>
-                                `;
+                            <div class="date-section">
+                                <div class="date-header">
+                                    <span class="date-text">${formattedDate}</span>
+                                    <span class="weekday-text">${weekday}</span>
+                                </div>
+                                ${items.map(d => {
+                const relCase = getCaseDetails(d.caseId);
+                const customer = relCase?.clientName || d.customerName || '';
+                const court = relCase?.court || d.court || '';
+                const city = relCase ? `${relCase.city}-${relCase.uf}` : (d.city ? `${d.city}-${d.uf || ''}` : '');
+                const process = relCase?.number || '';
+                const folder = relCase?.folderNumber ? `(Pasta nº ${relCase.folderNumber})` : (relCase ? '(Pasta nº sem pasta)' : '');
+
+                return `
+                                        <div class="deadline-row">
+                                            <div class="time">${(d.startTime || '09:00').substring(0, 5)}</div>
+                                            <div class="description">
+                                                <div class="desc-title">${d.title}${customer ? `: ${customer}` : ''}</div>
+                                                <div class="desc-location">${court}${city ? ` de ${city}` : ''}</div>
+                                            </div>
+                                            <div class="process-info">
+                                                <div class="process-number">${process}</div>
+                                                <div class="folder-info">${folder}</div>
+                                            </div>
+                                        </div>
+                                    `;
+            }).join('')}
+                            </div>
+                        `;
         }).join('')}
-                        </tbody>
-                    </table>
-                    <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} por LexPrime</div>
-                    <script>window.print(); window.close();</script>
+
+                    <div style="margin-top: 50px; font-size: 10px; border-top: 1px solid #000; padding-top: 10px;">
+                        Impresso em: ${new Date().toLocaleDateString('pt-BR')}
+                    </div>
+
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            // Optional: window.close();
+                        };
+                    </script>
                 </body>
             </html>
         `);
@@ -315,129 +382,250 @@ export const Deadlines: React.FC = () => {
 
     return (
         <div className="animate-fade-in pb-20 relative">
-            {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media print {
+                    @page { 
+                        margin: 1cm 1.5cm; 
+                        size: A4 portrait; 
+                        @bottom-right {
+                            content: "Página " counter(page) " de " counter(pages);
+                            font-size: 8pt;
+                        }
+                    }
+                    .no-print { display: none !important; }
+                    .print-only { display: block !important; }
+                    body { background: white !important; color: #000 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; }
+                    .main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+                    
+                    /* List Style Print */
+                    .print-report-container { width: 100%; color: #000; }
+                    .print-date-section { margin-top: 20px; page-break-inside: avoid; }
+                    .print-date-header { 
+                        border-bottom: 2px solid #000; 
+                        padding-bottom: 4px; 
+                        margin-bottom: 15px;
+                        display: flex;
+                        gap: 15px;
+                        align-items: baseline;
+                    }
+                    .print-date-text { font-size: 14pt; font-weight: bold; }
+                    .print-weekday-text { font-size: 11pt; color: #000; text-transform: capitalize; }
+                    
+                    .print-deadline-row { 
+                        display: grid;
+                        grid-template-columns: 80px 1fr 200px;
+                        gap: 20px;
+                        padding-bottom: 12px;
+                        margin-bottom: 12px;
+                        border-bottom: 0.5px solid #eee;
+                        page-break-inside: avoid;
+                        align-items: start;
+                    }
+                    .print-deadline-row:last-child {
+                        border-bottom: none;
+                    }
+                    .print-time { font-size: 10pt; font-style: italic; font-weight: bold; }
+                    .print-description-col { display: flex; flex-col; gap: 2px; }
+                    .print-title { font-size: 10pt; font-weight: bold; line-height: 1.2; }
+                    .print-location { font-size: 9pt; line-height: 1.2; }
+                    .print-process-col { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+                    .print-process-number { font-size: 10pt; font-weight: bold; }
+                    .print-folder-number { font-size: 9pt; }
 
-                            {/* Animated Pending Badge */}
-                            {deadlines.filter(d => getStatus(d) === 'Pending').length > 0 && (
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/30 backdrop-blur-md shadow-sm animate-badge-entrance origin-left group">
-                                    <div className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                    </div>
-                                    <Clock size={14} className="text-amber-600 dark:text-amber-400" />
-                                    <span className="text-xs font-bold text-amber-700 dark:text-amber-300 whitespace-nowrap">
-                                        <AnimatedCounter target={deadlines.filter(d => getStatus(d) === 'Pending').length} /> Prazos Pendentes
-                                    </span>
+                    * { color: #000 !important; text-shadow: none !important; box-shadow: none !important; }
+                }
+                .print-only { display: none; }
+            `}} />
+
+            {/* Print Only Header */}
+            <div className="print-only mb-6">
+                <h1 className="text-3xl font-bold">Escritório de Advocacia</h1>
+
+                <div className="print-report-container mt-8">
+                    {dates.map((dateStr) => {
+                        const groupItems = groupedDeadlines[dateStr];
+                        const parts = dateStr.split('-');
+                        let formattedDate = dateStr;
+                        let weekday = '';
+
+                        if (parts.length === 3) {
+                            const [y, m, d] = parts.map(Number);
+                            const dateObj = new Date(y, m - 1, d);
+                            if (!isNaN(dateObj.getTime())) {
+                                weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
+                                formattedDate = dateObj.toLocaleDateString('pt-BR');
+                            }
+                        }
+
+                        return (
+                            <div key={dateStr} className="print-date-section">
+                                <div className="print-date-header">
+                                    <span className="print-date-text">{formattedDate}</span>
+                                    <span className="print-weekday-text capitalize">{weekday}</span>
                                 </div>
-                            )}
-                        </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
-                    </div>
-                    {/* CONTAINER DE AÇÕES - Fix para Mobile (espaçamento e bloco único) */}
-                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center mt-3 md:mt-0">
-                        {/* Search bar */}
-                        <div className="relative group w-full md:w-auto">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Pesquisar..."
-                                className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200 shadow-sm"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                            />
-                            {searchTerm && (
-                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
-                                    <X size={14} />
-                                </button>
-                            )}
-                        </div>
 
-                        <div className="flex flex-row gap-2 w-full md:w-auto">
-                            {/* Custom Date Picker */}
-                            <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
-                                <button
-                                    onClick={() => setShowDatePicker(!showDatePicker)}
-                                    className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-sm ${filterDate
-                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
-                                        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
-                                        }`}
-                                >
-                                    <CalendarIcon size={16} />
-                                    <span>{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
-                                    {filterDate && (
-                                        <div
-                                            onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
-                                            className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
-                                        >
-                                            <X size={12} />
+                                {groupItems.map(d => {
+                                    const relatedCase = getCaseDetails(d.caseId);
+                                    const displayTitle = d.title;
+                                    const displayCustomer = relatedCase?.clientName || d.customerName || '';
+                                    const displayCourt = relatedCase?.court || d.court || '';
+                                    const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '';
+                                    const displayProcess = relatedCase?.number || '';
+                                    const displayFolder = relatedCase?.folderNumber ? `(Pasta nº ${relatedCase.folderNumber})` : (relatedCase ? '(Pasta nº sem pasta)' : '');
+
+                                    return (
+                                        <div key={d.id} className="print-deadline-row">
+                                            <div className="print-time">{(d.startTime || '09:00').substring(0, 5)}</div>
+
+                                            <div className="print-description-col">
+                                                <div className="print-title">{displayTitle}{displayCustomer ? `: ${displayCustomer}` : ''}</div>
+                                                <div className="print-location">{displayCourt}{displayCity ? ` de ${displayCity}` : ''}</div>
+                                            </div>
+
+                                            <div className="print-process-col">
+                                                <div className="print-process-number">{displayProcess}</div>
+                                                <div className="print-folder-number">{displayFolder}</div>
+                                            </div>
                                         </div>
-                                    )}
-                                </button>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+                </div>
 
-                                {showDatePicker && (
-                                    <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
-                                            <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
+                <div className="mt-10 pt-4 border-t border-black text-[10px]">
+                    Impresso em: {new Date().toLocaleString('pt-BR')}
+                </div>
+            </div>
+
+
+            <div className="no-print">
+                {/* Header - Sticky */}
+                <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Controle de Prazos</h1>
+
+                                {/* Animated Pending Badge */}
+                                {deadlines.filter(d => getStatus(d) === 'Pending').length > 0 && (
+                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/30 backdrop-blur-md shadow-sm animate-badge-entrance origin-left group">
+                                        <div className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                                         </div>
-
-                                        <div className="grid grid-cols-7 gap-1 mb-2">
-                                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                                                <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
-                                            ))}
-                                        </div>
-
-                                        <div className="grid grid-cols-7 gap-1">
-                                            {pickerDays.map((d, i) => {
-                                                if (d === null) return <div key={i} />;
-                                                const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                                                const isSelected = dateStr === filterDate;
-                                                const isToday = dateStr === todayStr;
-
-                                                return (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => selectDate(d)}
-                                                        className={`
-                                                h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
-                                                ${isSelected
-                                                                ? 'bg-primary-600 text-white shadow-md'
-                                                                : isToday
-                                                                    ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
-                                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
-                                                            }
-                                            `}
-                                                    >
-                                                        {d}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        <Clock size={14} className="text-amber-600 dark:text-amber-400" />
+                                        <span className="text-xs font-bold text-amber-700 dark:text-amber-300 whitespace-nowrap">
+                                            <AnimatedCounter target={deadlines.filter(d => getStatus(d) === 'Pending').length} /> Prazos Pendentes
+                                        </span>
                                     </div>
                                 )}
                             </div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestão de prazos processuais e compromissos.</p>
+                        </div>
+                        {/* CONTAINER DE AÇÕES - Fix para Mobile (espaçamento e bloco único) */}
+                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto md:items-center mt-3 md:mt-0">
+                            {/* Search bar */}
+                            <div className="relative group w-full md:w-auto">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Pesquisar..."
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 w-full md:w-64 transition-all text-slate-700 dark:text-slate-200 shadow-sm"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                />
+                                {searchTerm && (
+                                    <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex flex-row gap-2 w-full md:w-auto">
+                                {/* Custom Date Picker */}
+                                <div className="relative flex-1 md:flex-none" ref={datePickerRef}>
+                                    <button
+                                        onClick={() => setShowDatePicker(!showDatePicker)}
+                                        className={`w-full md:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-sm ${filterDate
+                                            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
+                                            : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'
+                                            }`}
+                                    >
+                                        <CalendarIcon size={16} />
+                                        <span>{filterDate ? formatDate(filterDate) : 'Filtrar Data'}</span>
+                                        {filterDate && (
+                                            <div
+                                                onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
+                                                className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
+                                            >
+                                                <X size={12} />
+                                            </div>
+                                        )}
+                                    </button>
+
+                                    {showDatePicker && (
+                                        <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
+                                                <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
+                                            </div>
+
+                                            <div className="grid grid-cols-7 gap-1 mb-2">
+                                                {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
+                                                    <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
+                                                ))}
+                                            </div>
+
+                                            <div className="grid grid-cols-7 gap-1">
+                                                {pickerDays.map((d, i) => {
+                                                    if (d === null) return <div key={i} />;
+                                                    const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                                                    const isSelected = dateStr === filterDate;
+                                                    const isToday = dateStr === todayStr;
+
+                                                    return (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => selectDate(d)}
+                                                            className={`
+                                                h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
+                                                ${isSelected
+                                                                    ? 'bg-primary-600 text-white shadow-md'
+                                                                    : isToday
+                                                                        ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
+                                                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                                                }
+                                            `}
+                                                        >
+                                                            {d}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={() => setShowPrintModal(true)}
+                                    className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
+                                    title="Imprimir Prazos"
+                                >
+                                    <Printer size={20} />
+                                </button>
+                            </div>
 
                             <button
-                                onClick={() => setShowPrintModal(true)}
-                                className="p-2.5 text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 shadow-sm"
-                                title="Imprimir Prazos"
+                                onClick={() => setShowCalculator(true)}
+                                className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap no-print"
                             >
-                                <Printer size={20} />
+                                <Plus size={20} /> Novo Prazo
                             </button>
                         </div>
-
-                        <button
-                            onClick={() => setShowCalculator(true)}
-                            className="w-full md:w-auto bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all whitespace-nowrap"
-                        >
-                            <Plus size={20} /> Novo Prazo
-                        </button>
                     </div>
                 </div>
             </div>
@@ -454,7 +642,7 @@ export const Deadlines: React.FC = () => {
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
                                 <th className="py-3 px-2 text-xs font-semibold uppercase tracking-wider w-16 text-center" title="Responsável">Resp.</th>
-                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center status-col">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -546,7 +734,7 @@ export const Deadlines: React.FC = () => {
                                                         {displayCity}
                                                     </td>
                                                     <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex -space-x-2 justify-center items-center">
+                                                        <div className="avatar-container flex -space-x-2 justify-center items-center">
                                                             {(d.assignedIds || (d.assignedTo ? [d.assignedTo] : [])).length > 0 ? (() => {
                                                                 const ids = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
                                                                 const displayIds = ids.slice(0, ids.length > 3 ? 2 : 3);
@@ -586,8 +774,14 @@ export const Deadlines: React.FC = () => {
                                                                 <UserIcon size={16} className={`mx-auto text-slate-300 dark:text-slate-600 ${isFinished ? 'opacity-30' : ''}`} title="Sem Responsável" />
                                                             )}
                                                         </div>
+                                                        <div className="hidden print-initials text-xs">
+                                                            {(d.assignedIds || (d.assignedTo ? [d.assignedTo] : [])).map(id => {
+                                                                const member = teamMembers.find(t => t.id === id);
+                                                                return member ? getInitials(member.name, member.initials) : '';
+                                                            }).filter(Boolean).join(', ')}
+                                                        </div>
                                                     </td>
-                                                    <td className="py-2 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                    <td className="py-2 px-4 text-center status-col" onClick={(e) => e.stopPropagation()}>
                                                         <StatusDropdown
                                                             id={d.id}
                                                             currentStatus={status}
@@ -611,7 +805,7 @@ export const Deadlines: React.FC = () => {
                     </table>
                 </div>
 
-                <div className="md:hidden flex flex-col gap-6 pb-20">
+                <div className="md:hidden flex flex-col gap-6 pb-20 no-print">
                     {dates.map(dateStr => {
                         const groupItems = groupedDeadlines[dateStr];
                         let formattedDate = dateStr;
