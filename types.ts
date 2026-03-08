@@ -46,6 +46,7 @@ export interface Client {
   notes?: string; // OBSERVACAO
   createdAt?: string; // ISO
   updatedAt?: string; // ISO
+  createdBy?: string;
 }
 
 export interface TeamMember {
@@ -137,6 +138,7 @@ export interface Case {
   occurrences?: CaseOccurrence[];
   createdAt?: string;
   updatedAt?: string;
+  createdBy?: string;
 }
 
 export interface Deadline {
@@ -162,6 +164,7 @@ export interface Deadline {
   type: 'Prazo Processual' | 'Administrativo' | 'Audiência';
   createdAt?: string;
   updatedAt?: string;
+  createdBy?: string;
 }
 
 export interface Appointment {
@@ -179,7 +182,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Advogado' | 'Estagiário';
+  role: string | 'Admin' | 'Advogado' | 'Estagiário';
+  isAdmin: boolean;
   avatar?: string;
 }
 

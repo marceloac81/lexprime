@@ -39,7 +39,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Deadlines: React.FC = () => {
-    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode } = useStore();
+    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode, currentUser } = useStore();
 
     // State
     const [showCalculator, setShowCalculator] = useState(false);
@@ -664,6 +664,7 @@ export const Deadlines: React.FC = () => {
                     initialCaseSearch={pendingProcessNumber || undefined}
                     holidays={holidays}
                     onDelete={deleteDeadline}
+                    currentUser={currentUser}
                 />
             )}
             {/* Print Range Modal */}

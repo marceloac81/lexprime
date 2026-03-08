@@ -17,6 +17,7 @@ interface CalculatorModalProps {
     initialCaseSearch?: string;
     holidays: Holiday[];
     onDelete?: (id: string) => void;
+    currentUser?: any;
 }
 
 const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
@@ -57,7 +58,7 @@ const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
     );
 };
 
-export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete }) => {
+export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete, currentUser }) => {
     // Default Initialization
     const [startDate, setStartDate] = useState(initialData?.startDate || initialDate || new Date().toISOString().split('T')[0]);
     const [startTime, setStartTime] = useState(initialData?.startTime || '18:00');
@@ -514,7 +515,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
 
                             <div className="flex gap-3 mt-auto shrink-0">
-                                {initialData && onDelete && (
+                                {initialData && onDelete && (currentUser?.isAdmin || initialData.createdBy === currentUser?.id) && (
                                     <button
                                         onClick={() => {
                                             if (window.confirm("Deseja realmente excluir este prazo?")) {

@@ -431,6 +431,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             tribunal: c.tribunal,
             subject: c.subject,
             probability: c.probability,
+            createdBy: c.created_by,
           })));
         }
 
@@ -444,6 +445,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             representativeAddress: c.representative_address,
             addressNumber: c.address_number,
             birthDate: c.birth_date,
+            createdBy: c.created_by,
           })));
         }
 
@@ -476,6 +478,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             court: d.court,
             city: d.city,
             uf: d.uf,
+            createdBy: d.created_by,
           })));
         }
 
@@ -518,27 +521,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Auth Listener
   useEffect(() => {
+    const fetchUserRole = async (user: any) => {
+      const { data } = await supabase.from('team_members').select('role, name, is_admin').eq('email', user.email).single();
+      setCurrentUser({
+        id: user.id,
+        name: user.user_metadata.full_name || data?.name || 'Usuário',
+        email: user.email || '',
+        role: data?.role || 'user',
+        isAdmin: data?.is_admin || false
+      });
+    };
+
     // Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setCurrentUser({
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || 'Usuário',
-          email: session.user.email || '',
-          role: 'Admin'
-        });
+        fetchUserRole(session.user);
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setCurrentUser({
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || 'Usuário',
-          email: session.user.email || '',
-          role: 'Admin'
-        });
+        fetchUserRole(session.user);
       } else {
         setCurrentUser(null);
       }

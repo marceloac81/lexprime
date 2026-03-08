@@ -49,7 +49,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Team: React.FC = () => {
-    const { teamMembers, addTeamMember, updateTeamMember, deleteTeamMember, clearTeamMembers, addNotification, isLoading, setIsLoading } = useStore();
+    const { teamMembers, addTeamMember, updateTeamMember, deleteTeamMember, clearTeamMembers, addNotification, isLoading, setIsLoading, currentUser } = useStore();
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -531,7 +531,7 @@ export const Team: React.FC = () => {
                             </form>
 
                             <div className="p-6 border-t border-slate-100 dark:border-slate-700 flex gap-3 bg-slate-50 dark:bg-dark-900/50 shrink-0">
-                                {isEditing && (
+                                {isEditing && currentUser?.isAdmin && (
                                     <button type="button" onClick={() => handleDelete(formData.id!)} className="px-4 py-2 text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40">
                                         <Trash2 size={20} />
                                     </button>

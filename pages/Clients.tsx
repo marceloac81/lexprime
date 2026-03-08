@@ -92,7 +92,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Clients: React.FC = () => {
-    const { clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading } = useStore();
+    const { clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading, currentUser } = useStore();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -619,12 +619,23 @@ export const Clients: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
-                                <button
-                                    onClick={() => handleOpenDetails(client)}
-                                    className="w-full mt-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
-                                >
-                                    Ver Detalhes
-                                </button>
+                                <div className="flex justify-between items-center mt-4">
+                                    <button
+                                        onClick={() => handleOpenDetails(client)}
+                                        className="flex-1 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                                    >
+                                        Ver Detalhes
+                                    </button>
+                                    {(currentUser?.isAdmin || client.createdBy === currentUser?.id) && (
+                                        <button
+                                            onClick={() => handleDelete(client.id)}
+                                            className="ml-2 p-1.5 text-slate-300 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>

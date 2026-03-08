@@ -264,7 +264,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
     };
 
     return (
-        <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-2 md:p-4'} animate-fade-in`}>
+        <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-2 md:p-4'} animate-fade-in`}>
             {/* Modal Container - Expanded Width for Split View */}
             <div className={`bg-white dark:bg-dark-800 shadow-2xl flex flex-col overflow-hidden transform transition-all scale-100 border border-slate-200 dark:border-slate-700 ${isFullscreen ? 'w-screen h-screen rounded-none border-none' : 'w-full max-w-7xl h-[95vh] rounded-2xl'}`}>
 

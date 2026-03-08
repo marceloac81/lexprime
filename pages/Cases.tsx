@@ -38,7 +38,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Cases: React.FC = () => {
-    const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading } = useStore();
+    const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showNewCaseModal, setShowNewCaseModal] = useState(false);
@@ -361,13 +361,15 @@ export const Cases: React.FC = () => {
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={(e) => handleDelete(c.id, e)}
-                                                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                    title="Excluir Processo"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
+                                                    <button
+                                                        onClick={(e) => handleDelete(c.id, e)}
+                                                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Excluir Processo"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
                                                 <ChevronRight size={20} className="text-slate-300 group-hover:text-primary-500 transition-colors" />
                                             </div>
                                         </td>
@@ -397,12 +399,14 @@ export const Cases: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <StatusBadge status={c.status} />
-                                        <button
-                                            onClick={(e) => handleDelete(c.id, e)}
-                                            className="p-1 text-slate-300 hover:text-rose-500"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
+                                            <button
+                                                onClick={(e) => handleDelete(c.id, e)}
+                                                className="p-1 text-slate-300 hover:text-rose-500"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -537,7 +541,7 @@ export const Cases: React.FC = () => {
 };
 
 const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadline[], onEdit: () => void, onDelete: () => void }> = ({ c, onClose, deadlines, onEdit, onDelete }) => {
-    const { addDeadline, holidays, cases, updateCase } = useStore();
+    const { addDeadline, holidays, cases, updateCase, currentUser } = useStore();
     const [activeTab, setActiveTab] = useState<'timeline' | 'occurrences' | 'info'>('timeline');
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
 
@@ -591,7 +595,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
     const isArchived = c.status === CaseStatus.Archived;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-end md:items-center justify-center animate-fade-in">
             <div className="bg-white dark:bg-dark-800 w-full md:w-[96%] md:max-w-[1400px] h-[95vh] md:h-[92vh] md:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
                 {/* Header */}
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-900 flex justify-between items-start shrink-0">
@@ -736,12 +740,14 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                                             <div className="flex-1">
                                                 <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">{occ.description}</p>
                                             </div>
-                                            <button
-                                                onClick={() => handleDeleteOccurrence(occ.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-rose-500 transition-all rounded-lg"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
+                                                <button
+                                                    onClick={() => handleDeleteOccurrence(occ.id)}
+                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-rose-500 transition-all rounded-lg"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -895,12 +901,14 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                         {isArchived ? 'Desarquivar Processo' : 'Arquivar Processo'}
                     </button>
 
-                    <button
-                        onClick={onDelete}
-                        className="px-4 py-2 text-rose-600 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded-lg w-full md:w-auto flex items-center justify-center gap-2 font-medium transition-colors"
-                    >
-                        <Trash2 size={18} /> Excluir
-                    </button>
+                    {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
+                        <button
+                            onClick={onDelete}
+                            className="flex-1 md:flex-none border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-900/20 px-6 py-2.5 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Trash2 size={18} /> Excluir
+                        </button>
+                    )}
 
                     <button
                         onClick={() => setShowDeadlineModal(true)}

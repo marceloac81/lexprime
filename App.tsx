@@ -46,6 +46,13 @@ const AppContent: React.FC = () => {
     if (pendingAction?.startsWith('editCase:')) setCurrentPage('cases');
   }, [pendingAction]);
 
+  // Route Protection for Settings
+  useEffect(() => {
+    if (currentPage === 'settings' && currentUser && !currentUser.isAdmin) {
+      setCurrentPage('dashboard');
+    }
+  }, [currentPage, currentUser]);
+
   if (isLoading) {
     return <SplashScreen onFinish={() => setIsLoading(false)} />;
   }

@@ -130,7 +130,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         {collapsed && <div className="my-4 h-px w-full bg-slate-200 dark:bg-slate-800" />}
 
         <NavItem collapsed={collapsed} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="settings" icon={Settings} label="Configurações" active={activePage === 'settings'} onClick={handleNavClick} />
+        {currentUser?.isAdmin && (
+          <NavItem collapsed={collapsed} page="settings" icon={Settings} label="Configurações" active={activePage === 'settings'} onClick={handleNavClick} />
+        )}
       </nav>
 
       <div className={`p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
