@@ -1,9 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/Store';
-import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle } from '../components/Icons';
+import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle, Check } from '../components/Icons';
 import { TeamMember } from '../types';
-import { normalizeText } from '../utils/textUtils';
+import { normalizeText, getInitials } from '../utils/textUtils';
+import { AVATAR_COLORS } from '../utils/styleUtils';
 
 // Mask helpers
 const maskPhone = (value: string) => {
@@ -56,11 +57,11 @@ export const Team: React.FC = () => {
     const [loadingCep, setLoadingCep] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: keyof TeamMember; direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
     const [formErrors, setFormErrors] = useState<string[]>([]);
-
     const [formData, setFormData] = useState<Partial<TeamMember>>({
         name: '', role: 'Advogado', email: '', phone: '', active: true, oab: '',
-        nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino', addressCountry: 'Brasil',
-        addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: ''
+        nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino',
+        addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: '',
+        avatarColor: 'blue'
     } as any);
 
     const fileRef = useRef<HTMLInputElement>(null);
@@ -111,7 +112,8 @@ export const Team: React.FC = () => {
             name: '', role: 'Advogado', email: '', phone: '', active: true, oab: '',
             joinDate: new Date().toISOString().split('T')[0],
             nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino',
-            addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: ''
+            addressStreet: '', addressNumber: '', addressComplement: '', addressNeighborhood: '', addressCity: '', addressState: '', addressZip: '',
+            avatarColor: 'blue'
         });
         setFormErrors([]);
         setShowModal(true);
@@ -427,6 +429,23 @@ export const Team: React.FC = () => {
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CPF</label>
                                             <input className="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                                 value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: maskCPF(e.target.value) })} placeholder="000.000.000-00" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Cor do Avatar (Estilo Pastel + Texto Escuro)</label>
+                                        <div className="flex flex-wrap gap-3">
+                                            {AVATAR_COLORS.map(c => (
+                                                <button
+                                                    key={c.id}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, avatarColor: c.id })}
+                                                    className={`w-10 h-10 rounded-full ${c.bg} ${c.text} ${c.border} border flex items-center justify-center transition-all ${formData.avatarColor === c.id ? 'ring-4 ring-primary-500/30 scale-110 shadow-lg' : 'opacity-60 hover:opacity-100 hover:scale-105'}`}
+                                                    title={c.name}
+                                                >
+                                                    {formData.avatarColor === c.id && <Check size={18} />}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>

@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Plus, X, Search, CalendarIcon, ChevronLeft, ChevronRight, Edit, Trash2, Printer } from '../components/Icons';
+import { Clock, Check, X, Printer, CalendarIcon, Edit, ChevronLeft, ChevronRight, User as UserIcon, Search, Plus, Trash2 } from '../components/Icons';
 import { formatDate } from '../utils/dateUtils';
-import { normalizeText } from '../utils/textUtils';
+import { normalizeText, getInitials } from '../utils/textUtils';
+import { getAvatarColorStyles } from '../utils/styleUtils';
 import { Deadline } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
-import { Clock } from 'lucide-react';
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -38,8 +38,10 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
     return <span>{count}</span>;
 };
 
+
+
 export const Deadlines: React.FC = () => {
-    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode, currentUser } = useStore();
+    const { deadlines, cases, addDeadline, updateDeadline, updateDeadlineStatus, deleteDeadline, clearDeadlines, holidays, resetHolidays, pendingAction, setPendingAction, addNotification, isDarkMode, currentUser, teamMembers } = useStore();
 
     // State
     const [showCalculator, setShowCalculator] = useState(false);
@@ -281,6 +283,7 @@ export const Deadlines: React.FC = () => {
                                 <th>Atividade</th>
                                 <th>Processo / Cliente</th>
                                 <th>Local</th>
+                                <th>Resp.</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -294,6 +297,7 @@ export const Deadlines: React.FC = () => {
                                         <td><strong>${d.title}</strong></td>
                                         <td>${relCase?.number || '-'}<br/><small>${relCase?.clientName || d.customerName || '-'}</small></td>
                                         <td>${relCase?.court || d.court || '-'}<br/><small>${relCase?.city || d.city || '-'} - ${relCase?.uf || d.uf || '-'}</small></td>
+                                        <td>${d.assignedTo ? teamMembers.find(t => t.id === d.assignedTo)?.name || '-' : '-'}</td>
                                         <td class="status">${getStatus(d)}</td>
                                     </tr>
                                 `;
@@ -449,6 +453,7 @@ export const Deadlines: React.FC = () => {
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
+                                <th className="py-3 px-2 text-xs font-semibold uppercase tracking-wider w-16 text-center" title="Responsável">Resp.</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-40 text-center">Status</th>
                             </tr>
                         </thead>
@@ -476,7 +481,7 @@ export const Deadlines: React.FC = () => {
                                             className={`${getDateStyle(dateStr)} border-b-2 border-t-2 border-t-slate-800 dark:border-t-slate-400 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                             style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
                                         >
-                                            <td colSpan={7} className="py-2 px-4">
+                                            <td colSpan={8} className="py-2 px-4">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
                                                     <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
@@ -540,7 +545,27 @@ export const Deadlines: React.FC = () => {
                                                     <td className={`py-2 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
                                                         {displayCity}
                                                     </td>
-                                                    <td className="py-2 px-4 text-center">
+                                                    <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                        {d.assignedTo ? (() => {
+                                                            const member = teamMembers.find(t => t.id === d.assignedTo);
+                                                            if (!member) return <UserIcon size={16} className="mx-auto text-slate-300 dark:text-slate-600" />;
+                                                            const avatarStyle = isFinished
+                                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 border-slate-300'
+                                                                : `${getAvatarColorStyles(member.avatarColor || 'blue')} border-opacity-30`;
+
+                                                            return (
+                                                                <div
+                                                                    className={`w-7 h-7 mx-auto rounded-full ${avatarStyle} border flex items-center justify-center text-[10px] font-bold ${isFinished ? 'opacity-50 grayscale' : 'shadow-sm'}`}
+                                                                    title={member.name}
+                                                                >
+                                                                    {getInitials(member.name)}
+                                                                </div>
+                                                            );
+                                                        })() : (
+                                                            <UserIcon size={16} className={`mx-auto text-slate-300 dark:text-slate-600 ${isFinished ? 'opacity-30' : ''}`} title="Sem Responsável" />
+                                                        )}
+                                                    </td>
+                                                    <td className="py-2 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                                                         <StatusDropdown
                                                             id={d.id}
                                                             currentStatus={status}
@@ -555,7 +580,7 @@ export const Deadlines: React.FC = () => {
                             })}
                             {dates.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-400 bg-white dark:bg-dark-900 text-lg">
+                                    <td colSpan={8} className="p-8 text-center text-slate-400 bg-white dark:bg-dark-900 text-lg">
                                         {searchTerm || filterDate ? 'Nenhum prazo encontrado para os filtros atuais.' : 'Nenhum prazo pendente.'}
                                     </td>
                                 </tr>
@@ -570,7 +595,6 @@ export const Deadlines: React.FC = () => {
                         let formattedDate = dateStr;
                         let weekday = '';
                         let isToday = dateStr === todayStr;
-                        let isPast = dateStr < todayStr;
 
                         const parts = dateStr.split('-');
                         if (parts.length === 3) {
@@ -585,8 +609,8 @@ export const Deadlines: React.FC = () => {
                         return (
                             <div key={dateStr} className={`${!isToday ? 'border-t-4 border-slate-800 dark:border-slate-500 pt-4 mt-4' : ''}`}>
                                 <div className={`px-4 py-2 mb-2 rounded-lg shadow-sm flex items-center justify-between
-                        ${isToday ? 'bg-amber-400 text-slate-900 border-b-2 border-amber-500' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}
-                    `}>
+                                    ${isToday ? 'bg-amber-400 text-slate-900 border-b-2 border-amber-500' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}
+                                `}>
                                     <div className={`font-bold ${isToday ? 'text-lg' : ''}`}>{formattedDate} <span className="text-sm font-normal opacity-80 capitalize ml-1">{weekday}</span></div>
                                     {isToday && <span className="bg-slate-900 text-amber-400 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse">HOJE</span>}
                                 </div>
@@ -641,12 +665,37 @@ export const Deadlines: React.FC = () => {
                                                     </div>
                                                     <span className={`${textStyle}`}>{displayCourt} {displayCity && `• ${displayCity}`}</span>
                                                 </div>
+
+                                                {/* Assigned User - Mobile */}
+                                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                                                    <span className="text-xs text-slate-500 font-medium">Responsável:</span>
+                                                    {d.assignedTo ? (() => {
+                                                        const member = teamMembers.find(t => t.id === d.assignedTo);
+                                                        if (!member) return <UserIcon size={14} className="text-slate-300 dark:text-slate-600" />;
+                                                        return (
+                                                            <div
+                                                                className={`flex items-center gap-1.5 ${isFinished ? 'opacity-50 grayscale' : ''}`}
+                                                                title={member.name}
+                                                            >
+                                                                <div className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 flex items-center justify-center text-[8px] font-bold ring-1 ring-primary-200 dark:ring-primary-800">
+                                                                    {getInitials(member.name)}
+                                                                </div>
+                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{member.name.split(' ')[0]}</span>
+                                                            </div>
+                                                        );
+                                                    })() : (
+                                                        <div className="flex items-center gap-1.5 opacity-50">
+                                                            <UserIcon size={14} className="text-slate-400" />
+                                                            <span className="text-[10px] text-slate-400 font-medium italic">Não Atribuído</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        )
+                                        );
                                     })}
                                 </div>
                             </div>
-                        )
+                        );
                     })}
                 </div>
             </div>
@@ -665,6 +714,7 @@ export const Deadlines: React.FC = () => {
                     holidays={holidays}
                     onDelete={deleteDeadline}
                     currentUser={currentUser}
+                    teamMembers={teamMembers}
                 />
             )}
             {/* Print Range Modal */}

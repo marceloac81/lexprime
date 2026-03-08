@@ -18,6 +18,7 @@ interface CalculatorModalProps {
     holidays: Holiday[];
     onDelete?: (id: string) => void;
     currentUser?: any;
+    teamMembers: import('../types').TeamMember[];
 }
 
 const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
@@ -58,7 +59,7 @@ const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
     );
 };
 
-export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete, currentUser }) => {
+export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete, currentUser, teamMembers }) => {
     // Default Initialization
     const [startDate, setStartDate] = useState(initialData?.startDate || initialDate || new Date().toISOString().split('T')[0]);
     const [startTime, setStartTime] = useState(initialData?.startTime || '18:00');
@@ -67,6 +68,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
     const [title, setTitle] = useState(initialData?.title || '');
     const [status, setStatus] = useState<'Pending' | 'Done' | 'Canceled'>(initialData?.status || 'Pending');
+    const [assignedTo, setAssignedTo] = useState(initialData?.assignedTo || '');
 
     // Case & Customer & Location
     const [selectedCaseId, setSelectedCaseId] = useState(initialData?.caseId || '');
@@ -220,7 +222,8 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
             countType: type,
             days,
             startDate,
-            startTime
+            startTime,
+            assignedTo: assignedTo || undefined
         });
     };
 
@@ -380,6 +383,20 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     </select>
                                 )}
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsável</label>
+                            <select
+                                className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                value={assignedTo}
+                                onChange={e => setAssignedTo(e.target.value)}
+                            >
+                                <option value="">Sem Atribuição</option>
+                                {teamMembers.filter(t => t.active).map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>

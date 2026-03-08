@@ -38,7 +38,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Cases: React.FC = () => {
-    const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser } = useStore();
+    const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser, addDeadline, holidays, teamMembers } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showNewCaseModal, setShowNewCaseModal] = useState(false);
@@ -472,6 +472,7 @@ export const Cases: React.FC = () => {
                         cases={cases}
                         initialData={isEditing ? newCase : undefined}
                         isEditing={isEditing}
+                        teamMembers={teamMembers}
                     />
                 )}
                 {/* Print Styles */}
@@ -541,7 +542,7 @@ export const Cases: React.FC = () => {
 };
 
 const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadline[], onEdit: () => void, onDelete: () => void }> = ({ c, onClose, deadlines, onEdit, onDelete }) => {
-    const { addDeadline, holidays, cases, updateCase, currentUser } = useStore();
+    const { addDeadline, holidays, cases, updateCase, currentUser, teamMembers } = useStore();
     const [activeTab, setActiveTab] = useState<'timeline' | 'occurrences' | 'info'>('timeline');
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
 
@@ -926,6 +927,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                     onSave={handleSaveDeadline}
                     holidays={holidays}
                     initialData={{ caseId: c.id } as any} // Trick to pre-fill case selection
+                    teamMembers={teamMembers}
                 />
             )}
         </div>

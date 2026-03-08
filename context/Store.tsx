@@ -461,6 +461,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             addressCity: t.address_city,
             addressState: t.address_state,
             addressZip: t.address_zip,
+            avatarColor: t.avatar_color,
           })));
         }
 
@@ -479,6 +480,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             city: d.city,
             uf: d.uf,
             createdBy: d.created_by,
+            assignedTo: d.assigned_to,
           })));
         }
 
@@ -945,6 +947,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         address_city: updated.addressCity,
         address_state: updated.addressState,
         address_zip: updated.addressZip,
+        avatar_color: updated.avatarColor || null,
         created_at: updated.createdAt,
         updated_at: updated.updatedAt
       });
@@ -986,6 +989,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         address_city: updated.addressCity,
         address_state: updated.addressState,
         address_zip: updated.addressZip,
+        avatar_color: updated.avatarColor || null,
         updated_at: updated.updatedAt
       }).eq('id', updated.id);
 
@@ -1057,6 +1061,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         court: updated.court,
         city: updated.city,
         uf: updated.uf,
+        assigned_to: toUUID(updated.assignedTo),
         created_at: updated.createdAt,
         updated_at: updated.updatedAt
       });
@@ -1095,6 +1100,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         court: updated.court,
         city: updated.city,
         uf: updated.uf,
+        assigned_to: toUUID(updated.assignedTo),
         updated_at: updated.updatedAt
       }).eq('id', updated.id);
 
@@ -1425,7 +1431,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           city: d.city,
           uf: d.uf,
           created_at: d.createdAt,
-          updated_at: d.updatedAt
+          updated_at: d.updatedAt,
+          assigned_to: d.assignedTo || null
         }));
         const { error } = await supabase.from('deadlines').upsert(payload, { onConflict: 'id' });
         if (error) throw error;
@@ -1454,6 +1461,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           address_city: t.addressCity,
           address_state: t.addressState,
           address_zip: t.addressZip,
+          avatar_color: t.avatarColor || null,
           created_at: t.createdAt,
           updated_at: t.updatedAt
         }));

@@ -5,6 +5,8 @@ import {
   Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText, Calculator
 } from './Icons';
 import { useStore } from '../context/Store';
+import { getInitials } from '../utils/textUtils';
+import { getAvatarColorStyles } from '../utils/styleUtils';
 
 interface SidebarProps {
   activePage: string;
@@ -137,8 +139,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
       <div className={`p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className={`bg-slate-50 dark:bg-dark-800 rounded-xl p-3 flex items-center gap-3 border border-slate-100 dark:border-slate-700 ${collapsed ? 'justify-center p-2' : ''}`}>
-          <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center text-primary-700 dark:text-slate-200 font-bold text-lg shadow-sm">
-            {currentUser?.name.charAt(0)}
+          <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm`}>
+            {getInitials(currentUser?.name || '')}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">

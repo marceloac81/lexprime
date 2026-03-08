@@ -74,6 +74,7 @@ export interface TeamMember {
   addressCity?: string;
   addressState?: string;
   addressZip?: string;
+  avatarColor?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -165,6 +166,7 @@ export interface Deadline {
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
+  assignedTo?: string; // New: UUID referencing team_members
 }
 
 export interface Appointment {
