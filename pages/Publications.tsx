@@ -237,7 +237,17 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             alert('Por favor, selecione pelo menos uma publicação para imprimir.');
             return;
         }
+
+        // Temporarily change title to remove "LexPrime" from print header
+        const originalTitle = document.title;
+        document.title = "Publicações";
+
         window.print();
+
+        // Restore original title
+        setTimeout(() => {
+            document.title = originalTitle;
+        }, 100);
     };
 
     const formatDateForDisplay = (dateString: string) => {
@@ -306,9 +316,10 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     }
 
                     /* ===== 1. HIDE ALL UI / BRANDING ===== */
-                    /* Sidebar, logo, branding */
                     aside,
                     nav,
+                    [class*="Navbar"],
+                    header,
                     .no-print {
                         display: none !important;
                     }
@@ -347,6 +358,12 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: visible !important;
+                        position: relative !important;
+                    }
+
+                    /* Ensure the main container doesn't have top padding from mobile navbar */
+                    main {
+                        padding-top: 0 !important;
                     }
 
                     /* Remove spacing helpers that cause gaps */
@@ -387,13 +404,15 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
                     /* ===== 4. PROCESS HEADER BAR ===== */
                     .print-card > div:first-child {
-                        background: #f0f0f0 !important;
+                        background: #f3f4f6 !important;
                         border-bottom: 1px solid #000 !important;
                         border-radius: 0 !important;
-                        padding: 6px 12px !important;
+                        padding: 8px 12px !important;
                         display: flex !important;
                         align-items: center !important;
                         justify-content: space-between !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
                     }
                     /* Process number text: pure black, bold */
                     .print-card > div:first-child span {

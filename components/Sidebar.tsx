@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
     <aside className={`
         fixed inset-y-0 left-0 z-[120] bg-white dark:bg-dark-900 border-r border-slate-200 dark:border-slate-800 
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
-        md:relative md:translate-x-0
+        md:relative md:translate-x-0 no-print
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${collapsed ? 'w-20' : 'w-64'}
     `}>
