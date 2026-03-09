@@ -259,3 +259,14 @@ export interface DJENResponse {
   count: number;
   items: DJENItem[];
 }
+
+export interface ActivityLog {
+  id: string;
+  createdAt: string;
+  userId: string | null;
+  userName: string;
+  action: 'INSERT' | 'UPDATE' | 'DELETE';
+  tableName: string;
+  recordId: string;
+  details: any;
+}

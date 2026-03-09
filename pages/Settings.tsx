@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
-import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon, RotateCcw } from '../components/Icons';
+import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon, RotateCcw, Clock, Search } from '../components/Icons';
 import { Holiday, Case, Client, Deadline, TeamMember } from '../types';
 import {
     generateContactsCSV, generateCasesCSV, generateDeadlinesCSV, generateTeamCSV, generateHolidaysCSV, downloadCSV,
@@ -12,13 +12,22 @@ export const Settings: React.FC = () => {
         isDarkMode, toggleTheme, currentUser, resetHolidays,
         holidays, importHolidays, addNotification, clients, importClients, cases, importCases,
         deadlines, importDeadlines, teamMembers, importTeamMembers,
-        syncData, isLoading
+        syncData, isLoading,
+        activityLogs, fetchActivityLogs, clearActivityLogs
     } = useStore();
     const clientsInputRef = useRef<HTMLInputElement>(null);
     const casesInputRef = useRef<HTMLInputElement>(null);
     const deadlinesInputRef = useRef<HTMLInputElement>(null);
     const teamInputRef = useRef<HTMLInputElement>(null);
     const holidayInputRef = useRef<HTMLInputElement>(null);
+
+    const [logFilter, setLogFilter] = useState({ user: '', date: '' });
+
+    const filteredLogs = activityLogs.filter(log => {
+        const matchesUser = !logFilter.user || log.userName.toLowerCase().includes(logFilter.user.toLowerCase());
+        const matchesDate = !logFilter.date || log.createdAt.startsWith(logFilter.date);
+        return matchesUser && matchesDate;
+    });
 
     // Track when import is complete and needs sync
     const [pendingSync, setPendingSync] = useState<{ type: string; expectedCount: number } | null>(null);
@@ -251,6 +260,82 @@ export const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Activity History - Admin Only */}
+                    {currentUser?.isAdmin && (
+                        <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <Clock size={20} className="text-primary-600" /> Histórico de Atividades
+                                </span>
+                                <button
+                                    onClick={clearActivityLogs}
+                                    className="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1"
+                                >
+                                    <Trash2 size={14} /> Limpar Tudo
+                                </button>
+                            </h3>
+
+                            {/* Filters */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="Filtrar por usuário..."
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm transition-focus outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                                        value={logFilter.user}
+                                        onChange={e => setLogFilter({ ...logFilter, user: e.target.value })}
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                    <input
+                                        type="date"
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm transition-focus outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                                        value={logFilter.date}
+                                        onChange={e => setLogFilter({ ...logFilter, date: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {filteredLogs.length > 0 ? (
+                                    filteredLogs.slice(0, 50).map(log => (
+                                        <div key={log.id} className="flex gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-colors">
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
+                                                {log.userName.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                        {log.userName}
+                                                    </p>
+                                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                        {new Date(log.createdAt).toLocaleString('pt-BR')}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                                    <span className={`font-bold mr-1 ${log.action === 'INSERT' ? 'text-emerald-600' :
+                                                            log.action === 'UPDATE' ? 'text-blue-600' : 'text-rose-600'
+                                                        }`}>
+                                                        {log.action === 'INSERT' ? 'Criou' : log.action === 'UPDATE' ? 'Editou' : 'Excluiu'}
+                                                    </span>
+                                                    {log.tableName === 'cases' ? 'um processo' :
+                                                        log.tableName === 'clients' ? 'um contato' :
+                                                            log.tableName === 'deadlines' ? 'um prazo' : log.tableName}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <p className="text-sm text-slate-500">Nenhuma atividade encontrada.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

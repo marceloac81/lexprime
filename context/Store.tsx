@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Case, Client, Deadline, CaseStatus, User, Appointment, Holiday, TeamMember } from '../types';
+import { Case, Client, Deadline, CaseStatus, User, Appointment, Holiday, TeamMember, ActivityLog } from '../types';
 import { DEFAULT_HOLIDAYS } from '../utils/dateUtils';
 import { supabase } from '../utils/supabaseClient';
 
@@ -65,6 +65,10 @@ interface StoreContextType {
 
   exportData: () => void;
   syncData: () => Promise<void>;
+
+  activityLogs: ActivityLog[];
+  fetchActivityLogs: () => Promise<void>;
+  clearActivityLogs: () => Promise<void>;
 
   pendingAction: string | null;
   setPendingAction: (action: string | null) => void;
@@ -348,6 +352,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return saved ? JSON.parse(saved) : INITIAL_TEAM;
   });
 
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+
   const [deadlines, setDeadlines] = useState<Deadline[]>(() => {
     const saved = localStorage.getItem('lexprime_deadlines');
     return saved ? JSON.parse(saved) : INITIAL_DEADLINES;
@@ -406,15 +412,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           { data: tData },
           { data: dData },
           { data: aData },
-          { data: hData }
+          { data: hData },
+          { data: lData }
         ] = await Promise.all([
           supabase.from('cases').select('*'),
           supabase.from('clients').select('*'),
           supabase.from('team_members').select('*'),
           supabase.from('deadlines').select('*'),
           supabase.from('appointments').select('*'),
-          supabase.from('holidays').select('*')
+          supabase.from('holidays').select('*'),
+          supabase.from('activity_logs').select('*').order('created_at', { ascending: false })
         ]);
+
+        if (lData) {
+          setActivityLogs(lData.map((log: any) => ({
+            id: log.id,
+            createdAt: log.created_at,
+            userId: log.user_id,
+            userName: log.user_name,
+            action: log.action as any,
+            tableName: log.table_name,
+            recordId: log.record_id,
+            details: log.details
+          })));
+        }
 
         // Merge Strategy: Only overwrite local if cloud has data, or if local is empty
         if (cData && (cData.length > 0 || cases.length === 0)) {
@@ -1315,8 +1336,50 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     addNotification('Backup gerado!', 'success');
   };
 
-  // No changes needed here, just fixing the scope by removing the closing brace 
-  // and re-placing the return statement correctly.
+  const fetchActivityLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        setActivityLogs(data.map(log => ({
+          id: log.id,
+          createdAt: log.created_at,
+          userId: log.user_id,
+          userName: log.user_name,
+          action: log.action as any,
+          tableName: log.table_name,
+          recordId: log.record_id,
+          details: log.details
+        })));
+      }
+    } catch (err: any) {
+      console.error('Erro ao buscar logs:', err);
+    }
+  };
+
+  const clearActivityLogs = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('activity_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (error) throw error;
+
+      setActivityLogs([]);
+      addNotification('Histórico limpo com sucesso!', 'success');
+    } catch (err: any) {
+      addNotification(`Erro ao limpar histórico: ${err.message}`, 'warning');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const syncData = async () => {
     setIsLoading(true);
@@ -1553,6 +1616,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       notifications, addNotification, clearNotification,
       isLoading, setIsLoading,
       exportData, syncData,
+      activityLogs, fetchActivityLogs, clearActivityLogs,
       pendingAction, setPendingAction
     }}>
       {children}
