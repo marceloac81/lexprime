@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Clock, Check, X, Printer, CalendarIcon, Edit, ChevronLeft, ChevronRight, User as UserIcon, Search, Plus, Trash2 } from '../components/Icons';
+import { Clock, Check, X, Printer, CalendarIcon, Edit, ChevronLeft, ChevronRight, User as UserIcon, Users, Search, Plus, Trash2 } from '../components/Icons';
 import { formatDate } from '../utils/dateUtils';
 import { normalizeText, getInitials } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
@@ -59,26 +59,33 @@ export const Deadlines: React.FC = () => {
 
     // Filters State
     const [filterDate, setFilterDate] = useState('');
+    const [filterResponsible, setFilterResponsible] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Date Picker State
+    // Dropdown States
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
     const [pickerViewDate, setPickerViewDate] = useState(new Date()); // Controls the month currently viewed in picker
     const datePickerRef = useRef<HTMLDivElement>(null);
+    const responsibleFilterRef = useRef<HTMLDivElement>(null);
     const [showPrintModal, setShowPrintModal] = useState(false);
     const [printRange, setPrintRange] = useState({ start: todayStr, end: getFutureDate(30) });
 
-    // Click Outside to close DatePicker
+    // Click Outside to close Dropdowns
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             // Close Date Picker
             if (showDatePicker && datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
                 setShowDatePicker(false);
             }
+            // Close Responsible Dropdown
+            if (showResponsibleDropdown && responsibleFilterRef.current && !responsibleFilterRef.current.contains(event.target as Node)) {
+                setShowResponsibleDropdown(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [showDatePicker]);
+    }, [showDatePicker, showResponsibleDropdown]);
 
     // Helper to get case details inside filter
     const getCaseDetails = (caseId?: string) => {
@@ -122,6 +129,11 @@ export const Deadlines: React.FC = () => {
         }
 
         if (filterDate && d.dueDate !== filterDate) return false;
+
+        if (filterResponsible) {
+            const assignedIds = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
+            if (!assignedIds.includes(filterResponsible)) return false;
+        }
 
         if (searchTerm) {
             const normalizedTerm = normalizeText(searchTerm);
@@ -494,6 +506,58 @@ export const Deadlines: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 shrink-0">
+                        {/* Responsible Filter */}
+                        <div className="relative" ref={responsibleFilterRef}>
+                            <button
+                                onClick={() => setShowResponsibleDropdown(!showResponsibleDropdown)}
+                                className={`p-2 rounded-lg border transition-all shadow-sm active:scale-95 no-print flex items-center justify-center h-full ${filterResponsible
+                                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-600 font-bold'
+                                    : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-700'
+                                    }`}
+                                title="Filtrar por Responsável"
+                            >
+                                <Users size={20} />
+                                {filterResponsible && (
+                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full border-2 border-white dark:border-dark-950"></div>
+                                )}
+                            </button>
+
+                            {showResponsibleDropdown && (
+                                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden animate-fade-in no-print">
+                                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-dark-900/50">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Responsáveis</span>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto pt-1 pb-1 custom-scrollbar">
+                                        <button
+                                            onClick={() => { setFilterResponsible(''); setShowResponsibleDropdown(false); }}
+                                            className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${!filterResponsible ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
+                                        >
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-900 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                                <Users size={12} />
+                                            </div>
+                                            Todos
+                                        </button>
+                                        {teamMembers.map(member => (
+                                            <button
+                                                key={member.id}
+                                                onClick={() => { setFilterResponsible(member.id); setShowResponsibleDropdown(false); }}
+                                                className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${filterResponsible === member.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700'}`}
+                                            >
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border overflow-hidden ${getAvatarColorStyles(member.avatarColor || 'blue')}`}>
+                                                    {member.photo ? (
+                                                        <img src={member.photo} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        getInitials(member.name, member.initials)
+                                                    )}
+                                                </div>
+                                                <span className="truncate">{member.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <button
                             onClick={() => setShowPrintModal(true)}
                             className="p-2 bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 rounded-lg flex items-center justify-center transition-all border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 no-print"
