@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/Store';
-import { Scale, Mail, Lock, User as UserIcon, ArrowRight } from '../components/Icons';
+import { Scale, Mail, Lock, ArrowRight } from '../components/Icons';
 
 export const Login: React.FC = () => {
-  const { login, signUp, isLoading } = useStore();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { login, isLoading } = useStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (isSignUp) {
-        await signUp(email, password, fullName);
-      } else {
-        await login(email, password);
-      }
+      await login(email, password);
     } catch (err) {
       // Errors are handled by notifications in the store
     }
@@ -31,7 +25,7 @@ export const Login: React.FC = () => {
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">LexPrime</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg">
-            {isSignUp ? 'Crie sua conta no escritório' : 'Bem-vindo de volta ao seu escritório'}
+            Bem-vindo ao LexPrime
           </p>
         </div>
 
@@ -40,23 +34,6 @@ export const Login: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-primary-600 to-primary-400" />
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignUp && (
-              <div className="animate-fade-in">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nome Completo</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all dark:text-white placeholder-slate-400"
-                    placeholder="Dr(a). Nome Sobrenome"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">E-mail</label>
               <div className="relative">
@@ -96,31 +73,13 @@ export const Login: React.FC = () => {
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  {isSignUp ? 'Criar Conta' : 'Acessar Sistema'}
+                  Acessar Sistema
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
-
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              {isSignUp ? 'Já possui uma conta?' : 'Ainda não tem acesso?'}
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="ml-2 text-primary-600 dark:text-primary-400 font-bold hover:underline"
-              >
-                {isSignUp ? 'Fazer Login' : 'Cadastre-se'}
-              </button>
-            </p>
-          </div>
         </div>
-
-        {!isSignUp && (
-          <div className="mt-6 text-center">
-            <a href="#" className="text-sm text-slate-500 hover:text-primary-600 transition-colors">Esqueceu sua senha?</a>
-          </div>
-        )}
       </div>
     </div>
   );
