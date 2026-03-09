@@ -301,33 +301,66 @@ export const Settings: React.FC = () => {
 
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                 {filteredLogs.length > 0 ? (
-                                    filteredLogs.slice(0, 50).map(log => (
-                                        <div key={log.id} className="flex gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-colors">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
-                                                {log.userName.substring(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                                        {log.userName}
-                                                    </p>
-                                                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                                                        {new Date(log.createdAt).toLocaleString('pt-BR')}
-                                                    </span>
+                                    filteredLogs.slice(0, 50).map(log => {
+                                        const getLogDetailString = () => {
+                                            try {
+                                                if (!log.details) return '';
+
+                                                if (log.tableName === 'cases') {
+                                                    const title = log.details.title || '';
+                                                    const number = log.details.number || '';
+                                                    return `${title}${number ? ` (${number})` : ''}`;
+                                                }
+                                                if (log.tableName === 'clients') {
+                                                    return `${log.details.name || log.details.trade_name || 'Desconhecido'}`;
+                                                }
+                                                if (log.tableName === 'deadlines') {
+                                                    const title = log.details.title || '';
+                                                    const caseTitle = log.details.case_title || '';
+                                                    return `${title}${caseTitle ? ` em ${caseTitle}` : ''}`;
+                                                }
+                                                return '';
+                                            } catch {
+                                                return '';
+                                            }
+                                        };
+                                        const detailStr = getLogDetailString();
+
+                                        return (
+                                            <div key={log.id} className="flex gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-colors">
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
+                                                    {log.userName.substring(0, 2).toUpperCase()}
                                                 </div>
-                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                                                    <span className={`font-bold mr-1 ${log.action === 'INSERT' ? 'text-emerald-600' :
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                            {log.userName}
+                                                        </p>
+                                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                            {new Date(log.createdAt).toLocaleString('pt-BR')}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 flex flex-wrap gap-1 items-center">
+                                                        <span className={`font-bold ${log.action === 'INSERT' ? 'text-emerald-600' :
                                                             log.action === 'UPDATE' ? 'text-blue-600' : 'text-rose-600'
-                                                        }`}>
-                                                        {log.action === 'INSERT' ? 'Criou' : log.action === 'UPDATE' ? 'Editou' : 'Excluiu'}
-                                                    </span>
-                                                    {log.tableName === 'cases' ? 'um processo' :
-                                                        log.tableName === 'clients' ? 'um contato' :
-                                                            log.tableName === 'deadlines' ? 'um prazo' : log.tableName}
-                                                </p>
+                                                            }`}>
+                                                            {log.action === 'INSERT' ? 'Criou' : log.action === 'UPDATE' ? 'Editou' : 'Excluiu'}
+                                                        </span>
+                                                        <span>
+                                                            {log.tableName === 'cases' ? 'o processo' :
+                                                                log.tableName === 'clients' ? 'o contato' :
+                                                                    log.tableName === 'deadlines' ? 'o prazo' : log.tableName}
+                                                        </span>
+                                                        {detailStr && (
+                                                            <span className="font-medium text-slate-800 dark:text-slate-200">
+                                                                "{detailStr}"
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        )
+                                    })
                                 ) : (
                                     <div className="text-center py-8">
                                         <p className="text-sm text-slate-500">Nenhuma atividade encontrada.</p>

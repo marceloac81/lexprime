@@ -311,7 +311,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 {`
                 @media print {
                     @page {
-                        margin: 12mm 10mm;
+                        margin: 10mm 10mm;
                         size: A4;
                     }
 
@@ -339,7 +339,6 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         print-color-adjust: exact !important;
                     }
 
-                    /* Remove any fixed/absolute positioning on wrappers */
                     .animate-fade-in,
                     [class*="animate-"] {
                         display: block !important;
@@ -352,7 +351,6 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         animation: none !important;
                     }
 
-                    /* Reset main content area to fill the page */
                     main, [role="main"], .flex-1 {
                         width: 100% !important;
                         margin: 0 !important;
@@ -361,37 +359,23 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         position: relative !important;
                     }
 
-                    /* Ensure the main container doesn't have top padding from mobile navbar */
-                    main {
-                        padding-top: 0 !important;
-                    }
-
-                    /* Remove spacing helpers that cause gaps */
-                    .space-y-8 > * + *,
-                    .space-y-4 > * + * {
-                        margin-top: 8px !important;
-                    }
+                    /* Remove gap heights between items in lists */
+                    .space-y-4 > * + * { margin-top: 5px !important; }
 
                     /* ===== 3. PUBLICATION CARD ===== */
                     .print-card {
                         display: block !important;
                         width: 100% !important;
-                        height: auto !important;
-                        overflow: visible !important;
-                        position: relative !important;
-                        box-shadow: none !important;
-                        border: 1px solid #000 !important;
-                        border-radius: 0 !important;
                         margin-bottom: 12px !important;
                         padding: 0 !important;
                         page-break-inside: avoid !important;
                         break-inside: avoid !important;
                         background: white !important;
-                        /* Reset any ring/glow effects from selection */
+                        border: 1px solid #000 !important;
+                        border-radius: 0 !important;
+                        box-shadow: none !important;
                         ring: none !important;
                         outline: none !important;
-                        --tw-ring-shadow: none !important;
-                        --tw-shadow: none !important;
                     }
 
                     /* Show ONLY selected cards */
@@ -402,133 +386,106 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         display: none !important;
                     }
 
-                    /* ===== 4. PROCESS HEADER BAR ===== */
-                    .print-card > div:first-child {
+                    /* ===== 4. PROCESS HEADER BAR (AASP Style) ===== */
+                    .print-card-header {
                         background: #f3f4f6 !important;
                         border-bottom: 1px solid #000 !important;
-                        border-radius: 0 !important;
-                        padding: 8px 12px !important;
+                        padding: 6px 10px !important;
                         display: flex !important;
                         align-items: center !important;
                         justify-content: space-between !important;
-                        visibility: visible !important;
-                        opacity: 1 !important;
                     }
-                    /* Process number text: pure black, bold */
-                    .print-card > div:first-child span {
+                    .print-card-header span {
                         color: #000 !important;
                         font-weight: 700 !important;
                         font-size: 11pt !important;
+                        background: transparent !important;
+                        border: none !important;
                     }
 
                     /* ===== 5. TWO-COLUMN GRID ===== */
                     .pub-card-grid {
                         display: flex !important;
                         flex-direction: row !important;
-                        flex-wrap: nowrap !important;
                         width: 100% !important;
                     }
 
-                    /* Left column: Metadata (30%) */
+                    /* Left column: Metadata (35%) */
                     .pub-card-meta {
-                        width: 30% !important;
-                        min-width: 30% !important;
-                        max-width: 30% !important;
-                        flex: 0 0 30% !important;
+                        width: 35% !important;
+                        min-width: 35% !important;
+                        max-width: 35% !important;
                         border-right: 1px solid #000 !important;
-                        border-bottom: none !important;
-                        padding: 8px 10px !important;
-                        background: #fafafa !important;
-                        border-radius: 0 !important;
+                        padding: 8px !important;
                         box-sizing: border-box !important;
+                        display: block !important;
                     }
 
-                    /* Right column: Text (70%) */
+                    /* Right column: Text (65%) */
                     .pub-card-content {
-                        width: 70% !important;
-                        min-width: 70% !important;
-                        max-width: 70% !important;
-                        flex: 0 0 70% !important;
-                        padding: 8px 12px !important;
-                        background: white !important;
-                        border-radius: 0 !important;
+                        width: 65% !important;
+                        min-width: 65% !important;
+                        max-width: 65% !important;
+                        padding: 8px 10px !important;
                         box-sizing: border-box !important;
+                        display: block !important;
                     }
 
                     /* ===== 6. TYPOGRAPHY & COLORS ===== */
-                    /* All text: pure black */
-                    .pub-card-meta p,
-                    .pub-card-meta span,
-                    .pub-card-meta li,
-                    .pub-card-meta ul,
-                    .pub-card-content p,
-                    .pub-card-content span {
+                    .pub-card-meta *, .pub-card-content * {
                         color: #000 !important;
+                        background: transparent !important;
                     }
 
-                    /* Metadata labels */
-                    .pub-card-meta .uppercase {
-                        color: #333 !important;
-                        font-size: 7pt !important;
+                    /* Metadata structure */
+                    .meta-block {
+                        margin-bottom: 6px !important;
+                    }
+                    .meta-label {
+                        font-weight: 700 !important;
+                        font-size: 10pt !important;
+                        text-transform: uppercase !important;
+                        display: inline !important;
+                        margin-right: 4px !important;
+                    }
+                    .meta-text {
+                        font-size: 11pt !important;
+                        display: inline !important;
+                    }
+                    
+                    .meta-list {
+                        margin: 0 !important;
+                        padding-left: 0 !important;
+                        list-style-type: none !important;
+                    }
+                    .meta-list li {
+                        font-size: 11pt !important;
+                        margin-bottom: 2px !important;
+                        display: block !important;
                     }
 
-                    /* Metadata values */
-                    .pub-card-meta p:not(.uppercase) {
-                        font-size: 9pt !important;
-                        line-height: 1.4 !important;
-                    }
-
-                    /* Publication text body */
-                    .pub-card-content p {
-                        font-size: 9pt !important;
-                        line-height: 1.5 !important;
-                        color: #000 !important;
-                        text-align: justify !important;
-                    }
-
-                    /* Team lawyer highlight: just bold in print, no blue bg */
-                    .pub-card-meta .font-bold {
-                        color: #000 !important;
+                    .meta-lawyer-highlight {
                         font-weight: 700 !important;
                     }
 
-                    /* Lucide icons: make them visible but subtle */
-                    .pub-card-meta svg {
-                        color: #333 !important;
-                    }
-
-                    /* ===== 7. HIDE ACTION BAR INSIDE CARDS ===== */
-                    /* The action bar is the first child of pub-card-content */
-                    .pub-card-content > div:first-child {
+                    /* Hide icons in print */
+                    .pub-card-meta svg, .pub-card-content svg {
                         display: none !important;
                     }
 
+                    /* Publication text body */
+                    .pub-card-text-container p {
+                        font-size: 11pt !important;
+                        line-height: 1.3 !important;
+                        text-align: justify !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
                     /* ===== 8. MISC CLEANUP ===== */
-                    /* Remove all gradients */
-                    [class*="bg-gradient"] {
-                        background: #f0f0f0 !important;
-                    }
-
-                    /* Remove rounded corners everywhere */
-                    [class*="rounded"] {
-                        border-radius: 0 !important;
-                    }
-
-                    /* Kill all shadows */
-                    [class*="shadow"] {
-                        box-shadow: none !important;
-                    }
-
-                    /* Kill all ring effects */
-                    [class*="ring"] {
-                        --tw-ring-shadow: 0 0 transparent !important;
-                        box-shadow: none !important;
-                    }
-
-                    /* Sticky header: make it static */
-                    .sticky {
-                        position: static !important;
-                    }
+                    [class*="shadow"] { box-shadow: none !important; }
+                    [class*="rounded"] { border-radius: 0 !important; }
+                    .desktop-only-bg { background: none !important; }
                 }
                 `}
             </style>
@@ -743,7 +700,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                         }`}
                                 >
                                     {/* Process Number Header Bar */}
-                                    <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-slate-700 to-slate-800 dark:from-dark-800 dark:to-dark-900 border-b border-slate-300 dark:border-dark-700">
+                                    <div className="print-card-header flex items-center justify-between px-5 py-3 bg-gradient-to-r from-slate-700 to-slate-800 dark:from-dark-800 dark:to-dark-900 border-b border-slate-300 dark:border-dark-700">
                                         <div className="flex items-center gap-3">
                                             {/* Selection Checkbox */}
                                             <div className="no-print">
@@ -769,49 +726,49 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     {/* Two-column body */}
                                     <div className="pub-card-grid flex flex-col md:flex-row">
                                         {/* LEFT COLUMN — Metadata */}
-                                        <div className="pub-card-meta w-full md:w-[30%] border-b md:border-b-0 md:border-r border-slate-200 dark:border-dark-700 px-5 py-5 bg-slate-50/60 dark:bg-dark-950/40 space-y-4 text-sm">
+                                        <div className="pub-card-meta w-full md:w-[35%] border-b md:border-b-0 md:border-r border-slate-200 dark:border-dark-700 px-5 py-5 bg-slate-50/60 dark:bg-dark-950/40 space-y-4 text-sm desktop-only-bg">
 
                                             {/* Órgão */}
                                             {item.nomeOrgao && (
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Órgão</p>
-                                                    <p className="text-slate-800 dark:text-slate-200 font-semibold leading-snug">{item.nomeOrgao}</p>
+                                                <div className="meta-block">
+                                                    <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Órgão:</p>
+                                                    <p className="meta-text text-slate-800 dark:text-slate-200 font-semibold leading-snug">{item.nomeOrgao}</p>
                                                 </div>
                                             )}
 
                                             {/* Data de Disponibilização */}
-                                            <div>
-                                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Data de disponibilização</p>
-                                                <p className="text-slate-700 dark:text-slate-300 font-medium">{formatDateForDisplay(item.data_disponibilizacao)}</p>
+                                            <div className="meta-block">
+                                                <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Data de disponibilização:</p>
+                                                <p className="meta-text text-slate-700 dark:text-slate-300 font-medium">{formatDateForDisplay(item.data_disponibilizacao)}</p>
                                             </div>
 
                                             {/* Tipo de Comunicação */}
                                             {item.tipoComunicacao && (
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Tipo de comunicação</p>
-                                                    <p className="text-slate-700 dark:text-slate-300 font-medium">{item.tipoComunicacao}</p>
+                                                <div className="meta-block">
+                                                    <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Tipo de comunicação:</p>
+                                                    <p className="meta-text text-slate-700 dark:text-slate-300 font-medium">{item.tipoComunicacao}</p>
                                                 </div>
                                             )}
 
                                             {/* Meio */}
                                             {item.meiocompleto && (
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Meio</p>
-                                                    <p className="text-slate-700 dark:text-slate-300 font-medium text-xs">{item.meiocompleto}</p>
+                                                <div className="meta-block">
+                                                    <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Meio:</p>
+                                                    <p className="meta-text text-slate-700 dark:text-slate-300 font-medium text-xs">{item.meiocompleto}</p>
                                                 </div>
                                             )}
 
                                             {/* Partes */}
                                             {item.destinatarios && item.destinatarios.length > 0 && (
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Parte(s)</p>
-                                                    <ul className="space-y-1.5">
+                                                <div className="meta-block">
+                                                    <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Parte(s):</p>
+                                                    <ul className="meta-list space-y-1.5 inline">
                                                         {item.destinatarios.map((dest, idx) => (
                                                             <li key={idx} className="flex items-start gap-2">
-                                                                <span className="mt-0.5 shrink-0 text-blue-500 dark:text-blue-400">
+                                                                <span className="no-print mt-0.5 shrink-0 text-blue-500 dark:text-blue-400">
                                                                     <User size={12} />
                                                                 </span>
-                                                                <span className="text-xs text-slate-700 dark:text-slate-300 leading-snug">
+                                                                <span className="meta-text text-xs text-slate-700 dark:text-slate-300 leading-snug">
                                                                     {dest.nome}
                                                                     {dest.polo && (
                                                                         <span className="ml-1 text-[9px] uppercase text-slate-400 dark:text-slate-500 font-semibold">({dest.polo})</span>
@@ -825,18 +782,18 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
                                             {/* Advogados */}
                                             {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Advogado(s)</p>
-                                                    <ul className="space-y-1.5">
+                                                <div className="meta-block">
+                                                    <p className="meta-label text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Advogado(s):</p>
+                                                    <ul className="meta-list space-y-1.5 inline">
                                                         {item.destinatarioadvogados.map((adv) => {
                                                             const isTeam = isTeamLawyer(adv.advogado.nome);
                                                             return (
                                                                 <li key={adv.id} className="flex items-start gap-2">
-                                                                    <span className={`mt-0.5 shrink-0 ${isTeam ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                                    <span className={`no-print mt-0.5 shrink-0 ${isTeam ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
                                                                         <Briefcase size={12} />
                                                                     </span>
-                                                                    <span className={`text-xs leading-snug ${isTeam
-                                                                        ? 'text-blue-700 dark:text-blue-300 font-bold'
+                                                                    <span className={`meta-text text-xs leading-snug ${isTeam
+                                                                        ? 'text-blue-700 dark:text-blue-300 font-bold meta-lawyer-highlight'
                                                                         : 'text-slate-600 dark:text-slate-400'
                                                                         }`}>
                                                                         {adv.advogado.nome} – OAB {adv.advogado.uf_oab}/{adv.advogado.numero_oab}
@@ -894,7 +851,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                             </div>
 
                                             {/* Publication Text */}
-                                            <div className="flex-1 px-6 py-5">
+                                            <div className="pub-card-text-container flex-1 px-6 py-5">
                                                 <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed text-justify">
                                                     {sanitizeText(item.texto)}
                                                 </p>
