@@ -26,6 +26,40 @@ const parseImportDate = (dateStr: string): string => {
     return dateStr;
 };
 
+// Helper: Split a CSV line respecting quoted fields (handles commas/semicolons inside quotes)
+const splitCSVLine = (line: string, separator: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+                // Escaped quote inside quoted field
+                current += '"';
+                i++; // Skip next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === separator && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+
+    // Remove surrounding quotes from each field
+    return result.map(field => {
+        if (field.startsWith('"') && field.endsWith('"')) {
+            return field.slice(1, -1);
+        }
+        return field;
+    });
+};
+
 // Main Parsing Function
 export const parseContactsCSV = (text: string): Client[] => {
     const rows = text.split('\n');
@@ -180,6 +214,7 @@ export const parseCasesCSV = (text: string): any[] => {
             relatedType: cols[map['TIPO_DESDOBRAMENTO']] || '',
             parentId: cols[map['PAI_ID']] || '',
             description: cols[map['DESCRICAO']] || '',
+            lastUpdate: cols[map['ULTIMA_ATUALIZACAO']] || new Date().toISOString(),
             createdAt: cols[map['CRIADO_EM']] || new Date().toISOString()
         };
 
@@ -432,7 +467,7 @@ export const generateCasesCSV = (cases: any[]): string => {
     const headers = [
         'ID', 'NUMERO', 'TITULO', 'CLIENTE_ID', 'CLIENTE', 'POLO', 'PARTE_CONTRARIA', 'LOCAL', 'UF', 'CIDADE', 'AREA',
         'VALOR', 'DATA_VALOR', 'STATUS', 'PASTA', 'TRIBUNAL', 'ASSUNTO', 'PROBABILIDADE', 'TIPO_DESDOBRAMENTO',
-        'PAI_ID', 'TAGS', 'DESCRICAO', 'OCORRENCIAS', 'HISTORICO', 'CRIADO_EM'
+        'PAI_ID', 'TAGS', 'DESCRICAO', 'OCORRENCIAS', 'HISTORICO', 'ULTIMA_ATUALIZACAO', 'CRIADO_EM'
     ];
     const rows = cases.map(c => [
         c.id,
@@ -459,6 +494,7 @@ export const generateCasesCSV = (cases: any[]): string => {
         c.description || '',
         JSON.stringify(c.occurrences || []),
         JSON.stringify(c.history || []),
+        c.lastUpdate || '',
         c.createdAt || ''
     ]);
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
