@@ -1002,5 +1002,6 @@ export const Deadlines: React.FC = () => {
                     </div>
                 )}
             </div>
-            );
+        </div>
+    );
 };
