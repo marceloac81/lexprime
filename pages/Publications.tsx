@@ -881,6 +881,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         }}
                         initialCaseSearch={pendingProcessNumber}
                         holidays={holidays}
+                        teamMembers={teamMembers}
                     />
                 )}
                 {/* Case Registration Modal */}

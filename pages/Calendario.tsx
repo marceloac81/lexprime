@@ -9,7 +9,7 @@ import { Deadline, Case, Holiday } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 
 export const Calendario: React.FC = () => {
-    const { appointments, deadlines, cases, addDeadline, updateDeadline, deleteDeadline, holidays, isLoading, setIsLoading } = useStore();
+    const { appointments, deadlines, cases, addDeadline, updateDeadline, deleteDeadline, holidays, teamMembers, isLoading, setIsLoading } = useStore();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
 
@@ -392,6 +392,7 @@ export const Calendario: React.FC = () => {
                         initialDate={selectedDateStr}
                         initialData={editingDeadline}
                         onDelete={deleteDeadline}
+                        teamMembers={teamMembers}
                     />
                 )}
                 {/* Sync Modal */}

@@ -60,7 +60,7 @@ const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
     );
 };
 
-export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete, currentUser, teamMembers }) => {
+export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases, onSave, initialDate, initialData, initialCaseSearch, holidays, onDelete, currentUser, teamMembers = [] }) => {
     // Default Initialization
     const [startDate, setStartDate] = useState(initialData?.startDate || initialDate || new Date().toISOString().split('T')[0]);
     const [startTime, setStartTime] = useState(initialData?.startTime || '18:00');
@@ -69,7 +69,11 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
     const [title, setTitle] = useState(initialData?.title || '');
     const [status, setStatus] = useState<'Pending' | 'Done' | 'Canceled'>(initialData?.status || 'Pending');
-    const [assignedIds, setAssignedIds] = useState<string[]>(initialData?.assignedIds || (initialData?.assignedTo ? [initialData.assignedTo] : []));
+    const [assignedIds, setAssignedIds] = useState<string[]>(() => {
+        if (Array.isArray(initialData?.assignedIds)) return initialData.assignedIds;
+        if (initialData?.assignedTo) return [initialData.assignedTo];
+        return [];
+    });
     const [isAssigneeDropdownOpen, setIsAssigneeDropdownOpen] = useState(false);
     const [assigneeSearch, setAssigneeSearch] = useState('');
     const assigneeDropdownRef = React.useRef<HTMLDivElement>(null);
@@ -399,8 +403,8 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 className="w-full flex flex-wrap gap-2 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none transition-all focus-within:ring-2 focus-within:ring-primary-500 min-h-[50px] cursor-text"
                                 onClick={() => setIsAssigneeDropdownOpen(true)}
                             >
-                                {assignedIds.map(id => {
-                                    const member = teamMembers.find(m => m.id === id);
+                                {(assignedIds || []).map(id => {
+                                    const member = (teamMembers || []).find(m => m.id === id);
                                     if (!member) return null;
                                     const avatarStyle = getAvatarColorStyles(member.avatarColor || 'blue');
                                     const firstName = member.name.trim().split(' ')[0];
@@ -441,7 +445,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
                             {isAssigneeDropdownOpen && (
                                 <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 animate-scale-in custom-scrollbar">
-                                    {teamMembers
+                                    {(teamMembers || [])
                                         .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
                                         .map(member => (
                                             <div
