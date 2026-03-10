@@ -17,7 +17,7 @@ import Calculations from './pages/Calculations';
 import { SplashScreen } from './components/SplashScreen';
 
 const AppContent: React.FC = () => {
-  const { currentUser, pendingAction } = useStore();
+  const { currentUser, pendingAction, theme } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
 
@@ -77,7 +77,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-dark-950 transition-colors font-sans animate-fade-in">
+    <div className={`flex h-screen w-screen overflow-hidden transition-colors font-sans animate-fade-in ${theme === 'dark' ? 'bg-dark-950' : 'bg-white'}`}>
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (

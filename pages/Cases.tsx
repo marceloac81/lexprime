@@ -38,7 +38,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Cases: React.FC = () => {
-    const { cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser, addDeadline, holidays, teamMembers } = useStore();
+    const { theme, cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser, addDeadline, holidays, teamMembers } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showNewCaseModal, setShowNewCaseModal] = useState(false);
@@ -226,11 +226,11 @@ export const Cases: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Processos</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Processos</h1>
+                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
                             {cases.length === 0 ? "Nenhum processo cadastrado." :
                                 filteredCases.length === cases.length ?
                                     <span key="total">Total de <AnimatedCounter target={cases.length} /> {cases.length === 1 ? 'processo' : 'processos'}.</span> :

@@ -17,16 +17,20 @@ interface SidebarProps {
   toggleCollapse: () => void;
 }
 
-const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed }: any) => (
+const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed, theme }: any) => (
   <button
     onClick={() => onClick(page)}
     title={collapsed ? label : ''}
     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${active
       ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold'
-      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white'
+      : (theme === 'sober'
+        ? 'text-slate-700 hover:bg-slate-300/50 hover:text-slate-900'
+        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white')
       } ${collapsed ? 'justify-center' : ''}`}
   >
-    <Icon size={20} className={`transition-colors flex-shrink-0 ${active ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white'}`} />
+    <Icon size={20} className={`transition-colors flex-shrink-0 ${active
+      ? 'text-primary-600 dark:text-primary-400'
+      : (theme === 'sober' ? 'text-slate-600 group-hover:text-slate-800' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white')}`} />
 
     {!collapsed && <span>{label}</span>}
 
@@ -48,7 +52,7 @@ const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed }:
 );
 
 export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, close, collapsed, toggleCollapse }) => {
-  const { logout, isDarkMode, toggleTheme, currentUser, deadlines, appointments } = useStore();
+  const { logout, theme, toggleTheme, currentUser, deadlines, appointments } = useStore();
 
   const handleNavClick = (page: string) => {
     setPage(page);
@@ -80,7 +84,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
   return (
     <aside className={`
-        fixed inset-y-0 left-0 z-[120] bg-white dark:bg-dark-900 border-r border-slate-200 dark:border-slate-800 
+        fixed inset-y-0 left-0 z-[120] 
+        ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800'}
+        border-r 
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
         md:relative md:translate-x-0 no-print
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -114,31 +120,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
       {/* Desktop Collapse Toggle */}
       <button
         onClick={toggleCollapse}
-        className="hidden md:flex absolute -right-3 top-9 z-50 w-6 h-6 bg-slate-100 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-full items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors shadow-sm"
+        className={`hidden md:flex absolute -right-3 top-9 z-50 w-6 h-6 border rounded-full items-center justify-center transition-colors shadow-sm ${theme === 'sober' ? 'bg-slate-300 border-slate-400 text-slate-600 hover:text-slate-900' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
 
 
       <nav className={`flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar overflow-x-hidden ${collapsed ? 'items-center flex flex-col' : ''}`}>
-        <NavItem collapsed={collapsed} page="dashboard" icon={LayoutDashboard} label="Dashboard" active={activePage === 'dashboard'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
-        <NavItem collapsed={collapsed} page="calendario" icon={CalendarIcon} label="Calendário" active={activePage === 'calendario'} onClick={handleNavClick} count={agendaBadgeCount} />
-        <NavItem collapsed={collapsed} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
-        <NavItem collapsed={collapsed} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="dashboard" icon={LayoutDashboard} label="Dashboard" active={activePage === 'dashboard'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="deadlines" icon={Clock} label="Prazos" active={activePage === 'deadlines'} onClick={handleNavClick} count={pendingDeadlinesToday} />
+        <NavItem collapsed={collapsed} theme={theme} page="calendario" icon={CalendarIcon} label="Calendário" active={activePage === 'calendario'} onClick={handleNavClick} count={agendaBadgeCount} />
+        <NavItem collapsed={collapsed} theme={theme} page="cases" icon={Briefcase} label="Processos" active={activePage === 'cases'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
 
-        {collapsed && <div className="my-4 h-px w-full bg-slate-200 dark:bg-slate-800" />}
+        {collapsed && <div className={`my-4 h-px w-full ${theme === 'sober' ? 'bg-slate-300' : 'bg-slate-200 dark:bg-slate-800'}`} />}
 
-        <NavItem collapsed={collapsed} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
         {currentUser?.isAdmin && (
-          <NavItem collapsed={collapsed} page="settings" icon={Settings} label="Configurações" active={activePage === 'settings'} onClick={handleNavClick} />
+          <NavItem collapsed={collapsed} theme={theme} page="settings" icon={Settings} label="Configurações" active={activePage === 'settings'} onClick={handleNavClick} />
         )}
       </nav>
 
-      <div className={`p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className={`bg-slate-50 dark:bg-dark-800 rounded-xl p-3 flex items-center gap-3 border border-slate-100 dark:border-slate-700 ${collapsed ? 'justify-center p-2' : ''}`}>
+      <div className={`p-4 border-t ${theme === 'sober' ? 'border-slate-300' : 'border-slate-200 dark:border-slate-800'} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        <div className={`rounded-xl p-3 flex items-center gap-3 border ${collapsed ? 'justify-center p-2' : ''} ${theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700'}`}>
           <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
             {currentUser?.photo ? (
               <img src={currentUser.photo} className="w-full h-full object-cover" alt={currentUser.name} />
@@ -148,8 +154,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-900 dark:text-white break-words leading-tight">{currentUser?.name}</p>
-              <p className="text-xs text-slate-500 truncate">{currentUser?.role}</p>
+              <p className={`text-xs font-bold break-words leading-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>{currentUser?.name}</p>
+              <p className={`text-xs truncate ${theme === 'sober' ? 'text-slate-600' : 'text-slate-500'}`}>{currentUser?.role}</p>
             </div>
           )}
           {!collapsed && (
@@ -164,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors ${collapsed ? 'px-0' : ''}`}
           title={collapsed ? "Alternar Tema" : ""}
         >
-          {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+          {theme === 'dark' ? <Sun size={14} /> : (theme === 'sober' ? <Clock size={14} /> : <Moon size={14} />)}
           {!collapsed && <span>Alternar Tema</span>}
         </button>
       </div>

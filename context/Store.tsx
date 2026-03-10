@@ -53,8 +53,9 @@ interface StoreContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;
 
-  isDarkMode: boolean;
+  theme: 'light' | 'dark' | 'sober';
   toggleTheme: () => void;
+  isDarkMode: boolean;
 
   notifications: { id: string, msg: string, type: 'info' | 'warning' | 'success' }[];
   addNotification: (msg: string, type?: 'info' | 'warning' | 'success') => void;
@@ -370,7 +371,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('lexprime_theme') === 'dark');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'sober'>(() => {
+    const saved = localStorage.getItem('lexprime_theme');
+    if (saved === 'dark' || saved === 'sober') return saved as any;
+    return 'light';
+  });
+  const isDarkMode = theme === 'dark';
   const [notifications, setNotifications] = useState<{ id: string, msg: string, type: 'info' | 'warning' | 'success' }[]>([]);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -534,14 +540,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Sync to local storage as backup
   useEffect(() => {
-    if (isDarkMode) {
+    if (theme === 'dark') {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('lexprime_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('lexprime_theme', 'light');
     }
-  }, [isDarkMode]);
+    localStorage.setItem('lexprime_theme', theme);
+  }, [theme]);
 
   // Auth Listener
   useEffect(() => {
@@ -1307,7 +1312,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const toggleTheme = () => setIsDarkMode(!isDarkMode);
+  const toggleTheme = () => {
+    setTheme(prev => {
+      if (prev === 'light') return 'sober';
+      if (prev === 'sober') return 'dark';
+      return 'light';
+    });
+  };
 
   const addNotification = (msg: string, type: 'info' | 'warning' | 'success' = 'info') => {
     const id = Date.now().toString();
@@ -1612,7 +1623,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       appointments, addAppointment, importAppointments,
       holidays, setHolidays, importHolidays, resetHolidays,
       currentUser, login, signUp, logout,
-      isDarkMode, toggleTheme,
+      theme,
+      toggleTheme,
+      isDarkMode,
       notifications, addNotification, clearNotification,
       isLoading, setIsLoading,
       exportData, syncData,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calculator, RotateCcw, Printer, Info, Briefcase, Calendar, DollarSign, Percent, Plus } from 'lucide-react';
+import { useStore } from '../context/Store';
 import { getUfirValue, getDaysDiff360, calculateInterest } from '../utils/calculationUtils';
 
 interface BatchResultItem {
@@ -46,6 +47,7 @@ interface BatchItem {
 }
 
 const Calculations: React.FC = () => {
+    const { theme } = useStore();
     const [activeTab, setActiveTab] = useState<'civic' | 'batch'>('civic');
 
     // States for Natureza Cível (Original)
@@ -389,18 +391,18 @@ const Calculations: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Cálculos</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Cálculos</h1>
+                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
                             Cálculo de débitos judiciais de natureza cível (TJRJ).
                         </p>
                     </div>
 
                     {/* Modern Segmented Control */}
                     <div className="flex-1 flex justify-center">
-                        <div className="relative bg-slate-100 dark:bg-dark-800 p-1 rounded-xl flex items-center w-full max-w-[400px] border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className={`relative p-1 rounded-xl flex items-center w-full max-w-[400px] border shadow-sm ${theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
                             {/* Animated Background Pill */}
                             <div
                                 className="absolute h-[calc(100%-8px)] rounded-lg bg-blue-600 shadow-md transition-all duration-300 ease-out"
@@ -412,13 +414,13 @@ const Calculations: React.FC = () => {
 
                             <button
                                 onClick={() => { setActiveTab('civic'); setResult(null); }}
-                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'civic' ? 'text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'civic' ? 'text-white' : (theme === 'sober' ? 'text-slate-600 hover:text-slate-900' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300')}`}
                             >
                                 Natureza Cível
                             </button>
                             <button
                                 onClick={() => { setActiveTab('batch'); setResult(null); }}
-                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'batch' ? 'text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'batch' ? 'text-white' : (theme === 'sober' ? 'text-slate-600 hover:text-slate-900' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300')}`}
                             >
                                 Múltiplos Valores
                             </button>

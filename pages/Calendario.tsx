@@ -9,7 +9,7 @@ import { Deadline, Case, Holiday } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 
 export const Calendario: React.FC = () => {
-    const { appointments, deadlines, cases, addDeadline, updateDeadline, deleteDeadline, holidays, teamMembers, isLoading, setIsLoading } = useStore();
+    const { theme, appointments, deadlines, cases, addDeadline, updateDeadline, deleteDeadline, holidays, teamMembers, isLoading, setIsLoading, clients, addClient, updateClient, deleteClient, clearClients, addNotification, pendingAction, setPendingAction, currentUser } = useStore();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split('T')[0]);
 
@@ -154,16 +154,18 @@ export const Calendario: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Calendário</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Organize seus compromissos e prazos no calendário.</p>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Calendário</h1>
+                            <CalendarIcon size={24} className="text-primary-500" />
+                        </div>
+                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie seus compromissos e prazos.</p>
                     </div>
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                         <div className="flex bg-white dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative date-picker-container z-20">
                             <button onClick={goToToday} className="px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors uppercase tracking-wider">
-                                Hoje
                             </button>
                             <button onClick={prevMonth} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-l-none text-slate-600 dark:text-slate-300 transition-colors"><ChevronLeft size={20} /></button>
 

@@ -9,10 +9,10 @@ import {
 
 export const Settings: React.FC = () => {
     const {
-        isDarkMode, toggleTheme, currentUser, resetHolidays,
+        theme, isDarkMode, toggleTheme, currentUser, resetHolidays,
         holidays, importHolidays, addNotification, clients, importClients, cases, importCases,
         deadlines, importDeadlines, teamMembers, importTeamMembers,
-        syncData, isLoading,
+        syncData, isLoading, setIsLoading,
         activityLogs, fetchActivityLogs, clearActivityLogs
     } = useStore();
     const clientsInputRef = useRef<HTMLInputElement>(null);
@@ -141,11 +141,11 @@ export const Settings: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative h-full flex flex-col">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Configurações</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gerencie suas preferências e dados do sistema.</p>
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Configurações</h1>
+                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie suas preferências e dados do sistema.</p>
                     </div>
                 </div>
             </div>

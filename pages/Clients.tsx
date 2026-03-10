@@ -92,7 +92,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Clients: React.FC = () => {
-    const { clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading, currentUser } = useStore();
+    const { theme, clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading, currentUser } = useStore();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -492,18 +492,15 @@ export const Clients: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Gestão de Contatos</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            {clients.length === 0 ? (
-                                "Nenhum contato cadastrado."
-                            ) : filteredClients.length === clients.length ? (
-                                <>Total de <AnimatedCounter target={clients.length} /> {clients.length === 1 ? 'contato' : 'contatos'}.</>
-                            ) : (
-                                <>Exibindo <AnimatedCounter target={filteredClients.length} /> de {clients.length} contatos.</>
-                            )}
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Clientes e Partes</h1>
+                            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-dark-900 px-2 py-1 rounded-full">{clients.length}</p>
+                        </div>
+                        <p className={`text-sm mt-1 shrink-0 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
+                            Gerencie sua base de contatos e visualize os processos vinculados.
                         </p>
                     </div>
                     <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">

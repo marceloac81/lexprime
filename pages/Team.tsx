@@ -50,7 +50,7 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
 };
 
 export const Team: React.FC = () => {
-    const { teamMembers, addTeamMember, updateTeamMember, deleteTeamMember, clearTeamMembers, addNotification, isLoading, setIsLoading, currentUser } = useStore();
+    const { theme, teamMembers, addTeamMember, updateTeamMember, deleteTeamMember, clearTeamMembers, addNotification, isLoading, setIsLoading, currentUser } = useStore();
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -214,11 +214,11 @@ export const Team: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative h-full flex flex-col">
             {/* Header - Sticky */}
-            <div className="sticky top-0 z-40 md:z-50 bg-slate-50 dark:bg-dark-950 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm no-print">
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div className="flex items-center gap-4">
-                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Equipe</h1>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Equipe</h1>
 
                             {/* Animated Badge */}
                             <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 px-3 py-1.5 rounded-full animate-badge-entrance">
@@ -234,7 +234,7 @@ export const Team: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
                             {teamMembers.length === 0 ? "Nenhum membro cadastrado." :
                                 filteredMembers.length === teamMembers.length ?
                                     `Total de ${teamMembers.length} ${teamMembers.length === 1 ? 'membro' : 'membros'}.` :
