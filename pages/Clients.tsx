@@ -492,19 +492,25 @@ export const Clients: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+                ? 'bg-[#111b21] border-[#202c33]'
+                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-3">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Clientes e Partes</h1>
-                            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-dark-900 px-2 py-1 rounded-full">{clients.length}</p>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Clientes e Partes</h1>
+                            <p className={`text-xs font-bold px-2 py-1 rounded-full ${theme === 'hybrid' ? 'text-[#8696a0] bg-[#202c33]' : 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-dark-900'}`}>{clients.length}</p>
                         </div>
-                        <p className={`text-sm mt-1 shrink-0 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
+                        <p className={`text-sm mt-1 shrink-0 ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>
                             Gerencie sua base de contatos e visualize os processos vinculados.
                         </p>
                     </div>
                     <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">
-                        <button onClick={handleOpenNew} className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-primary-500/20 flex items-center gap-2 transform active:scale-95 transition-all whitespace-nowrap">
+                        <button onClick={handleOpenNew} className={`px-5 py-2.5 rounded-lg font-medium shadow-lg flex items-center gap-2 transform active:scale-95 transition-all whitespace-nowrap ${theme === 'hybrid'
+                            ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
+                            : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
+                            }`}>
                             <Plus size={20} /> Novo Contato
                         </button>
                     </div>

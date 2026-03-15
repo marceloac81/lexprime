@@ -154,29 +154,32 @@ export const Calendario: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+                ? 'bg-[#111b21] border-[#202c33]'
+                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Calendário</h1>
-                            <CalendarIcon size={24} className="text-primary-500" />
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Calendário</h1>
+                            <CalendarIcon size={24} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'} />
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie seus compromissos e prazos.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie seus compromissos e prazos.</p>
                     </div>
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                        <div className="flex bg-white dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative date-picker-container z-20">
-                            <button onClick={goToToday} className="px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors uppercase tracking-wider">
+                        <div className={`flex rounded-lg border shadow-sm relative date-picker-container z-20 ${theme === 'hybrid' ? 'bg-[#202c33] border-[#202c33]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+                            <button onClick={goToToday} className={`px-3 py-2 text-xs font-bold border-r transition-colors uppercase tracking-wider ${theme === 'hybrid' ? 'border-[#111b21] text-[#8696a0] hover:bg-[#2a3942]' : 'text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                             </button>
-                            <button onClick={prevMonth} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-l-none text-slate-600 dark:text-slate-300 transition-colors"><ChevronLeft size={20} /></button>
+                            <button onClick={prevMonth} className={`p-2 rounded-l-none transition-colors ${theme === 'hybrid' ? 'text-[#e9edef] hover:bg-[#2a3942]' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}><ChevronLeft size={20} /></button>
 
                             <button
                                 onClick={() => setShowMonthPicker(!showMonthPicker)}
-                                className="px-4 py-2 font-bold text-sm border-l border-r border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 capitalize min-w-[160px] text-center flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                className={`px-4 py-2 font-bold text-sm border-l border-r capitalize min-w-[160px] text-center flex items-center justify-center gap-2 transition-colors ${theme === 'hybrid' ? 'border-[#111b21] text-[#e9edef] hover:bg-[#2a3942]' : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                             >
                                 {monthName} <ChevronDown size={14} className="opacity-50" />
                             </button>
 
-                            <button onClick={nextMonth} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-r-lg text-slate-600 dark:text-slate-300 transition-colors"><ChevronRight size={20} /></button>
+                            <button onClick={nextMonth} className={`p-2 rounded-r-lg transition-colors ${theme === 'hybrid' ? 'text-[#e9edef] hover:bg-[#2a3942]' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}><ChevronRight size={20} /></button>
 
                             {/* DATE PICKER DROPDOWN */}
                             {showMonthPicker && (
@@ -208,7 +211,7 @@ export const Calendario: React.FC = () => {
 
                         <button
                             onClick={() => setShowSyncModal(true)}
-                            className="group p-2 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg transition-all flex items-center gap-2.5 text-left"
+                            className={`group p-2 rounded-lg transition-all flex items-center gap-2.5 text-left ${theme === 'hybrid' ? 'text-[#8696a0] hover:text-[#00a884] hover:bg-[#202c33]' : 'text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
                             title="Sincronizar com Outlook, Google e iPhone"
                         >
                             <RefreshCw size={22} className="group-hover:rotate-180 transition-transform duration-500" />
@@ -220,7 +223,7 @@ export const Calendario: React.FC = () => {
 
                         <button
                             onClick={() => setShowNewModal(true)}
-                            className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-primary-500/20 font-medium active:scale-95 transition-transform"
+                            className={`px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg font-medium active:scale-95 transition-transform ${theme === 'hybrid' ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'}`}
                         >
                             <Plus size={18} /> <span className="hidden md:inline">Novo Prazo</span><span className="md:hidden">Novo</span>
                         </button>

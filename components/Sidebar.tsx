@@ -22,15 +22,25 @@ const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed, t
     onClick={() => onClick(page)}
     title={collapsed ? label : ''}
     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${active
-      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold'
-      : (theme === 'sober'
-        ? 'text-slate-700 hover:bg-slate-300/50 hover:text-slate-900'
-        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white')
+      ? (theme === 'hybrid'
+        ? 'bg-[#202c33] text-[#00a884] font-semibold'
+        : 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold')
+      : (theme === 'hybrid'
+        ? 'text-[#e9edef] hover:bg-[#202c33] hover:text-[#00a884]'
+        : (theme === 'sober'
+          ? 'text-slate-700 hover:bg-slate-300/50 hover:text-slate-900'
+          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white'))
       } ${collapsed ? 'justify-center' : ''}`}
   >
     <Icon size={20} className={`transition-colors flex-shrink-0 ${active
-      ? 'text-primary-600 dark:text-primary-400'
-      : (theme === 'sober' ? 'text-slate-600 group-hover:text-slate-800' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white')}`} />
+      ? (theme === 'hybrid'
+        ? 'text-[#00a884]'
+        : 'text-primary-600 dark:text-primary-400')
+      : (theme === 'hybrid'
+        ? 'text-[#8696a0] group-hover:text-[#00a884]'
+        : (theme === 'sober'
+          ? 'text-slate-600 group-hover:text-slate-800'
+          : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white'))}`} />
 
     {!collapsed && <span>{label}</span>}
 
@@ -85,7 +95,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
   return (
     <aside className={`
         fixed inset-y-0 left-0 z-[120] 
-        ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800'}
+        ${theme === 'hybrid'
+        ? 'bg-[#111b21] border-[#202c33]'
+        : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800')
+      }
         border-r 
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
         md:relative md:translate-x-0 no-print
@@ -105,8 +118,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           </div>
           {!collapsed && (
             <div className="whitespace-nowrap transition-opacity duration-300">
-              <span className="font-bold text-xl text-slate-900 dark:text-white tracking-tight block leading-tight">LexPrime</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Advocacia</span>
+              <span className={`font-bold text-xl tracking-tight block leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>LexPrime</span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Advocacia</span>
             </div>
           )}
         </div>
@@ -120,7 +133,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
       {/* Desktop Collapse Toggle */}
       <button
         onClick={toggleCollapse}
-        className={`hidden md:flex absolute -right-3 top-9 z-50 w-6 h-6 border rounded-full items-center justify-center transition-colors shadow-sm ${theme === 'sober' ? 'bg-slate-300 border-slate-400 text-slate-600 hover:text-slate-900' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+        className={`hidden md:flex absolute -right-3 top-9 z-50 w-6 h-6 border rounded-full items-center justify-center transition-colors shadow-sm ${theme === 'hybrid'
+          ? 'bg-[#202c33] border-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
+          : (theme === 'sober' ? 'bg-slate-300 border-slate-400 text-slate-600 hover:text-slate-900' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white')
+          }`}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
@@ -135,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         <NavItem collapsed={collapsed} theme={theme} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} theme={theme} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
 
-        {collapsed && <div className={`my-4 h-px w-full ${theme === 'sober' ? 'bg-slate-300' : 'bg-slate-200 dark:bg-slate-800'}`} />}
+        {collapsed && <div className={`my-4 h-px w-full ${theme === 'hybrid' ? 'bg-[#202c33]' : (theme === 'sober' ? 'bg-slate-300' : 'bg-slate-200 dark:bg-slate-800')}`} />}
 
         <NavItem collapsed={collapsed} theme={theme} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
         {currentUser?.isAdmin && (
@@ -143,8 +159,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         )}
       </nav>
 
-      <div className={`p-4 border-t ${theme === 'sober' ? 'border-slate-300' : 'border-slate-200 dark:border-slate-800'} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className={`rounded-xl p-3 flex items-center gap-3 border ${collapsed ? 'justify-center p-2' : ''} ${theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700'}`}>
+      <div className={`p-4 border-t ${theme === 'hybrid' ? 'border-[#202c33]' : (theme === 'sober' ? 'border-slate-300' : 'border-slate-200 dark:border-slate-800')} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        <div className={`rounded-xl p-3 flex items-center gap-3 border ${collapsed ? 'justify-center p-2' : ''} ${theme === 'hybrid'
+          ? 'bg-[#202c33] border-[#202c33]'
+          : (theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700')
+          }`}>
           <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
             {currentUser?.photo ? (
               <img src={currentUser.photo} className="w-full h-full object-cover" alt={currentUser.name} />
@@ -154,23 +173,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-bold break-words leading-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>{currentUser?.name}</p>
-              <p className={`text-xs truncate ${theme === 'sober' ? 'text-slate-600' : 'text-slate-500'}`}>{currentUser?.role}</p>
+              <p className={`text-xs font-bold break-words leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>{currentUser?.name}</p>
+              <p className={`text-xs truncate ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-600' : 'text-slate-500')}`}>{currentUser?.role}</p>
             </div>
           )}
           {!collapsed && (
-            <button onClick={logout} className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-white dark:hover:bg-dark-700 shadow-sm">
+            <button onClick={logout} className={`p-1.5 rounded-lg transition-colors shadow-sm ${theme === 'hybrid' ? 'text-[#8696a0] hover:text-rose-500 hover:bg-[#111b21]' : 'text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-dark-700'}`}>
               <LogOut size={18} />
             </button>
           )}
         </div>
-
         <button
           onClick={toggleTheme}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors ${collapsed ? 'px-0' : ''}`}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium transition-colors ${collapsed ? 'px-0' : ''} ${theme === 'hybrid'
+            ? 'text-[#8696a0] hover:text-[#e9edef]'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
           title={collapsed ? "Alternar Tema" : ""}
         >
-          {theme === 'dark' ? <Sun size={14} /> : (theme === 'sober' ? <Clock size={14} /> : <Moon size={14} />)}
+          {theme === 'dark' ? <Sun size={14} /> : (theme === 'sober' ? <Clock size={14} /> : (theme === 'hybrid' ? <Moon size={14} /> : <Moon size={14} />))}
           {!collapsed && <span>Alternar Tema</span>}
         </button>
       </div>

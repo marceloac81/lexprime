@@ -141,11 +141,14 @@ export const Settings: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative h-full flex flex-col">
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+                ? 'bg-[#111b21] border-[#202c33]'
+                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                }`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Configurações</h1>
-                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie suas preferências e dados do sistema.</p>
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Configurações</h1>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie suas preferências e dados do sistema.</p>
                     </div>
                 </div>
             </div>
@@ -170,17 +173,17 @@ export const Settings: React.FC = () => {
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Aparência</h3>
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
                             <div className="flex items-center gap-3">
-                                {isDarkMode ? <Moon className="text-purple-500" /> : <Sun className="text-orange-500" />}
+                                {isDarkMode ? <Moon className="text-purple-500" /> : (theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : (theme === 'sober' ? <Clock className="text-slate-500" /> : <Sun className="text-orange-500" />))}
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Tema Escuro</p>
-                                    <p className="text-xs text-slate-500">Ajuste para ambientes com pouca luz</p>
+                                    <p className="font-medium text-slate-900 dark:text-white">Tema: {theme === 'dark' ? 'Escuro' : theme === 'hybrid' ? 'Híbrido (WhatsApp Escuro)' : theme === 'sober' ? 'Sóbrio' : 'Claro'}</p>
+                                    <p className="text-xs text-slate-500">Altere o visual da interface</p>
                                 </div>
                             </div>
                             <button
                                 onClick={toggleTheme}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${isDarkMode ? 'bg-primary-600' : 'bg-slate-300'}`}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-primary-600' : theme === 'hybrid' ? 'bg-[#00a884]' : theme === 'sober' ? 'bg-slate-500' : 'bg-slate-300'}`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${isDarkMode ? 'left-7' : 'left-1'}`} />
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${theme === 'dark' || theme === 'hybrid' || theme === 'sober' ? 'left-7' : 'left-1'}`} />
                             </button>
                         </div>
                     </div>

@@ -393,14 +393,17 @@ export const Deadlines: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in pb-20 relative">
+        <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+                ? 'bg-[#111b21] border-[#202c33]'
+                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Title & Badge */}
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-3 shrink-0">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Prazos</h1>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Prazos</h1>
 
                             {/* Animated Pending Badge */}
                             {deadlines.filter(d => getStatus(d) === 'Pending').length > 0 && (
@@ -416,7 +419,7 @@ export const Deadlines: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie e acompanhe todos os seus prazos processuais.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie e acompanhe todos os seus prazos processuais.</p>
                     </div>
 
                     {/* Consolidated Filters and Search */}
@@ -442,9 +445,11 @@ export const Deadlines: React.FC = () => {
                         <div className="relative shrink-0" ref={datePickerRef}>
                             <button
                                 onClick={() => setShowDatePicker(!showDatePicker)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all shadow-sm h-full ${filterDate
-                                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400'
-                                    : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all shadow-sm h-full ${theme === 'hybrid'
+                                    ? 'bg-[#202c33] border-[#202c33] text-[#e9edef] hover:bg-[#2a3942]'
+                                    : filterDate
+                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400'
+                                        : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
                                     }`}
                             >
                                 <CalendarIcon size={18} className="text-slate-400" />
@@ -510,15 +515,17 @@ export const Deadlines: React.FC = () => {
                         <div className="relative" ref={responsibleFilterRef}>
                             <button
                                 onClick={() => setShowResponsibleDropdown(!showResponsibleDropdown)}
-                                className={`p-2 rounded-lg border transition-all shadow-sm active:scale-95 no-print flex items-center justify-center h-full ${filterResponsible
-                                    ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-600 font-bold'
-                                    : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-700'
+                                className={`p-2 rounded-lg border transition-all shadow-sm active:scale-95 no-print flex items-center justify-center h-full ${theme === 'hybrid'
+                                    ? 'bg-[#202c33] border-[#202c33] text-[#e9edef] hover:bg-[#2a3942]'
+                                    : filterResponsible
+                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-600 font-bold'
+                                        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-700'
                                     }`}
                                 title="Filtrar por Responsável"
                             >
                                 <Users size={20} />
                                 {filterResponsible && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full border-2 border-white dark:border-dark-950"></div>
+                                    <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 ${theme === 'hybrid' ? 'bg-[#00a884] border-[#202c33]' : 'bg-primary-500 border-white dark:border-dark-950'}`}></div>
                                 )}
                             </button>
 
@@ -560,14 +567,20 @@ export const Deadlines: React.FC = () => {
 
                         <button
                             onClick={() => setShowPrintModal(true)}
-                            className="p-2 bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 rounded-lg flex items-center justify-center transition-all border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 no-print"
+                            className={`p-2 rounded-lg flex items-center justify-center transition-all border shadow-sm active:scale-95 no-print ${theme === 'hybrid'
+                                ? 'bg-[#202c33] hover:bg-[#2a3942] text-[#e9edef] border-[#202c33]'
+                                : 'bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                                }`}
                             title="Imprimir Prazos"
                         >
                             <Printer size={20} />
                         </button>
                         <button
                             onClick={() => setShowCalculator(true)}
-                            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95 no-print"
+                            className={`px-5 py-2 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg transform active:scale-95 no-print ${theme === 'hybrid'
+                                ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
+                                : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
+                                }`}
                         >
                             <Plus size={20} /> Novo Prazo
                         </button>

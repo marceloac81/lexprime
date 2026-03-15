@@ -226,11 +226,14 @@ export const Cases: React.FC = () => {
     return (
         <div className="animate-fade-in pb-20 relative">
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`}>
+            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+                ? 'bg-[#111b21] border-[#202c33]'
+                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>Processos</h1>
-                        <p className={`text-sm mt-1 ${theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Processos</h1>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>
                             {cases.length === 0 ? "Nenhum processo cadastrado." :
                                 filteredCases.length === cases.length ?
                                     <span key="total">Total de <AnimatedCounter target={cases.length} /> {cases.length === 1 ? 'processo' : 'processos'}.</span> :
@@ -241,13 +244,19 @@ export const Cases: React.FC = () => {
                     <div className="flex gap-2 w-full md:w-auto mt-3 md:mt-0">
                         <button
                             onClick={handlePrint}
-                            className="flex-1 md:flex-none bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 no-print"
+                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-sm active:scale-95 no-print border ${theme === 'hybrid'
+                                ? 'bg-[#202c33] hover:bg-[#2a3942] text-[#e9edef] border-[#202c33]'
+                                : 'bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                                }`}
                         >
                             <Printer size={20} /> Imprimir
                         </button>
                         <button
                             onClick={handleOpenNew}
-                            className="flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg shadow-primary-500/20 transform active:scale-95 no-print"
+                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg transform active:scale-95 no-print ${theme === 'hybrid'
+                                ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
+                                : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
+                                }`}
                         >
                             <Plus size={20} /> Novo Processo
                         </button>

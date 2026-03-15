@@ -53,7 +53,7 @@ interface StoreContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;
 
-  theme: 'light' | 'dark' | 'sober';
+  theme: 'light' | 'dark' | 'sober' | 'hybrid';
   toggleTheme: () => void;
   isDarkMode: boolean;
 
@@ -371,9 +371,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'sober'>(() => {
+  const [theme, setTheme] = useState<'light' | 'dark' | 'sober' | 'hybrid'>(() => {
     const saved = localStorage.getItem('lexprime_theme');
-    if (saved === 'dark' || saved === 'sober') return saved as any;
+    if (saved === 'dark' || saved === 'sober' || saved === 'hybrid') return saved as any;
     return 'light';
   });
   const isDarkMode = theme === 'dark';
@@ -1314,8 +1314,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const toggleTheme = () => {
     setTheme(prev => {
-      if (prev === 'light') return 'sober';
-      if (prev === 'sober') return 'dark';
+      if (prev === 'light') return 'dark';
+      if (prev === 'dark') return 'sober';
+      if (prev === 'sober') return 'hybrid';
       return 'light';
     });
   };
