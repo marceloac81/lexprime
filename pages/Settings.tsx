@@ -139,7 +139,7 @@ export const Settings: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in pb-20 relative h-full flex flex-col">
+        <div className={`animate-fade-in pb-20 relative min-h-full flex flex-col ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             {/* Header - Sticky */}
             <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#111b21] border-[#202c33]'

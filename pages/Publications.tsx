@@ -306,7 +306,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return (
-        <div className="animate-fade-in pb-20 relative">
+        <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             <style>
                 {`
                 @media print {
@@ -527,7 +527,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             <div className="p-4 md:px-8 pt-2">
 
                 {/* Filters Card */}
-                <div className="bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-6 no-print">
+                <div className={`bg-white dark:bg-dark-900 rounded-2xl p-6 border border-slate-200 dark:border-dark-800 space-y-6 no-print ${theme === 'hybrid' ? 'shadow-md shadow-black/10' : 'shadow-xl shadow-slate-200/50 dark:shadow-none'}`}>
                     <div className="flex flex-wrap lg:flex-nowrap gap-6">
 
                         {/* Multi-select OAB Dropdown with Manual Entry */}
