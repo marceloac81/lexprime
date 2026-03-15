@@ -54,6 +54,7 @@ interface StoreContextType {
   logout: () => void;
 
   theme: 'light' | 'dark' | 'sober' | 'hybrid';
+  setTheme: (theme: 'light' | 'dark' | 'sober' | 'hybrid') => void;
   toggleTheme: () => void;
   isDarkMode: boolean;
 
@@ -1625,6 +1626,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       holidays, setHolidays, importHolidays, resetHolidays,
       currentUser, login, signUp, logout,
       theme,
+      setTheme,
       toggleTheme,
       isDarkMode,
       notifications, addNotification, clearNotification,

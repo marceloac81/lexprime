@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard, Briefcase, Clock, CalendarIcon, Users,
-  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText, Calculator
+  Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText, Calculator,
+  Check, ChevronUp
 } from './Icons';
 import { useStore } from '../context/Store';
 import { getInitials } from '../utils/textUtils';
@@ -62,7 +63,29 @@ const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed, t
 );
 
 export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, close, collapsed, toggleCollapse }) => {
-  const { logout, theme, toggleTheme, currentUser, deadlines, appointments } = useStore();
+  const { logout, theme, setTheme, currentUser, deadlines, appointments } = useStore();
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  const themeOptions = [
+    { value: 'light', label: 'Claro', icon: '☀' },
+    { value: 'sober', label: 'Neutro', icon: '🧊' },
+    { value: 'dark', label: 'Dark', icon: '🌙' },
+    { value: 'hybrid', label: 'Dark Verde', icon: '💬' }
+  ];
+
+  const currentThemeLabel = themeOptions.find(opt => opt.value === theme)?.label || 'Claro';
+
+  // Handle click outside to close theme menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleNavClick = (page: string) => {
     setPage(page);
@@ -183,17 +206,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
             </button>
           )}
         </div>
-        <button
-          onClick={toggleTheme}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium transition-colors ${collapsed ? 'px-0' : ''} ${theme === 'hybrid'
-            ? 'text-[#8696a0] hover:text-[#e9edef]'
-            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          title={collapsed ? "Alternar Tema" : ""}
-        >
-          {theme === 'dark' ? <Sun size={14} /> : (theme === 'sober' ? <Clock size={14} /> : (theme === 'hybrid' ? <Moon size={14} /> : <Moon size={14} />))}
-          {!collapsed && <span>Alternar Tema</span>}
-        </button>
+        {/* Theme Selector Dropdown */}
+        <div className="relative" ref={themeMenuRef}>
+          <button
+            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${collapsed ? 'px-0 justify-center' : ''} ${theme === 'hybrid'
+              ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33]'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-800'
+              } ${isThemeMenuOpen ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-50 dark:bg-dark-800') : ''}`}
+            title={collapsed ? `Tema: ${currentThemeLabel}` : ""}
+          >
+            <div className="flex items-center gap-2 overflow-hidden">
+              {!collapsed && (
+                <span className="truncate">🎨 Tema: <span className="font-bold">{currentThemeLabel}</span></span>
+              )}
+              {collapsed && <span className="text-sm">🎨</span>}
+            </div>
+            {!collapsed && <ChevronUp size={12} className={`transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-0' : 'rotate-180'}`} />}
+          </button>
+
+          {isThemeMenuOpen && (
+            <div className={`absolute bottom-full left-0 w-full mb-2 p-1.5 rounded-xl border shadow-2xl z-[150] animate-scale-in ${theme === 'hybrid'
+              ? 'bg-[#1c272e] border-[#202c33] text-[#e9edef]'
+              : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-dark-700 text-slate-700 dark:text-slate-200'
+              }`}>
+              <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 mb-1 border-b ${theme === 'hybrid' ? 'text-[#8696a0] border-[#202c33]' : 'text-slate-400 border-slate-100 dark:border-dark-700'}`}>
+                Escolher Tema
+              </div>
+              {themeOptions.map((opt: any) => (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    setTheme(opt.value);
+                    setIsThemeMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors group ${theme === opt.value
+                    ? (theme === 'hybrid' ? 'bg-[#00a884]/10 text-[#00a884] font-bold' : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold')
+                    : (theme === 'hybrid' ? 'hover:bg-[#202c33]' : 'hover:bg-slate-50 dark:hover:bg-dark-700')
+                    }`}
+                >
+                  <span className="text-base shrink-0">{opt.icon}</span>
+                  <span className="flex-1 text-left">{opt.label}</span>
+                  {theme === opt.value && <Check size={12} className="shrink-0" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

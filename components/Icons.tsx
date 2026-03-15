@@ -59,7 +59,9 @@ import {
   Minimize2,
   Newspaper,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Palette,
+  ChevronUp
 } from 'lucide-react';
 
 
@@ -123,5 +125,7 @@ export {
   Minimize2,
   Newspaper,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Palette,
+  ChevronUp
 };

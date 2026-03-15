@@ -175,7 +175,7 @@ export const Settings: React.FC = () => {
                             <div className="flex items-center gap-3">
                                 {isDarkMode ? <Moon className="text-purple-500" /> : (theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : (theme === 'sober' ? <Clock className="text-slate-500" /> : <Sun className="text-orange-500" />))}
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Tema: {theme === 'dark' ? 'Escuro' : theme === 'hybrid' ? 'Híbrido (WhatsApp Escuro)' : theme === 'sober' ? 'Sóbrio' : 'Claro'}</p>
+                                    <p className="font-medium text-slate-900 dark:text-white">Tema: {theme === 'dark' ? 'Dark' : theme === 'hybrid' ? 'Dark Verde' : theme === 'sober' ? 'Neutro' : 'Claro'}</p>
                                     <p className="text-xs text-slate-500">Altere o visual da interface</p>
                                 </div>
                             </div>
