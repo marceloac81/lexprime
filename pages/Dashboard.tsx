@@ -6,32 +6,43 @@ import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Label, LabelList } from 'recharts';
 import { CaseStatus } from '../types';
 
-const StatCard = ({ title, value, icon: Icon, trend, color, subtext }: any) => (
-  <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-300 group">
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
-        <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</h3>
+const StatCard = ({ title, value, icon: Icon, trend, color, subtext }: any) => {
+  const { theme } = useStore();
+  return (
+    <div className={`p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 group ${
+      theme === 'hybrid' 
+        ? 'bg-[#2a3942] border-[#354751]' 
+        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+    }`}>
+      <div className="flex justify-between items-start">
+        <div>
+          <p className={`text-sm font-medium mb-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500 dark:text-slate-400'}`}>{title}</p>
+          <h3 className={`text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
+        </div>
+        <div className={`p-3 rounded-xl ${color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
+          <Icon size={24} className={theme === 'hybrid' && color.includes('bg-slate') ? 'text-[#8696a0]' : color.replace('bg-', 'text-')} />
+        </div>
       </div>
-      <div className={`p-3 rounded-xl ${color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
-        <Icon size={24} className={color.replace('bg-', 'text-')} />
+      <div className="mt-4 flex items-center text-xs font-medium">
+        {trend && (
+          <span className={`px-2 py-1 rounded-full ${
+            trend.startsWith('+') 
+              ? (theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400')
+              : (theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef]' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400')
+          } mr-2`}>
+            {trend}
+          </span>
+        )}
+        <span className={theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}>{subtext}</span>
       </div>
     </div>
-    <div className="mt-4 flex items-center text-xs font-medium">
-      {trend && (
-        <span className={`px-2 py-1 rounded-full ${trend.startsWith('+') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'} mr-2`}>
-          {trend}
-        </span>
-      )}
-      <span className="text-slate-400">{subtext}</span>
-    </div>
-  </div>
-);
+  );
+};
 
 const LegalNewsCard = () => {
   const [news, setNews] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const { cases } = useStore(); // Just to trigger a re-render if needed, but we'll import supabase below
+  const { cases, theme } = useStore(); // Just to trigger a re-render if needed, but we'll import supabase below
 
   React.useEffect(() => {
     const fetchNews = async () => {
@@ -58,18 +69,20 @@ const LegalNewsCard = () => {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col overflow-hidden">
+    <div className={`rounded-xl shadow-sm border p-6 flex flex-col overflow-hidden ${
+      theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+    }`}>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Newspaper size={20} className="text-primary-500" /> Notícias Jurídicas
+        <h3 className={`text-lg font-bold flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+          <Newspaper size={20} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'} /> Notícias Jurídicas
         </h3>
-        <span className="text-[10px] bg-slate-100 dark:bg-dark-900 px-2 py-0.5 rounded text-slate-400 font-bold uppercase tracking-wider">ConJur RSS</span>
+        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${theme === 'hybrid' ? 'bg-[#111b21] text-[#8696a0]' : 'bg-slate-100 dark:bg-dark-900 text-slate-400'}`}>ConJur RSS</span>
       </div>
 
       <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1">
         {loading ? (
           <div className="flex items-center justify-center h-full gap-2 text-slate-400">
-            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${theme === 'hybrid' ? 'border-[#00a884]' : 'border-primary-500'}`}></div>
             <span className="text-sm">Carregando notícias...</span>
           </div>
         ) : news.length > 0 ? (
@@ -79,21 +92,29 @@ const LegalNewsCard = () => {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="block group p-3 -mx-2 rounded-lg hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+              className={`block group p-3 -mx-2 rounded-lg transition-all border border-transparent ${
+                theme === 'hybrid' 
+                  ? 'hover:bg-[#354751] hover:border-[#425866]'
+                  : 'hover:bg-slate-50 dark:hover:bg-dark-900/50 hover:border-slate-100 dark:hover:border-slate-800'
+              }`}
             >
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
-                    <span className="text-[10px] font-bold text-slate-400 mr-2 tabular-nums">{item.time} —</span>
+                  <p className={`text-sm font-medium transition-colors leading-snug ${
+                    theme === 'hybrid' 
+                      ? 'text-[#d1d7db] group-hover:text-[#00a884]' 
+                      : 'text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400'
+                  }`}>
+                    <span className={`text-[10px] font-bold mr-2 tabular-nums ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>{item.time} —</span>
                     {item.title}
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-300 group-hover:text-primary-400 group-hover:translate-x-1 transition-all self-center shrink-0" />
+                <ChevronRight size={14} className={`transition-all self-center shrink-0 group-hover:translate-x-1 ${theme === 'hybrid' ? 'text-[#8696a0] group-hover:text-[#00a884]' : 'text-slate-300 group-hover:text-primary-400'}`} />
               </div>
             </a>
           ))
         ) : (
-          <div className="text-center py-8 text-slate-400 italic text-xs">Não foi possível carregar as notícias.</div>
+          <div className={`text-center py-8 italic text-xs ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Não foi possível carregar as notícias.</div>
         )}
       </div>
     </div>
@@ -244,10 +265,10 @@ export const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Chart 1: Status Distribution */}
-              <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col">
+              <div className={`rounded-xl shadow-sm border p-6 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                    <PieChartIcon size={16} className="text-slate-400" /> Status
+                  <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+                    <PieChartIcon size={16} className={theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'} /> Status
                   </h3>
                 </div>
                 <div className="h-48 w-full">
@@ -276,7 +297,7 @@ export const Dashboard: React.FC = () => {
                                   y={cy - 10}
                                   textAnchor="middle"
                                   dominantBaseline="central"
-                                  className="fill-slate-900 dark:fill-white font-bold"
+                                  className={`font-bold ${theme === 'hybrid' ? 'fill-[#e9edef]' : 'fill-slate-900 dark:fill-white'}`}
                                   style={{ fontSize: '26px' }}
                                 >
                                   {activeCases + archivedCases}
@@ -286,7 +307,7 @@ export const Dashboard: React.FC = () => {
                                   y={cy + 15}
                                   textAnchor="middle"
                                   dominantBaseline="central"
-                                  className="fill-slate-400 font-semibold"
+                                  className={`font-semibold ${theme === 'hybrid' ? 'fill-[#8696a0]' : 'fill-slate-400'}`}
                                   style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                                 >
                                   Total
@@ -312,7 +333,7 @@ export const Dashboard: React.FC = () => {
                         verticalAlign="bottom"
                         height={36}
                         iconType="circle"
-                        formatter={(value) => <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{value}</span>}
+                        formatter={(value) => <span className={`text-[11px] font-medium ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500 dark:text-slate-400'}`}>{value}</span>}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -320,10 +341,10 @@ export const Dashboard: React.FC = () => {
               </div>
 
               {/* Chart 2: Areas Distribution (Horizontal Bar Chart) */}
-              <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col">
+              <div className={`rounded-xl shadow-sm border p-6 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                    <BarChart3 size={16} className="text-slate-400" /> Áreas
+                  <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+                    <BarChart3 size={16} className={theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'} /> Áreas
                   </h3>
                 </div>
                 <div className="h-48 w-full">
@@ -378,37 +399,54 @@ export const Dashboard: React.FC = () => {
             <LegalNewsCard />
 
             {/* Recent Activity (Real Data) */}
-            <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Últimas Movimentações</h3>
+            <div className={`rounded-xl shadow-sm border p-6 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+              <h3 className={`text-lg font-bold mb-6 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Últimas Movimentações</h3>
               <div className="space-y-6">
                 {recentCases.map(c => (
                   <div
                     key={c.id}
                     onClick={() => setPendingAction(`editCase:${c.id}`)}
-                    className="flex gap-4 group cursor-pointer hover:bg-slate-50 dark:hover:bg-dark-800/40 p-2 -mx-2 rounded-lg transition-colors"
+                    className={`flex gap-4 group cursor-pointer p-2 -mx-2 rounded-lg transition-colors ${
+                      theme === 'hybrid' ? 'hover:bg-[#354751]' : 'hover:bg-slate-50 dark:hover:bg-dark-800/40'
+                    }`}
                   >
                     <div className="flex flex-col items-center pt-1">
-                      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center border border-blue-100 dark:border-blue-800 shrink-0 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
+                        theme === 'hybrid' 
+                          ? 'bg-[#111b21] border-[#354751] text-[#00a884] group-hover:bg-[#202c33]' 
+                          : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-100 dark:border-blue-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40'
+                      }`}>
                         <FileText size={14} />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        <p className={`text-sm font-bold truncate transition-colors ${
+                          theme === 'hybrid' 
+                            ? 'text-[#e9edef] group-hover:text-[#00a884]' 
+                            : 'text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400'
+                        }`}>
                           {c.clientName} vs {c.opposingParty}
                         </p>
-                        <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">{new Date(c.lastUpdate).toLocaleDateString()}</span>
+                        <span className={`text-[10px] whitespace-nowrap ml-2 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>{new Date(c.lastUpdate).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5 truncate flex items-center gap-1.5">
+                      <p className={`text-xs mt-0.5 truncate flex items-center gap-1.5 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>
                         <span>Processo: {c.number}</span>
-                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <span className={theme === 'hybrid' ? 'text-[#354751]' : 'text-slate-300 dark:text-slate-600'}>•</span>
                         <span>{c.court}</span>
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-dark-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{c.area}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded border ${c.status === 'Ativo' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' :
-                          c.status === 'Arquivado' ? 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-dark-900 dark:border-slate-700' :
-                            'bg-amber-50 text-amber-600 border-amber-100'
+                        <span className={`text-[10px] px-2 py-0.5 rounded border ${
+                          theme === 'hybrid' 
+                            ? 'bg-[#111b21] text-[#8696a0] border-[#354751]' 
+                            : 'bg-slate-100 dark:bg-dark-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        }`}>{c.area}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded border ${
+                          c.status === 'Ativo' 
+                            ? (theme === 'hybrid' ? 'bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20' : 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800') 
+                            : c.status === 'Arquivado' 
+                              ? (theme === 'hybrid' ? 'bg-[#354751] text-[#8696a0] border-[#425866]' : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-dark-900 dark:border-slate-700') 
+                              : (theme === 'hybrid' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-amber-50 text-amber-600 border-amber-100')
                           }`}>
                           {c.status}
                         </span>
@@ -417,7 +455,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                 ))}
                 {recentCases.length === 0 && (
-                  <p className="text-slate-400 text-sm text-center italic py-4">Nenhuma atividade recente registrada.</p>
+                  <p className={`text-sm text-center italic py-4 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Nenhuma atividade recente registrada.</p>
                 )}
               </div>
             </div>
@@ -427,18 +465,20 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-8">
 
             {/* Upcoming Deadlines Widget */}
-            <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className={`rounded-xl shadow-sm border p-6 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Prazos Próximos</h3>
-                <Clock size={18} className="text-slate-400" />
+                <h3 className={`text-lg font-bold ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Prazos Próximos</h3>
+                <Clock size={18} className={theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'} />
               </div>
               <div className="space-y-4">
                 {upcomingDeadlines.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                      theme === 'hybrid' ? 'bg-[#00a884]/10 text-[#00a884]' : 'bg-green-50 dark:bg-green-900/20 text-green-500'
+                    }`}>
                       <CheckCircle2 size={24} />
                     </div>
-                    <p className="text-slate-500 text-sm">Tudo em dia!</p>
+                    <p className={`text-sm ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>Tudo em dia!</p>
                   </div>
                 ) : (
                   upcomingDeadlines.map(deadline => {
@@ -454,23 +494,32 @@ export const Dashboard: React.FC = () => {
                       <div
                         key={deadline.id}
                         onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                        className={`flex items-start gap-3 p-4 rounded-lg transition-colors cursor-pointer hover:shadow-sm group border ${isToday
-                          ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-                          : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30'
-                          }`}
+                        className={`flex items-start gap-3 p-4 rounded-lg transition-colors cursor-pointer hover:shadow-sm group border ${
+                          isToday
+                            ? (theme === 'hybrid' 
+                                ? 'bg-amber-50 border-amber-200' 
+                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800')
+                            : (theme === 'hybrid'
+                                ? 'bg-[#354751] border-[#00a884]/30 hover:border-[#00a884]/50'
+                                : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30')
+                        }`}
                       >
-                        <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                        <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : (theme === 'hybrid' && !isToday ? 'bg-[#00a884]' : 'bg-amber-500')}`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
-                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 group-hover:text-primary-500" title={deadline.title}>
+                            <p className={`text-sm font-bold truncate pr-2 transition-colors ${
+                              theme === 'hybrid' && !isToday
+                                ? 'text-[#e9edef] group-hover:text-[#00a884]' 
+                                : (theme === 'hybrid' && isToday ? 'text-slate-900 group-hover:text-amber-600' : 'text-slate-900 dark:text-white group-hover:text-primary-500')
+                            }`} title={deadline.title}>
                               {deadline.title}
                             </p>
                           </div>
-                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mt-1 line-clamp-2" title={clientName}>
+                          <p className={`text-xs font-semibold mt-1 line-clamp-2 ${theme === 'hybrid' && !isToday ? 'text-[#d1d7db]' : (theme === 'hybrid' && isToday ? 'text-slate-600' : 'text-slate-600 dark:text-slate-400')}`} title={clientName}>
                             {clientName}
                           </p>
                           {processNumber && (
-                            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                            <p className={`text-[11px] mt-0.5 truncate ${theme === 'hybrid' && !isToday ? 'text-[#8696a0]' : (theme === 'hybrid' && isToday ? 'text-slate-500' : 'text-slate-400')}`}>
                               Nº {processNumber}
                             </p>
                           )}
@@ -478,13 +527,13 @@ export const Dashboard: React.FC = () => {
                         <div className="text-right flex flex-col items-end min-w-[42px] flex-shrink-0 ml-1">
                           <div className="flex items-center gap-1.5 mb-1">
                             {isToday && (
-                              <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm shadow-amber-500/20">
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm bg-amber-500 text-white shadow-amber-500/20">
                                 Hoje
                               </span>
                             )}
-                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{d}/{m}</p>
+                            <p className={`text-xs font-bold ${theme === 'hybrid' && !isToday ? 'text-[#e9edef]' : (theme === 'hybrid' && isToday ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
                           </div>
-                          <p className="text-[10px] text-slate-400 font-medium">{(deadline.startTime || '09:00').slice(0, 5)}</p>
+                          <p className={`text-[10px] font-medium ${theme === 'hybrid' && !isToday ? 'text-[#8696a0]' : (theme === 'hybrid' && isToday ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
                         </div>
                       </div>
                     );
