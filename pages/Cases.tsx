@@ -266,28 +266,29 @@ export const Cases: React.FC = () => {
 
             <div className="p-4 md:px-8 pt-2">
 
-                {/* Filters Bar */}
-                <div className="bg-white dark:bg-dark-800 p-2 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 md:mb-6 flex flex-col md:flex-row gap-2 md:gap-4 shadow-sm">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} md:size={20} />
+                {/* Filters Bar - Standardized to match Clients.tsx */}
+                <div className="flex flex-col xl:flex-row gap-2 md:gap-4 mb-3 md:mb-6">
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} p-2 md:p-4 rounded-xl border flex-1 flex items-center gap-2 md:gap-3 shadow-sm transition-colors`}>
+                        <Search size={16} md:size={20} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
                         <input
                             type="text"
-                            placeholder="Buscar..."
+                            placeholder="Buscar processos, partes ou número..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all text-sm"
+                            className={`flex-1 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white'}`}
                         />
                     </div>
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar items-center pb-1 md:pb-0">
-                        <Filter size={16} md:size={20} className="text-slate-400 mr-2 shrink-0" />
+                    
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} flex gap-2 overflow-x-auto no-scrollbar items-center p-2 rounded-xl border shadow-sm transition-colors`}>
+                        <Filter size={18} className={`${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} ml-2 mr-2 shrink-0`} />
                         {['all', CaseStatus.Active, CaseStatus.Archived].map(status => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
-                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium whitespace-nowrap transition-colors border ${statusFilter === status
-                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent'
-                                    : 'bg-transparent text-slate-600 border-slate-200 hover:bg-slate-100 dark:hover:bg-dark-700 dark:text-slate-400 dark:border-slate-700'
-                                    }`}
+                                className={`px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold uppercase transition-all duration-300 active:scale-90 whitespace-nowrap ${statusFilter === status
+                                    ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-lg' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg')
+                                    : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
+                                }`}
                             >
                                 {status === 'all' ? 'Todos' : status}
                             </button>
@@ -296,49 +297,73 @@ export const Cases: React.FC = () => {
                 </div>
 
                 {/* Responsive List Container */}
-                <div className="bg-transparent md:bg-white md:dark:bg-dark-800 md:rounded-xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-700 flex-1 overflow-hidden flex flex-col">
+                <div className={`flex-1 overflow-hidden flex flex-col ${
+                    theme === 'hybrid' 
+                        ? 'bg-transparent md:bg-[#2a3942] md:rounded-xl md:shadow-sm md:border md:border-[#354751]' 
+                        : 'bg-transparent md:bg-white md:dark:bg-dark-800 md:rounded-xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-700'
+                }`}>
 
                     {/* DESKTOP TABLE VIEW (Hidden on Mobile) */}
                     <div className="hidden md:block overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50">
-                                    <th onClick={() => handleSort('number')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[30%] cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                <tr className={`border-b ${
+                                    theme === 'hybrid' 
+                                        ? 'border-[#354751] bg-[#202c33]/50' 
+                                        : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50'
+                                }`}>
+                                    <th onClick={() => handleSort('number')} className={`p-4 text-xs font-semibold uppercase tracking-wider w-[30%] cursor-pointer transition-colors ${
+                                        theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
+                                    }`}>
                                         <div className="flex items-center gap-1">Processo nº {sortConfig?.key === 'number' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('clientName')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                    <th onClick={() => handleSort('clientName')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                        theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
+                                    }`}>
                                         <div className="flex items-center gap-1">Partes {sortConfig?.key === 'clientName' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('court')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                    <th onClick={() => handleSort('court')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                        theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
+                                    }`}>
                                         <div className="flex items-center gap-1">Local {sortConfig?.key === 'court' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('status')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                    <th onClick={() => handleSort('status')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                        theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
+                                    }`}>
                                         <div className="flex items-center gap-1">Status {sortConfig?.key === 'status' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('folderNumber')} className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-900 transition-colors">
+                                    <th onClick={() => handleSort('folderNumber')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                        theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
+                                    }`}>
                                         <div className="flex items-center gap-1">Pasta {sortConfig?.key === 'folderNumber' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                                    <th className={`p-4 text-xs font-semibold uppercase tracking-wider text-right ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                            <tbody className={`divide-y ${theme === 'hybrid' ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700'}`}>
                                 {filteredCases.map((c, index) => (
                                     <tr
                                         key={c.id}
                                         onDoubleClick={() => setSelectedCase(c)}
-                                        className="hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-md transition-all cursor-pointer group animate-stagger-slide-in opacity-0"
+                                        className={`transition-all cursor-pointer group animate-stagger-slide-in opacity-0 ${
+                                            theme === 'hybrid'
+                                                ? 'hover:bg-[#354751] hover:shadow-lg'
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-md'
+                                        }`}
                                         style={{ animationDelay: `${index * 40}ms` }}
                                         title="Clique duplo para ver detalhes"
                                     >
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                <div className={`p-2 rounded-lg ${
+                                                    theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                                                }`}>
                                                     <Briefcase size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</div>
+                                                    <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</div>
                                                     {(c.tribunal || c.area) && (
-                                                        <div className="text-xs text-slate-400 mt-0.5">
+                                                        <div className={`text-xs mt-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>
                                                             {c.tribunal && <span>{c.tribunal} {c.area && '- '}</span>}
                                                             {c.area}
                                                         </div>
@@ -350,17 +375,17 @@ export const Cases: React.FC = () => {
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
-                                                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[150px]">{c.clientName}</span>
+                                                    <span className={`text-sm font-medium truncate max-w-[150px] ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.clientName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="w-2 h-2 rounded-full bg-slate-300" />
-                                                    <span className="text-xs text-slate-500 truncate max-w-[150px]">vs {c.opposingParty}</span>
+                                                    <span className={`text-xs truncate max-w-[150px] ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>vs {c.opposingParty}</span>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-4">
-                                            <div className="text-sm text-slate-700 dark:text-slate-300">{c.court}</div>
-                                            <div className="text-xs text-slate-500">{c.city} - {c.uf}</div>
+                                            <div className={`text-sm ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>{c.court}</div>
+                                            <div className={`text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{c.city} - {c.uf}</div>
                                         </td>
                                         <td className="p-4">
                                             <StatusBadge status={c.status} />
@@ -394,24 +419,28 @@ export const Cases: React.FC = () => {
                             <div
                                 key={c.id}
                                 onDoubleClick={() => setSelectedCase(c)}
-                                className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-all animate-stagger-slide-in opacity-0"
+                                className={`p-5 rounded-xl border shadow-sm active:scale-[0.99] transition-all animate-stagger-slide-in opacity-0 ${
+                                    theme === 'hybrid' 
+                                        ? 'bg-[#2a3942] border-[#354751]' 
+                                        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                                }`}
                                 style={{ animationDelay: `${index * 50}ms` }}
                                 title="Clique duplo para ver detalhes"
                             >
                                 {/* Header: Number & Status */}
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-1.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                        <div className={`p-1.5 rounded ${theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
                                             <Briefcase size={16} />
                                         </div>
-                                        <span className="font-bold text-slate-900 dark:text-white text-sm">{c.number}</span>
+                                        <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <StatusBadge status={c.status} />
                                         {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
                                             <button
                                                 onClick={(e) => handleDelete(c.id, e)}
-                                                className="p-1 text-slate-300 hover:text-rose-500"
+                                                className={`p-1 transition-colors ${theme === 'hybrid' ? 'text-[#aebac1] hover:text-[#00a884]' : 'text-slate-300 hover:text-rose-500'}`}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -423,24 +452,24 @@ export const Cases: React.FC = () => {
                                 <div className="mb-3 space-y-1">
                                     <div className="flex items-center gap-2">
                                         <span className={`w-1.5 h-1.5 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
-                                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{c.clientName}</span>
+                                        <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-800 dark:text-slate-200'}`}>{c.clientName}</span>
                                     </div>
                                     <div className="flex items-center gap-2 pl-3.5">
-                                        <span className="text-xs text-slate-400">vs</span>
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">{c.opposingParty}</span>
+                                        <span className={theme === 'hybrid' ? 'text-[#aebac1]/70' : 'text-xs text-slate-400'}>vs</span>
+                                        <span className={`text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-400'}`}>{c.opposingParty}</span>
                                     </div>
                                 </div>
 
                                 {/* Footer: Location & Folder */}
-                                <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
+                                <div className={`pt-3 border-t flex justify-between items-end ${theme === 'hybrid' ? 'border-[#354751]' : 'border-slate-100 dark:border-slate-700'}`}>
                                     <div>
-                                        <p className="text-xs font-medium text-slate-900 dark:text-white">{c.court}</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className={`text-xs font-medium ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.court}</p>
+                                        <p className={`text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>
                                             {c.city} - {c.uf} • {c.tribunal && <span>{c.tribunal} - </span>}{c.area}
                                         </p>
                                     </div>
                                     {c.folderNumber && (
-                                        <div className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-mono text-slate-500">
+                                        <div className={`px-2 py-1 rounded text-[10px] font-mono ${theme === 'hybrid' ? 'bg-[#202c33] text-[#aebac1]' : 'bg-slate-100 dark:bg-slate-800 text-slate-50'}`}>
                                             {c.folderNumber}
                                         </div>
                                     )}

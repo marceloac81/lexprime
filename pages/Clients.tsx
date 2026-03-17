@@ -520,25 +520,25 @@ export const Clients: React.FC = () => {
             <div className="p-4 md:px-8 pt-2">
 
                 <div className="flex flex-col xl:flex-row gap-2 md:gap-4 mb-3 md:mb-6">
-                    <div className="bg-white dark:bg-dark-800 p-2 md:p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex-1 flex items-center gap-2 md:gap-3">
-                        <Search size={16} md:size={20} className="text-slate-400" />
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} p-2 md:p-4 rounded-xl border flex-1 flex items-center gap-2 md:gap-3 transition-colors`}>
+                        <Search size={16} md:size={20} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
                         <input
                             placeholder="Buscar por nome, documento, email ou grupo..."
-                            className="flex-1 bg-transparent outline-none text-slate-900 dark:text-white text-sm"
+                            className={`flex-1 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white'}`}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar items-center bg-white dark:bg-dark-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <Filter size={18} className="text-slate-400 ml-2 mr-2 shrink-0" />
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} flex gap-2 overflow-x-auto no-scrollbar items-center p-2 rounded-xl border transition-colors`}>
+                        <Filter size={18} className={`${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} ml-2 mr-2 shrink-0`} />
                         {['all', 'Pessoa Física', 'Pessoa Jurídica', 'Espólio'].map(t => (
                             <button
                                 key={t}
                                 onClick={() => setTypeFilter(t as any)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all duration-300 active:scale-90 whitespace-nowrap ${typeFilter === t
-                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
-                                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                    ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-lg' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg')
+                                    : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
                                     }`}
                             >
                                 {t === 'all' ? 'Todos' : t === 'Pessoa Física' ? 'PF' : t === 'Pessoa Jurídica' ? 'PJ' : 'Espólio'}
@@ -546,16 +546,20 @@ export const Clients: React.FC = () => {
                         ))}
                     </div>
 
-                    <div className="hidden md:flex bg-white dark:bg-dark-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} hidden md:flex p-1.5 rounded-xl border shrink-0 transition-colors`}>
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' 
+                                ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400') 
+                                : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <LayoutGrid size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' 
+                                ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400') 
+                                : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <List size={20} />
                         </button>
@@ -566,16 +570,24 @@ export const Clients: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-20 custom-scrollbar">
                         {sortedClients.map((client, index) => (
                             <div key={client.id}
-                                className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group relative animate-stagger-fade-in opacity-0"
+                                className={`p-6 rounded-xl border shadow-sm hover:shadow-md transition-all group relative animate-stagger-fade-in opacity-0 ${
+                                    theme === 'hybrid' 
+                                        ? 'bg-[#2a3942] border-[#354751]' 
+                                        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                                }`}
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-xl font-bold text-slate-600 dark:text-slate-300">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
+                                        theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                    }`}>
                                         {client.name.charAt(0)}
                                     </div>
                                     <div className="flex gap-1">
                                         {client.group && (
-                                            <span className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
+                                                theme === 'hybrid' ? 'bg-[#202c33] text-[#aebac1]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                            }`}>
                                                 {client.group}
                                             </span>
                                         )}
@@ -588,10 +600,10 @@ export const Clients: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 truncate">{client.name}</h3>
+                                <h3 className={`text-lg font-bold mb-1 truncate ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{client.name}</h3>
 
                                 <div className="space-y-2 mt-4">
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className={`flex items-center gap-2 text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>
                                         <Mail size={16} />
                                         <span className="truncate flex-1">{client.email || '-'}</span>
                                         {client.email && (
@@ -600,7 +612,7 @@ export const Clients: React.FC = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className={`flex items-center gap-2 text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>
                                         <Phone size={16} />
                                         <span className="flex-1">{client.phone || '-'}</span>
                                         {client.phone && (
@@ -609,11 +621,11 @@ export const Clients: React.FC = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className={`flex items-center gap-2 text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>
                                         <FileText size={16} /> {client.document || '-'}
                                     </div>
                                     {client.city && (
-                                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                                        <div className={`flex items-center gap-2 text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>
                                             <MapPin size={16} />
                                             <span className="flex-1 truncate">{client.city} - {client.state}</span>
                                             <button onClick={(e) => handleGoogleMaps(client, e)} className="text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 p-1 rounded transition-colors" title="Abrir no Google Maps">
@@ -625,7 +637,11 @@ export const Clients: React.FC = () => {
                                 <div className="flex justify-between items-center mt-4">
                                     <button
                                         onClick={() => handleOpenDetails(client)}
-                                        className="flex-1 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                                        className={`flex-1 py-2 border rounded-lg text-sm font-medium transition-colors ${
+                                            theme === 'hybrid' 
+                                                ? 'bg-[#202c33] border-[#354751] text-[#e9edef] hover:bg-[#354751] hover:text-white' 
+                                                : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white'
+                                        }`}
                                     >
                                         Ver Detalhes
                                     </button>
@@ -643,53 +659,59 @@ export const Clients: React.FC = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex-1 flex flex-col">
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} rounded-xl shadow-sm border overflow-hidden flex-1 flex flex-col transition-colors`}>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse min-w-[600px]">
                                 <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50">
+                                    <tr className={`border-b ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/50' : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50'}`}>
                                         <th
-                                            className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors select-none"
+                                            className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${
+                                                theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'
+                                            }`}
                                             onClick={() => handleSort('name')}
                                         >
                                             <div className="flex items-center gap-1">
                                                 Nome / Documento
                                                 {sortConfig.key === 'name' && (
-                                                    <span className="text-primary-500">
+                                                    <span className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'}>
                                                         {sortConfig.direction === 'asc' ? '↑' : '↓'}
                                                     </span>
                                                 )}
                                             </div>
                                         </th>
-                                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Contatos</th>
-                                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Grupo</th>
-                                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo</th>
-                                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ações</th>
+                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Contatos</th>
+                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Grupo</th>
+                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Tipo</th>
+                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tbody className={`divide-y ${theme === 'hybrid' ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700'}`}>
                                     {sortedClients.map((client, index) => (
                                         <tr key={client.id}
-                                            className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group animate-stagger-fade-in opacity-0"
+                                            className={`transition-colors cursor-pointer group animate-stagger-fade-in opacity-0 ${
+                                                theme === 'hybrid' ? 'hover:bg-[#354751]' : 'hover:bg-slate-50 dark:hover:bg-slate-700'
+                                            }`}
                                             style={{ animationDelay: `${index * 30}ms` }}
                                             onDoubleClick={() => handleOpenDetails(client)}
                                             title="Clique duplo para ver detalhes"
                                         >
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                        theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                    }`}>
                                                         {client.name.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{client.name}</div>
-                                                        <div className="text-xs text-slate-500 font-mono">{client.document}</div>
+                                                        <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{client.name}</div>
+                                                        <div className={`text-xs font-mono ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{client.document}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                <div className="text-sm text-slate-600 dark:text-slate-300 flex flex-col gap-1">
+                                                <div className={`text-sm flex flex-col gap-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-300'}`}>
                                                     <div className="flex items-center gap-2">
-                                                        <Mail size={14} className="text-slate-400" />
+                                                        <Mail size={14} className={theme === 'hybrid' ? 'text-[#aebac1]/50' : 'text-slate-400'} />
                                                         {client.email || '-'}
                                                         {client.email && (
                                                             <button onClick={(e) => handleEmail(client.email, e)} className="text-blue-500 hover:text-blue-600" title="Enviar Email">
@@ -698,7 +720,7 @@ export const Clients: React.FC = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <Phone size={14} className="text-slate-400" />
+                                                        <Phone size={14} className={theme === 'hybrid' ? 'text-[#aebac1]/50' : 'text-slate-400'} />
                                                         {client.phone || '-'}
                                                         {client.phone && (
                                                             <button onClick={(e) => handleWhatsApp(client.phone, e)} className="text-green-500 hover:text-green-600" title="WhatsApp">
@@ -710,22 +732,24 @@ export const Clients: React.FC = () => {
                                             </td>
                                             <td className="p-4">
                                                 {client.group ? (
-                                                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
+                                                    <span className={`text-xs font-medium px-2 py-1 rounded ${
+                                                        theme === 'hybrid' ? 'bg-[#202c33] text-[#aebac1]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                    }`}>
                                                         {client.group}
                                                     </span>
                                                 ) : '-'}
                                             </td>
                                             <td className="p-4">
                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded 
-                                        ${client.type === 'Pessoa Física' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : ''}
-                                        ${client.type === 'Pessoa Jurídica' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : ''}
-                                        ${client.type === 'Espólio' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : ''}
+                                        ${client.type === 'Pessoa Física' ? (theme === 'hybrid' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300') : ''}
+                                        ${client.type === 'Pessoa Jurídica' ? (theme === 'hybrid' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300') : ''}
+                                        ${client.type === 'Espólio' ? (theme === 'hybrid' ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300') : ''}
                                     `}>
                                                     {client.type === 'Pessoa Física' ? 'PF' : client.type === 'Pessoa Jurídica' ? 'PJ' : 'ESP'}
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <ChevronRight size={20} className="text-slate-300 group-hover:text-primary-500 transition-colors" />
+                                                <ChevronRight size={20} className={`${theme === 'hybrid' ? 'text-[#354751] group-hover:text-[#00a884]' : 'text-slate-300 group-hover:text-primary-500'} transition-colors`} />
                                             </td>
                                         </tr>
                                     ))}

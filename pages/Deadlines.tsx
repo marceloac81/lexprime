@@ -424,13 +424,13 @@ export const Deadlines: React.FC = () => {
 
                     {/* Consolidated Filters and Search */}
                     <div className="flex flex-1 flex-col md:flex-row gap-3">
-                        {/* Search bar */}
-                        <div className="relative flex-1 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={18} />
+                        {/* Search bar - Standardized to match Clients.tsx */}
+                        <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700'} relative flex-1 group rounded-lg border flex items-center transition-all`}>
+                            <Search className={`${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} ml-3 shrink-0`} size={18} />
                             <input
                                 type="text"
                                 placeholder="Pesquisar prazos, processos ou clientes..."
-                                className="w-full pl-10 pr-10 py-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-700 dark:text-slate-200"
+                                className={`w-full pl-2 pr-10 py-2 bg-transparent outline-none text-sm transition-all ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-700 dark:text-slate-200'}`}
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
@@ -440,20 +440,20 @@ export const Deadlines: React.FC = () => {
                                 </button>
                             )}
                         </div>
-
+                        
                         {/* Date Filter Component */}
                         <div className="relative shrink-0" ref={datePickerRef}>
                             <button
                                 onClick={() => setShowDatePicker(!showDatePicker)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all shadow-sm h-full ${theme === 'hybrid'
-                                    ? 'bg-[#202c33] border-[#202c33] text-[#e9edef] hover:bg-[#2a3942]'
+                                    ? 'bg-[#2a3942] border-[#354751] text-[#e9edef] hover:bg-[#354751]'
                                     : filterDate
-                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400'
+                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
                                         : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
                                     }`}
                             >
-                                <CalendarIcon size={18} className="text-slate-400" />
-                                <span className="whitespace-nowrap">{filterDate ? formatDate(filterDate) : 'Todas as Datas'}</span>
+                                <CalendarIcon size={18} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
+                                <span className={`whitespace-nowrap ${theme === 'hybrid' ? (filterDate ? 'text-[#00a884] font-bold' : 'text-[#e9edef]') : ''}`}>{filterDate ? formatDate(filterDate) : 'Todas as Datas'}</span>
                                 {filterDate && (
                                     <div
                                         onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
@@ -516,7 +516,7 @@ export const Deadlines: React.FC = () => {
                             <button
                                 onClick={() => setShowResponsibleDropdown(!showResponsibleDropdown)}
                                 className={`p-2 rounded-lg border transition-all shadow-sm active:scale-95 no-print flex items-center justify-center h-full ${theme === 'hybrid'
-                                    ? 'bg-[#202c33] border-[#202c33] text-[#e9edef] hover:bg-[#2a3942]'
+                                    ? 'bg-[#2a3942] border-[#354751] text-[#e9edef] hover:bg-[#354751]'
                                     : filterResponsible
                                         ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-600 font-bold'
                                         : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-700'
