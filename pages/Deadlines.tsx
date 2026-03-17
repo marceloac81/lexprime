@@ -624,7 +624,7 @@ export const Deadlines: React.FC = () => {
                                 return (
                                     <React.Fragment key={dateStr}>
                                         <tr
-                                            className={`${getDateStyle(dateStr)} border-b-[3px] border-t-[3px] border-t-slate-800 dark:border-t-slate-500 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                            className={`${getDateStyle(dateStr)} border-b-[2.5px] border-t-[3px] border-t-slate-800 dark:border-t-slate-500 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                             style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
                                         >
                                             <td colSpan={8} className="py-2 px-4">
