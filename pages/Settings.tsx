@@ -138,17 +138,43 @@ export const Settings: React.FC = () => {
         addNotification("Backup iniciado! Os arquivos serão baixados sequencialmente.", 'success');
     };
 
+    const isHybrid = theme === 'hybrid';
+    const isSober = theme === 'sober';
+
+    const classes = {
+        container: `animate-fade-in pb-20 relative min-h-full flex flex-col ${isHybrid ? 'bg-[#222e35]' : ''}`,
+        headerContainer: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751]' : (isSober ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')}`,
+        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : (isSober ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`,
+        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : (isSober ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`,
+        
+        panel: `rounded-xl shadow-sm border ${isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
+        subPanel: `rounded-lg border ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700'}`,
+        
+        textPrimary: isHybrid ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white',
+        textSecondary: isHybrid ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400',
+        textMuted: isHybrid ? 'text-[#8696a0]' : 'text-slate-400',
+        
+        iconButton: `p-2 rounded-lg transition-colors ${isHybrid ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#00a884]' : 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`,
+        iconButtonNormal: `p-2 rounded-lg transition-colors ${isHybrid ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`,
+        iconButtonDanger: `p-2 rounded-lg transition-colors ${isHybrid ? 'text-rose-500 hover:bg-rose-500/10' : 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20'}`,
+
+        btnPrimary: `w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all shadow-lg disabled:opacity-50 ${isHybrid ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'}`,
+        btnSecondary: `w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all border ${isHybrid ? 'bg-[#202c33] text-[#e9edef] border-[#354751] hover:bg-[#354751]' : 'bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-dark-700'}`,
+
+        input: `w-full pl-10 pr-4 py-2 rounded-lg border outline-none text-sm transition-focus ${isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-1 focus:ring-[#00a884] focus:border-[#00a884] placeholder:text-[#aebac1]/50' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500'}`,
+
+        logItem: `flex gap-4 p-3 rounded-lg border transition-colors ${isHybrid ? 'border-[#354751] hover:bg-[#354751]' : 'border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-dark-900/50'}`,
+        logAvatar: `w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${isHybrid ? 'bg-[#354751] text-[#e9edef]' : 'bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400'}`,
+    };
+
     return (
-        <div className={`animate-fade-in pb-20 relative min-h-full flex flex-col ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
+        <div className={classes.container}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
-                ? 'bg-[#202c33] border-emerald-500/20'
-                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
-                }`}>
+            <div className={classes.headerContainer}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Configurações</h1>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie suas preferências e dados do sistema.</p>
+                        <h1 className={classes.pageTitle}>Configurações</h1>
+                        <p className={classes.pageSubtitle}>Gerencie suas preferências e dados do sistema.</p>
                     </div>
                 </div>
             </div>
@@ -157,26 +183,26 @@ export const Settings: React.FC = () => {
 
                 <div className="space-y-6 pb-20">
                     {/* Profile Section */}
-                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex items-center gap-6">
+                    <div className={`p-6 flex items-center gap-6 ${classes.panel}`}>
                         <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-3xl font-bold text-primary-600">
                             {currentUser?.name.charAt(0)}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{currentUser?.name}</h2>
-                            <p className="text-slate-500">{currentUser?.email}</p>
-                            <span className="inline-block mt-2 text-xs font-bold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300 uppercase">{currentUser?.role}</span>
+                            <h2 className={`text-xl font-bold ${classes.textPrimary}`}>{currentUser?.name}</h2>
+                            <p className={classes.textSecondary}>{currentUser?.email}</p>
+                            <span className={`inline-block mt-2 text-xs font-bold px-2 py-1 rounded uppercase ${isHybrid ? "bg-[#354751] text-[#e9edef]" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>{currentUser?.role}</span>
                         </div>
                     </div>
 
                     {/* Appearance */}
-                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Aparência</h3>
-                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
+                    <div className={`p-6 ${classes.panel}`}>
+                        <h3 className={`text-lg font-bold mb-4 ${classes.textPrimary}`}>Aparência</h3>
+                        <div className={`flex items-center justify-between p-4 ${classes.subPanel}`}>
                             <div className="flex items-center gap-3">
-                                {isDarkMode ? <Moon className="text-purple-500" /> : (theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : (theme === 'sober' ? <Clock className="text-slate-500" /> : <Sun className="text-orange-500" />))}
+                                {isDarkMode ? <Moon className="text-purple-500" /> : (theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : (theme === 'sober' ? <Clock className={classes.textSecondary} /> : <Sun className="text-orange-500" />))}
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Tema: {theme === 'dark' ? 'Dark' : theme === 'hybrid' ? 'Dark Verde' : theme === 'sober' ? 'Neutro' : 'Claro'}</p>
-                                    <p className="text-xs text-slate-500">Altere o visual da interface</p>
+                                    <p className={`font-medium ${classes.textPrimary}`}>Tema: {theme === 'dark' ? 'Dark' : theme === 'hybrid' ? 'Dark Verde' : theme === 'sober' ? 'Neutro' : 'Claro'}</p>
+                                    <p className={`text-xs ${classes.textSecondary}`}>Altere o visual da interface</p>
                                 </div>
                             </div>
                             <button
@@ -189,9 +215,9 @@ export const Settings: React.FC = () => {
                     </div>
 
                     {/* Data Management */}
-                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Shield size={20} className="text-primary-600" /> Gestão de Dados (CSV)
+                    <div className={`p-6 ${classes.panel}`}>
+                        <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${classes.textPrimary}`}>
+                            <Shield size={20} className={isHybrid ? "text-[#00a884]" : "text-primary-600"} /> Gestão de Dados (CSV)
                         </h3>
 
                         <div className="space-y-4">
@@ -208,22 +234,22 @@ export const Settings: React.FC = () => {
                                 { label: 'Equipe', count: teamMembers.length, ref: teamInputRef, exportFn: () => downloadCSV(generateTeamCSV(teamMembers), 'equipe.csv') },
                                 { label: 'Feriados', count: holidays.length, ref: holidayInputRef, exportFn: () => downloadCSV(generateHolidaysCSV(holidays), 'feriados.csv') },
                             ].map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-dark-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <div key={idx} className={`flex items-center justify-between p-4 ${classes.subPanel}`}>
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-slate-800 dark:text-white">{item.label}</span>
-                                        <span className="text-xs text-slate-500">{item.count} registros</span>
+                                        <span className={`text-sm font-bold ${classes.textPrimary}`}>{item.label}</span>
+                                        <span className={`text-xs ${classes.textSecondary}`}>{item.count} registros</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => item.ref.current?.click()}
-                                            className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                                            className={classes.iconButton}
                                             title="Importar"
                                         >
                                             <Upload size={18} />
                                         </button>
                                         <button
                                             onClick={item.exportFn}
-                                            className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                            className={classes.iconButtonNormal}
                                             title="Exportar"
                                         >
                                             <Download size={18} />
@@ -231,7 +257,7 @@ export const Settings: React.FC = () => {
                                         {item.label === 'Feriados' && (
                                             <button
                                                 onClick={resetHolidays}
-                                                className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                                className={classes.iconButtonDanger}
                                                 title="Restaurar Feriados Padrão"
                                             >
                                                 <RotateCcw size={18} />
@@ -245,7 +271,7 @@ export const Settings: React.FC = () => {
                                 <button
                                     onClick={syncData}
                                     disabled={isLoading}
-                                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                                    className={classes.btnPrimary}
                                 >
                                     {isLoading ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -256,7 +282,7 @@ export const Settings: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleBackupAll}
-                                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-dark-700 transition-all"
+                                    className={classes.btnSecondary}
                                 >
                                     <Download size={20} /> Exportar Backup Completo (ZIP/CSV)
                                 </button>
@@ -266,10 +292,10 @@ export const Settings: React.FC = () => {
 
                     {/* Activity History - Admin Only */}
                     {currentUser?.isAdmin && (
-                        <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
+                        <div className={`p-6 ${classes.panel}`}>
+                            <h3 className={`text-lg font-bold mb-4 flex items-center justify-between ${classes.textPrimary}`}>
                                 <span className="flex items-center gap-2">
-                                    <Clock size={20} className="text-primary-600" /> Histórico de Atividades
+                                    <Clock size={20} className={isHybrid ? "text-[#00a884]" : "text-primary-600"} /> Histórico de Atividades
                                 </span>
                                 <button
                                     onClick={clearActivityLogs}
@@ -286,7 +312,7 @@ export const Settings: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Filtrar por usuário..."
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm transition-focus outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                                        className={classes.input}
                                         value={logFilter.user}
                                         onChange={e => setLogFilter({ ...logFilter, user: e.target.value })}
                                     />
@@ -295,7 +321,7 @@ export const Settings: React.FC = () => {
                                     <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                     <input
                                         type="date"
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm transition-focus outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                                        className={classes.input}
                                         value={logFilter.date}
                                         onChange={e => setLogFilter({ ...logFilter, date: e.target.value })}
                                     />
@@ -330,20 +356,20 @@ export const Settings: React.FC = () => {
                                         const detailStr = getLogDetailString();
 
                                         return (
-                                            <div key={log.id} className="flex gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-dark-900/50 transition-colors">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
+                                            <div key={log.id} className={classes.logItem}>
+                                                <div className={classes.logAvatar}>
                                                     {log.userName.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between gap-2">
-                                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                        <p className={`text-sm font-bold truncate ${classes.textPrimary}`}>
                                                             {log.userName}
                                                         </p>
                                                         <span className="text-[10px] text-slate-400 whitespace-nowrap">
                                                             {new Date(log.createdAt).toLocaleString('pt-BR')}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 flex flex-wrap gap-1 items-center">
+                                                    <p className={`text-xs mt-1 flex flex-wrap gap-1 items-center ${classes.textSecondary}`}>
                                                         <span className={`font-bold ${log.action === 'INSERT' ? 'text-emerald-600' :
                                                             log.action === 'UPDATE' ? 'text-blue-600' : 'text-rose-600'
                                                             }`}>
@@ -355,7 +381,7 @@ export const Settings: React.FC = () => {
                                                                     log.tableName === 'deadlines' ? 'o prazo' : log.tableName}
                                                         </span>
                                                         {detailStr && (
-                                                            <span className="font-medium text-slate-800 dark:text-slate-200">
+                                                            <span className={`font-medium ${classes.textPrimary}`}>
                                                                 "{detailStr}"
                                                             </span>
                                                         )}
