@@ -49,6 +49,47 @@ interface BatchItem {
 const Calculations: React.FC = () => {
     const { theme } = useStore();
     const [activeTab, setActiveTab] = useState<'civic' | 'batch'>('civic');
+    
+    const isHybrid = theme === 'hybrid';
+    const isSober = theme === 'sober';
+    const classes = {
+        container: `animate-fade-in pb-20 relative min-h-full ${isHybrid ? 'bg-[#222e35]' : ''}`,
+        header: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751] shadow-none' : (isSober ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')}`,
+        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : (isSober ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`,
+        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : (isSober ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`,
+        
+        mainPanel: `rounded-xl shadow-lg border p-8 ${isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
+        genPanel: `p-5 rounded-2xl border relative overflow-hidden group/gen no-print ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50 dark:bg-dark-900/40 border-slate-200 dark:border-slate-700'}`,
+        settingsPanel: `p-5 rounded-xl border ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50/50 dark:bg-dark-900/30 border-slate-100 dark:border-slate-700/50'}`,
+        resultPanel: `rounded-xl p-8 mb-8 border relative overflow-hidden shadow-lg ${isHybrid ? 'bg-[#202c33] border-[#354751] shadow-[#202c33]/50' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 shadow-slate-200/50'}`,
+        batchResultPanel: `p-8 rounded-xl border relative shadow-lg ${isHybrid ? 'bg-[#202c33] border-[#354751] shadow-[#202c33]/50' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
+        
+        textPrimary: isHybrid ? 'text-[#e9edef]' : 'text-slate-800 dark:text-white',
+        textSecondary: isHybrid ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-400',
+        textMuted: isHybrid ? 'text-[#8696a0]' : 'text-slate-400',
+        
+        inputBasic: `col-span-2 p-2 border rounded outline-none w-full ${isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-1 focus:ring-[#00a884] focus:border-[#00a884]' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500'}`,
+        inputModern: `w-full p-2.5 pl-3 text-sm border rounded-xl outline-none transition-all ${isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-1 focus:ring-[#00a884] focus:border-[#00a884] placeholder:text-[#aebac1]/50' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500'}`,
+        inputSelect: `w-full p-2.5 border rounded-lg outline-none transition-all ${isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-1 focus:ring-[#00a884] focus:border-[#00a884]' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500'}`,
+        
+        btnCalc: `px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold active:scale-95 ${isHybrid ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-[#2d3a4f] hover:bg-[#3d4c63] text-white hover:shadow-[#2d3a4f]/20'}`,
+        btnClear: `px-8 py-2.5 rounded transition-all flex items-center gap-2 active:scale-95 border ${isHybrid ? 'bg-[#202c33] text-[#e9edef] border-[#354751] hover:bg-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700'}`,
+        btnPrint: `px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold ${isHybrid ? 'bg-[#202c33] hover:bg-[#2a3942] text-[#e9edef] border border-[#354751]' : 'bg-primary-500 hover:bg-primary-600 text-white'}`,
+        btnGen: `h-[42px] px-4 text-xs font-bold rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${isHybrid ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'}`,
+        btnAddRow: `py-3 px-4 font-bold rounded-xl flex items-center justify-center gap-2 transition-all border border-dashed hover:border-solid ${isHybrid ? 'bg-[#202c33] text-[#00a884] border-[#00a884] hover:bg-[#00a884] hover:text-white' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800 hover:bg-blue-600 hover:text-white'}`,
+        
+        tabContainer: `relative p-1 rounded-xl flex items-center w-full max-w-[400px] border shadow-sm ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
+        tabPill: `absolute h-[calc(100%-8px)] rounded-lg shadow-md transition-all duration-300 ease-out ${isHybrid ? 'bg-[#00a884]' : 'bg-blue-600'}`,
+        tabTextActive: `relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 text-white`,
+        tabTextInactive: `relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${isHybrid ? 'text-[#aebac1] hover:text-[#e9edef]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`,
+        
+        tableWrapper: `rounded-xl overflow-hidden border shadow-sm ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
+        tableHeaderRow: `border-b ${isHybrid ? 'bg-[#202c33]/50 border-[#354751]' : 'bg-slate-50 dark:bg-dark-900/50 border-slate-200 dark:border-slate-700'}`,
+        tableCell: `p-3 text-sm border-b transition-all ${isHybrid ? 'border-[#354751] text-[#aebac1]' : 'border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-300'}`,
+        tableHeaderCell: `p-3 text-xs font-semibold uppercase tracking-wider ${isHybrid ? 'text-[#aebac1] bg-[#2a3942]' : 'text-slate-500 bg-slate-50 dark:bg-dark-900'}`,
+        tableRowHover: `transition-all ${isHybrid ? 'hover:bg-[#354751]' : 'hover:bg-slate-50 dark:hover:bg-slate-700'}`,
+    };
+
 
     // States for Natureza Cível (Original)
     const [startDate, setStartDate] = useState('');
@@ -389,26 +430,23 @@ const Calculations: React.FC = () => {
     };
 
     return (
-        <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
+        <div className={classes.container}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
-                ? 'bg-[#202c33] border-emerald-500/20'
-                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
-                }`}>
+            <div className={classes.header}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Cálculos</h1>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>
+                        <h1 className={classes.pageTitle}>Cálculos</h1>
+                        <p className={classes.pageSubtitle}>
                             Cálculo de débitos judiciais de natureza cível (TJRJ).
                         </p>
                     </div>
 
                     {/* Modern Segmented Control */}
                     <div className="flex-1 flex justify-center mt-4 md:mt-0 w-full md:w-auto">
-                        <div className={`relative p-1 rounded-xl flex items-center w-full max-w-[400px] border shadow-sm ${theme === 'hybrid' ? 'bg-[#202c33] border-[#202c33]' : (theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700')}`}>
+                        <div className={classes.tabContainer}>
                             {/* Animated Background Pill */}
                             <div
-                                className={`absolute h-[calc(100%-8px)] rounded-lg shadow-md transition-all duration-300 ease-out ${theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-blue-600'}`}
+                                className={classes.tabPill}
                                 style={{
                                     width: 'calc(50% - 4px)',
                                     left: activeTab === 'civic' ? '4px' : 'calc(50%)'
@@ -417,13 +455,13 @@ const Calculations: React.FC = () => {
 
                             <button
                                 onClick={() => { setActiveTab('civic'); setResult(null); }}
-                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'civic' ? 'text-white' : (theme === 'hybrid' ? 'text-[#aebac1] hover:text-[#e9edef]' : (theme === 'sober' ? 'text-slate-600 hover:text-slate-900' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'))}`}
+                                className={activeTab === 'civic' ? classes.tabTextActive : classes.tabTextInactive}
                             >
                                 Natureza Cível
                             </button>
                             <button
                                 onClick={() => { setActiveTab('batch'); setResult(null); }}
-                                className={`relative z-10 flex-1 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${activeTab === 'batch' ? 'text-white' : (theme === 'hybrid' ? 'text-[#aebac1] hover:text-[#e9edef]' : (theme === 'sober' ? 'text-slate-600 hover:text-slate-900' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'))}`}
+                                className={activeTab === 'batch' ? classes.tabTextActive : classes.tabTextInactive}
                             >
                                 Múltiplos Valores
                             </button>
@@ -451,48 +489,48 @@ const Calculations: React.FC = () => {
                 <div className="max-w-4xl mx-auto w-full px-0">
 
                     {/* Form Container */}
-                    <div className="bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8">
+                    <div className={classes.mainPanel}>
                         {activeTab === 'civic' ? (
                             <>
-                                <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8">Cálculo de Natureza Cível</h2>
+                                <h2 className={`text-center text-xl font-bold mb-8 ${classes.textPrimary}`}>Cálculo de Natureza Cível</h2>
                                 <div className="space-y-4 max-w-lg mx-auto print:hidden">
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Inicial*:</label>
+                                        <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Data Inicial*:</label>
                                         <input
                                             type="date"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
-                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            className={classes.inputBasic}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data Final:</label>
+                                        <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Data Final:</label>
                                         <input
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            className={classes.inputBasic}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Valor em R$:</label>
+                                        <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Valor em R$:</label>
                                         <input
                                             type="text"
                                             placeholder="0,00"
                                             value={value}
                                             onChange={(e) => setValue(e.target.value)}
-                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            className={classes.inputBasic}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Tipo de Juros:</label>
+                                        <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Tipo de Juros:</label>
                                         <select
                                             value={interestType}
                                             onChange={(e) => setInterestType(e.target.value)}
-                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            className={classes.inputBasic}
                                         >
                                             <option value="0">Sem juros (somente correção monetária)</option>
                                             <option value="6">Juros Simples 6% a.a</option>
@@ -502,49 +540,49 @@ const Calculations: React.FC = () => {
 
                                     {interestType !== '0' && (
                                         <div className="grid grid-cols-3 items-center gap-4 animate-in fade-in slide-in-from-top-2">
-                                            <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Data de Incidência:</label>
+                                            <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Data de Incidência:</label>
                                             <input
                                                 type="date"
                                                 value={interestStartDate}
                                                 onChange={(e) => setInterestStartDate(e.target.value)}
-                                                className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                className={classes.inputBasic}
                                             />
                                         </div>
                                     )}
 
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right">Honorários (%):</label>
+                                        <label className={`text-sm font-medium text-right ${classes.textSecondary}`}>Honorários (%):</label>
                                         <input
                                             type="text"
                                             placeholder="0,00"
                                             value={fees}
                                             onChange={(e) => setFees(e.target.value)}
-                                            className="col-span-2 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            className={classes.inputBasic}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-3 items-center gap-4">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400 text-right truncate">Art. 523 § 1º CPC:</label>
+                                        <label className={`text-sm font-medium text-right truncate ${classes.textSecondary}`}>Art. 523 § 1º CPC:</label>
                                         <div className="col-span-2 flex gap-4">
-                                            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                <input type="checkbox" checked={hasFine523} onChange={(e) => setHasFine523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                            <label className={`flex items-center gap-2 text-sm cursor-pointer ${classes.textSecondary}`}>
+                                                <input type="checkbox" checked={hasFine523} onChange={(e) => setHasFine523(e.target.checked)} className={`rounded transition-colors ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 dark:border-slate-600 text-primary-500"}`} />
                                                 10% Multa
                                             </label>
-                                            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                                                <input type="checkbox" checked={hasFees523} onChange={(e) => setHasFees523(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 text-primary-500" />
+                                            <label className={`flex items-center gap-2 text-sm cursor-pointer ${classes.textSecondary}`}>
+                                                <input type="checkbox" checked={hasFees523} onChange={(e) => setHasFees523(e.target.checked)} className={`rounded transition-colors ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 dark:border-slate-600 text-primary-500"}`} />
                                                 10% Honorários
                                             </label>
                                         </div>
                                     </div>
                                     <div className="flex gap-4 pt-6 justify-center">
-                                        <button onClick={handleCalculateCivic} className="bg-[#2d3a4f] hover:bg-[#3d4c63] text-white px-8 py-2.5 rounded shadow-lg hover:shadow-[#2d3a4f]/20 transition-all flex items-center gap-2 font-bold active:scale-95">
+                                        <button onClick={handleCalculateCivic} className={classes.btnCalc}>
                                             <Calculator size={18} /> CALCULAR
                                         </button>
-                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-8 py-2.5 rounded transition-all flex items-center gap-2 active:scale-95">
+                                        <button onClick={handleClear} className={classes.btnClear}>
                                             <RotateCcw size={18} /> LIMPAR
                                         </button>
                                         {result && !result.isBatch && (
-                                            <button onClick={() => window.print()} className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-2.5 rounded shadow-lg transition-all flex items-center gap-2 font-bold">
+                                            <button onClick={() => window.print()} className={classes.btnPrint}>
                                                 <Printer size={18} /> IMPRIMIR
                                             </button>
                                         )}
@@ -553,16 +591,16 @@ const Calculations: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                <h2 className="text-center text-xl font-bold text-slate-800 dark:text-white mb-8 border-b border-slate-100 dark:border-slate-700 pb-4">Cálculo em Lote / Múltiplos Valores</h2>
+                                <h2 className={`text-center text-xl font-bold mb-8 border-b border-slate-100 dark:border-slate-700 pb-4 ${classes.textPrimary}`}>Cálculo em Lote / Múltiplos Valores</h2>
 
                                 <div className="space-y-6 animate-fade-in">
                                     {/* Batch Generator Tool */}
                                     {/* Modern Batch Generator Tool */}
-                                    <div className="bg-slate-50 dark:bg-dark-900/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 relative overflow-hidden group/gen no-print">
+                                    <div className={classes.genPanel}>
                                         <div className="absolute top-0 right-0 p-8 bg-primary-500/5 rounded-full -mr-4 -mt-4 blur-2xl group-hover/gen:bg-primary-500/10 transition-colors" />
 
-                                        <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-5 flex items-center gap-2">
-                                            <div className="p-1.5 bg-primary-600 text-white rounded-lg shadow-md shadow-primary-500/20">
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider mb-5 flex items-center gap-2 ${classes.textPrimary}`}>
+                                            <div className={`p-1.5 rounded-lg shadow-md transition-colors ${isHybrid ? "bg-[#00a884] text-white shadow-[#00a884]/20" : "bg-primary-600 text-white shadow-primary-500/20"}`}>
                                                 <Plus size={14} />
                                             </div>
                                             Gerador de Parcelas em Lote
@@ -570,32 +608,32 @@ const Calculations: React.FC = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-end relative z-10">
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <Calendar size={12} /> Data Inicial
                                                 </label>
                                                 <div className="relative">
-                                                    <input type="date" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all" />
+                                                    <input type="date" value={generatorStart} onChange={(e) => setGeneratorStart(e.target.value)} className={classes.inputModern} />
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <Calendar size={12} /> Data Final
                                                 </label>
                                                 <div className="relative">
-                                                    <input type="date" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all" />
+                                                    <input type="date" value={generatorEnd} onChange={(e) => setGeneratorEnd(e.target.value)} className={classes.inputModern} />
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <DollarSign size={12} /> Valor Base (R$)
                                                 </label>
                                                 <div className="relative">
-                                                    <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all font-medium" />
+                                                    <input type="text" placeholder="0,00" value={generatorValue} onChange={(e) => setGeneratorValue(e.target.value)} className={`font-medium ${classes.inputModern}`} />
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={handleGenerateRows}
-                                                className="bg-primary-600 hover:bg-primary-700 text-white h-[42px] px-4 text-xs font-bold rounded-xl transition-all shadow-lg shadow-primary-500/20 active:scale-95 flex items-center justify-center gap-2"
+                                                className={classes.btnGen}
                                             >
                                                 <RotateCcw size={14} className="group-hover/gen:rotate-180 transition-transform duration-500" />
                                                 GERAR PARCELAS
@@ -605,38 +643,38 @@ const Calculations: React.FC = () => {
                                         {/* Row 2: Descrição Padrão + Tipo de Lote + interest toggle */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
                                             <div className="flex flex-col gap-2 md:col-span-1">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Descrição Padrão</label>
+                                                <label className={`text-[10px] font-bold uppercase tracking-wider ${classes.textMuted}`}>Descrição Padrão</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Ex: Parcela do mês de..."
                                                     value={generatorDescription}
                                                     onChange={(e) => setGeneratorDescription(e.target.value)}
-                                                    className="w-full p-2.5 pl-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
+                                                    className={classes.inputModern}
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo de Lote</label>
-                                                <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[42px]">
+                                                <label className={`text-[10px] font-bold uppercase tracking-wider ${classes.textMuted}`}>Tipo de Lote</label>
+                                                <div className={`flex rounded-xl overflow-hidden border h-[42px] transition-colors ${isHybrid ? "border-[#354751] bg-[#202c33]" : "border-slate-200 dark:border-slate-700"}`}>
                                                     <button
                                                         onClick={() => setGeneratorType('principal')}
-                                                        className={`flex-1 text-xs font-bold transition-all ${generatorType === 'principal' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-dark-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-800'}`}
+                                                        className={`flex-1 text-xs font-bold transition-all ${generatorType === 'principal' ? (isHybrid ? 'bg-[#00a884] text-white' : 'bg-blue-600 text-white') : (isHybrid ? 'bg-[#202c33] text-[#aebac1] hover:bg-[#354751]' : 'bg-white dark:bg-dark-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-800')}`}
                                                     >Principal</button>
                                                     <button
                                                         onClick={() => setGeneratorType('cost')}
-                                                        className={`flex-1 text-xs font-bold transition-all ${generatorType === 'cost' ? 'bg-amber-500 text-white' : 'bg-white dark:bg-dark-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-800'}`}
+                                                        className={`flex-1 text-xs font-bold transition-all ${generatorType === 'cost' ? (isHybrid ? 'bg-amber-600 text-white' : 'bg-amber-500 text-white') : (isHybrid ? 'bg-[#202c33] text-[#aebac1] hover:bg-[#354751]' : 'bg-white dark:bg-dark-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-dark-800')}`}
                                                     >Custas/Despesas</button>
                                                 </div>
                                             </div>
                                             {generatorType === 'cost' && (
                                                 <div className="flex flex-col gap-2 justify-end">
-                                                    <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer group p-2.5 h-[42px] border border-dashed border-amber-300 dark:border-amber-700/50 rounded-xl bg-amber-50 dark:bg-amber-900/20">
+                                                    <label className={`flex items-center gap-2 text-xs cursor-pointer group p-2.5 h-[42px] border border-dashed rounded-xl transition-all ${isHybrid ? "bg-[#1d272e] border-[#5a481c] text-[#aebac1]" : "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700/50 text-slate-600 dark:text-slate-300"}`}>
                                                         <input
                                                             type="checkbox"
                                                             checked={batchIgnoreCostInterest}
                                                             onChange={(e) => setBatchIgnoreCostInterest(e.target.checked)}
-                                                            className="w-4 h-4 rounded text-amber-600 border-amber-300 focus:ring-amber-500 transition-all"
+                                                            className={`w-4 h-4 rounded transition-all ${isHybrid ? "text-amber-500 focus:ring-amber-500 bg-[#2a3942] border-[#354751]" : "text-amber-600 border-amber-300"}`}
                                                         />
-                                                        <span className="text-amber-700 dark:text-amber-400 font-medium">Não incidir juros sobre Custas</span>
+                                                        <span className={`font-medium ${isHybrid ? "text-[#aebac1]" : "text-amber-700 dark:text-amber-400"}`}>Não incidir juros sobre Custas</span>
                                                     </label>
                                                 </div>
                                             )}
@@ -644,22 +682,22 @@ const Calculations: React.FC = () => {
                                     </div>
 
                                     {/* General Settings Grid - Optimized for Vertical Density */}
-                                    <div className="p-5 bg-slate-50/50 dark:bg-dark-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                    <div className={classes.settingsPanel}>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <Calendar size={12} className="text-primary-500" /> Data Final de Atualização
                                                 </label>
                                                 <input
                                                     type="date"
                                                     value={batchEndDate}
                                                     onChange={(e) => setBatchEndDate(e.target.value)}
-                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
+                                                    className={classes.inputSelect}
                                                 />
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <Percent size={12} className="text-primary-500" /> Honorários (%)
                                                 </label>
                                                 <input
@@ -667,18 +705,18 @@ const Calculations: React.FC = () => {
                                                     placeholder="0,00"
                                                     value={batchFees}
                                                     onChange={(e) => setBatchFees(e.target.value)}
-                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
+                                                    className={classes.inputSelect}
                                                 />
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${classes.textMuted}`}>
                                                     <Percent size={12} className="text-primary-500" /> Tipo de Juros
                                                 </label>
                                                 <select
                                                     value={batchInterestType}
                                                     onChange={(e) => setBatchInterestType(e.target.value)}
-                                                    className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all"
+                                                    className={classes.inputSelect}
                                                 >
                                                     <option value="0">Sem juros</option>
                                                     <option value="6">Juros Simples 6% a.a</option>
@@ -689,24 +727,24 @@ const Calculations: React.FC = () => {
                                             {/* Penalties & Interest Mode - Spans 3 columns or stacks */}
                                             <div className={`col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100 dark:border-slate-800/50 mt-1`}>
                                                 <div className="space-y-3">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Penalidades (Art. 523 § 1º CPC)</label>
+                                                    <label className={`text-[10px] font-bold uppercase tracking-widest block ${classes.textMuted}`}>Penalidades (Art. 523 § 1º CPC)</label>
                                                     <div className="flex gap-4">
-                                                        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer group">
-                                                            <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition-all" />
+                                                        <label className={`flex items-center gap-2 text-sm cursor-pointer group ${classes.textSecondary}`}>
+                                                            <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className={`w-4 h-4 rounded transition-all ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 text-primary-600 focus:ring-primary-500"}`} />
                                                             <span className="group-hover:text-primary-600 transition-colors">10% Multa</span>
                                                         </label>
-                                                        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer group">
-                                                            <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition-all" />
+                                                        <label className={`flex items-center gap-2 text-sm cursor-pointer group ${classes.textSecondary}`}>
+                                                            <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className={`w-4 h-4 rounded transition-all ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 text-primary-600 focus:ring-primary-500"}`} />
                                                             <span className="group-hover:text-primary-600 transition-colors">10% Honorários</span>
                                                         </label>
                                                     </div>
                                                     {batchInterestType !== '0' && (
-                                                        <label className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 cursor-pointer mt-1">
+                                                        <label className={`flex items-center gap-2 text-xs cursor-pointer mt-1 ${isHybrid ? "text-[#aebac1]" : "text-amber-700 dark:text-amber-400"}`}>
                                                             <input
                                                                 type="checkbox"
                                                                 checked={batchIgnoreCostInterest}
                                                                 onChange={(e) => setBatchIgnoreCostInterest(e.target.checked)}
-                                                                className="w-3.5 h-3.5 rounded text-amber-600 border-amber-300 focus:ring-amber-500 transition-all"
+                                                                className={`w-3.5 h-3.5 rounded transition-all ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "text-amber-600 border-amber-300 focus:ring-amber-500"}`}
                                                             />
                                                             <span className="font-medium">Não incidir juros sobre itens de Custas/Despesas</span>
                                                         </label>
@@ -715,19 +753,19 @@ const Calculations: React.FC = () => {
 
                                                 {batchInterestType !== '0' && (
                                                     <div className="space-y-3 animate-fade-in">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Modo de Incidência de Juros</label>
+                                                        <label className={`text-[10px] font-bold uppercase tracking-widest block ${classes.textMuted}`}>Modo de Incidência de Juros</label>
                                                         <div className="flex flex-wrap gap-x-4 gap-y-2">
-                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
-                                                                <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className="text-primary-600" />
-                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Fixa</span>
+                                                            <label className={`flex items-center gap-2 text-xs cursor-pointer group ${classes.textSecondary}`}>
+                                                                <input type="radio" name="intMode" checked={interestMode === 'fixed'} onChange={() => setInterestMode('fixed')} className={`transition-colors ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "text-primary-600"}`} />
+                                                                <span className={`transition-colors ${isHybrid ? "group-hover:text-[#e9edef]" : "group-hover:text-slate-900 dark:group-hover:text-white"}`}>Fixa</span>
                                                             </label>
-                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
-                                                                <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className="text-primary-600" />
-                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Individual</span>
+                                                            <label className={`flex items-center gap-2 text-xs cursor-pointer group ${classes.textSecondary}`}>
+                                                                <input type="radio" name="intMode" checked={interestMode === 'individual'} onChange={() => setInterestMode('individual')} className={`transition-colors ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "text-primary-600"}`} />
+                                                                <span className={`transition-colors ${isHybrid ? "group-hover:text-[#e9edef]" : "group-hover:text-slate-900 dark:group-hover:text-white"}`}>Individual</span>
                                                             </label>
-                                                            <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer group">
-                                                                <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className="text-primary-600" />
-                                                                <span className="group-hover:text-slate-900 dark:group-hover:text-white">Pela Parcela</span>
+                                                            <label className={`flex items-center gap-2 text-xs cursor-pointer group ${classes.textSecondary}`}>
+                                                                <input type="radio" name="intMode" checked={interestMode === 'same-as-start'} onChange={() => setInterestMode('same-as-start')} className={`transition-colors ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "text-primary-600"}`} />
+                                                                <span className={`transition-colors ${isHybrid ? "group-hover:text-[#e9edef]" : "group-hover:text-slate-900 dark:group-hover:text-white"}`}>Pela Parcela</span>
                                                             </label>
                                                         </div>
                                                         {interestMode === 'fixed' && (
@@ -735,7 +773,7 @@ const Calculations: React.FC = () => {
                                                                 type="date"
                                                                 value={batchInterestStartDate}
                                                                 onChange={(e) => setBatchInterestStartDate(e.target.value)}
-                                                                className="w-full p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-dark-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 outline-none animate-in fade-in slide-in-from-top-1"
+                                                                className={`w-full p-2 text-xs border rounded-lg outline-none animate-in fade-in slide-in-from-top-1 ${isHybrid ? "bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-1 focus:ring-[#00a884]" : "bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500/20"}`}
                                                             />
                                                         )}
                                                     </div>
@@ -745,7 +783,7 @@ const Calculations: React.FC = () => {
                                     </div>
 
                                     {/* Compact Items Table */}
-                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-950">
+                                    <div className={`rounded-xl overflow-hidden shadow-sm border ${isHybrid ? "bg-[#202c33] border-[#354751]" : "bg-white dark:bg-dark-950 border-slate-200 dark:border-slate-700"}`}>
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 {(() => {
@@ -765,12 +803,12 @@ const Calculations: React.FC = () => {
                                                         </span>
                                                     );
                                                     return (
-                                                        <tr className="bg-slate-50 dark:bg-dark-900/80 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                                        <tr className={`text-[10px] font-bold uppercase tracking-wider border-b ${isHybrid ? "bg-[#2a3942] text-[#8696a0] border-[#354751]" : "bg-slate-50 dark:bg-dark-900/80 text-slate-400 border-slate-200 dark:border-slate-700"}`}>
                                                             <th className="p-2 pl-4">#</th>
-                                                            <th className="p-2 cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('type')}>Tipo<SortIcon col="type" /></th>
-                                                            <th className="p-2 cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('description')}>Descrição / Observação<SortIcon col="description" /></th>
-                                                            <th className="p-2 cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('startDate')}>Data Inicial*<SortIcon col="startDate" /></th>
-                                                            <th className="p-2 cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('value')}>Valor Principal*<SortIcon col="value" /></th>
+                                                            <th className={`p-2 cursor-pointer select-none transition-colors ${isHybrid ? "hover:text-[#e9edef]" : "hover:text-slate-600 dark:hover:text-slate-200"}`} onClick={() => handleSort('type')}>Tipo<SortIcon col="type" /></th>
+                                                            <th className={`p-2 cursor-pointer select-none transition-colors ${isHybrid ? "hover:text-[#e9edef]" : "hover:text-slate-600 dark:hover:text-slate-200"}`} onClick={() => handleSort('description')}>Descrição / Observação<SortIcon col="description" /></th>
+                                                            <th className={`p-2 cursor-pointer select-none transition-colors ${isHybrid ? "hover:text-[#e9edef]" : "hover:text-slate-600 dark:hover:text-slate-200"}`} onClick={() => handleSort('startDate')}>Data Inicial*<SortIcon col="startDate" /></th>
+                                                            <th className={`p-2 cursor-pointer select-none transition-colors ${isHybrid ? "hover:text-[#e9edef]" : "hover:text-slate-600 dark:hover:text-slate-200"}`} onClick={() => handleSort('value')}>Valor Principal*<SortIcon col="value" /></th>
                                                             {batchInterestType !== '0' && interestMode === 'individual' && (
                                                                 <th className="p-2">Data Juros</th>
                                                             )}
@@ -779,7 +817,7 @@ const Calculations: React.FC = () => {
                                                     );
                                                 })()}
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            <tbody className={`divide-y ${isHybrid ? "divide-[#354751]" : "divide-slate-100 dark:divide-slate-800"}`}>
                                                 {(() => {
                                                     let displayItems = [...batchItems];
                                                     if (sortColumn) {
@@ -797,8 +835,8 @@ const Calculations: React.FC = () => {
                                                         });
                                                     }
                                                     return displayItems.map((item, index) => (
-                                                        <tr key={item.id} className={`transition-colors ${item.type === 'cost' ? 'bg-amber-50/50 dark:bg-amber-900/10 border-l-2 border-l-amber-400' : 'hover:bg-slate-50/50 dark:hover:bg-dark-900/30'}`}>
-                                                            <td className="p-2 pl-4 text-xs font-medium text-slate-400">{index + 1}</td>
+                                                        <tr key={item.id} className={`transition-colors border-l-2 ${item.type === 'cost' ? (isHybrid ? 'bg-amber-900/10 border-amber-600' : 'bg-amber-50/50 dark:bg-amber-900/10 border-l-amber-400') : (isHybrid ? 'border-transparent hover:bg-[#354751]/50' : 'border-transparent hover:bg-slate-50/50 dark:hover:bg-dark-900/30')}`}>
+                                                            <td className={`p-2 pl-4 text-xs font-medium ${isHybrid ? "text-[#8696a0]" : "text-slate-400"}`}>{index + 1}</td>
                                                             <td className="p-2">
                                                                 <select
                                                                     value={item.type}
@@ -807,7 +845,7 @@ const Calculations: React.FC = () => {
                                                                         newItems[index].type = e.target.value as 'principal' | 'cost';
                                                                         setBatchItems(newItems);
                                                                     }}
-                                                                    className={`w-full p-1.5 text-xs border rounded font-bold outline-none focus:ring-1 focus:ring-primary-500 ${item.type === 'cost' ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'}`}
+                                                                    className={`w-full p-1.5 text-xs border rounded font-bold outline-none ${item.type === 'cost' ? (isHybrid ? 'bg-amber-900/20 border-amber-800 text-amber-500 focus:ring-amber-500' : 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 focus:ring-1 focus:ring-primary-500') : (isHybrid ? 'bg-[#354751] border-[#354751] text-[#e9edef] focus:ring-[#00a884]' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 focus:ring-1 focus:ring-primary-500')}`}
                                                                 >
                                                                     <option value="principal">Principal</option>
                                                                     <option value="cost">Custa/Despesa</option>
@@ -823,7 +861,7 @@ const Calculations: React.FC = () => {
                                                                         newItems[index].description = e.target.value;
                                                                         setBatchItems(newItems);
                                                                     }}
-                                                                    className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                                    className={`w-full p-1.5 text-xs border rounded bg-transparent outline-none ${isHybrid ? "border-[#354751] text-[#e9edef] focus:ring-[#00a884] focus:border-[#00a884]" : "border-slate-200 dark:border-slate-700 focus:ring-primary-500"}`}
                                                                 />
                                                             </td>
                                                             <td className="p-2">
@@ -838,7 +876,7 @@ const Calculations: React.FC = () => {
                                                                         }
                                                                         setBatchItems(newItems);
                                                                     }}
-                                                                    className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                                    className={`w-full p-1.5 text-xs border rounded bg-transparent outline-none ${isHybrid ? "border-[#354751] text-[#e9edef] focus:ring-[#00a884] focus:border-[#00a884]" : "border-slate-200 dark:border-slate-700 focus:ring-primary-500"}`}
                                                                 />
                                                             </td>
                                                             <td className="p-2">
@@ -851,7 +889,7 @@ const Calculations: React.FC = () => {
                                                                         newItems[index].value = e.target.value;
                                                                         setBatchItems(newItems);
                                                                     }}
-                                                                    className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                                    className={`w-full p-1.5 text-xs border rounded bg-transparent outline-none ${isHybrid ? "border-[#354751] text-[#e9edef] focus:ring-[#00a884] focus:border-[#00a884]" : "border-slate-200 dark:border-slate-700 focus:ring-primary-500"}`}
                                                                 />
                                                             </td>
                                                             {batchInterestType !== '0' && interestMode === 'individual' && (
@@ -864,14 +902,14 @@ const Calculations: React.FC = () => {
                                                                             newItems[index].interestStartDate = e.target.value;
                                                                             setBatchItems(newItems);
                                                                         }}
-                                                                        className="w-full p-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded bg-transparent focus:ring-1 focus:ring-primary-500 outline-none"
+                                                                        className={`w-full p-1.5 text-xs border rounded bg-transparent outline-none ${isHybrid ? "border-[#354751] text-[#e9edef] focus:ring-[#00a884] focus:border-[#00a884]" : "border-slate-200 dark:border-slate-700 focus:ring-primary-500"}`}
                                                                     />
                                                                 </td>
                                                             )}
                                                             <td className="p-2 pr-4 text-right">
                                                                 <button
                                                                     onClick={() => setBatchItems(batchItems.filter(i => i.id !== item.id))}
-                                                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                                    className={`p-1.5 rounded transition-colors ${isHybrid ? "text-red-500 hover:bg-red-500/20" : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"}`}
                                                                     disabled={batchItems.length === 1}
                                                                 >
                                                                     <RotateCcw size={14} className="rotate-45" />
@@ -882,14 +920,14 @@ const Calculations: React.FC = () => {
                                                 })()}
                                             </tbody>
                                         </table>
-                                        <div className="p-4 bg-slate-50/50 dark:bg-dark-900/50 flex justify-between items-center no-print border-t border-slate-100 dark:border-slate-800">
+                                        <div className={`p-4 flex justify-between items-center no-print border-t ${isHybrid ? "bg-[#202c33]/50 border-[#354751]" : "bg-slate-50/50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-800"}`}>
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-                                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{batchItems.length} parcelas listadas</span>
+                                                <span className={`text-[10px] font-medium uppercase tracking-wider ${classes.textSecondary}`}>{batchItems.length} parcelas listadas</span>
                                             </div>
                                             <button
                                                 onClick={() => setBatchItems([...batchItems, { id: crypto.randomUUID(), startDate: '', value: '', type: 'principal' }])}
-                                                className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-2 transition-all hover:gap-3 px-3 py-1.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 active:scale-95"
+                                                className={`text-xs font-bold flex items-center gap-2 transition-all hover:gap-3 px-3 py-1.5 rounded-lg active:scale-95 ${isHybrid ? "text-[#00a884] hover:bg-[#00a884]/10" : "text-primary-600 hover:text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20"}`}
                                             >
                                                 <Plus size={16} /> ADICIONAR NOVA LINHA
                                             </button>
@@ -897,20 +935,20 @@ const Calculations: React.FC = () => {
                                     </div>
 
                                     <div className="flex flex-wrap gap-4 pt-8 justify-center no-print">
-                                        <button onClick={handleCalculateBatch} className="bg-[#2d3a4f] hover:bg-[#324158] text-white px-10 py-3.5 rounded-xl shadow-xl shadow-[#2d3a4f]/20 hover:shadow-[#2d3a4f]/40 transition-all flex items-center gap-3 font-bold active:scale-95">
+                                        <button onClick={handleCalculateBatch} className={`px-10 py-3.5 rounded-xl shadow-xl transition-all flex items-center gap-3 font-bold active:scale-95 ${isHybrid ? "bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20" : "bg-[#2d3a4f] hover:bg-[#324158] text-white shadow-[#2d3a4f]/20"}`}>
                                             <Calculator size={18} /> CALCULAR TUDO
                                         </button>
-                                        <button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3.5 rounded-xl shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-3 font-bold active:scale-95">
+                                        <button onClick={handleExport} className={`px-6 py-3.5 rounded-xl shadow-xl transition-all flex items-center gap-3 font-bold active:scale-95 ${isHybrid ? "bg-[#202c33] border border-[#354751] hover:bg-[#354751] text-[#e9edef]" : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"}`}>
                                             EXPORTAR CÁLCULO
                                         </button>
-                                        <button onClick={handleImport} className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3.5 rounded-xl shadow-xl shadow-amber-500/20 transition-all flex items-center gap-3 font-bold active:scale-95">
+                                        <button onClick={handleImport} className={`px-6 py-3.5 rounded-xl shadow-xl transition-all flex items-center gap-3 font-bold active:scale-95 ${isHybrid ? "bg-[#202c33] border border-[#354751] hover:bg-[#354751] text-[#e9edef]" : "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/20"}`}>
                                             IMPORTAR CÁLCULO
                                         </button>
-                                        <button onClick={handleClear} className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 px-10 py-3.5 rounded-xl transition-all flex items-center gap-3 font-bold active:scale-95 border-b-4 border-b-slate-100 dark:border-b-dark-900 active:border-b-0">
+                                        <button onClick={handleClear} className={`px-10 py-3.5 rounded-xl transition-all flex items-center gap-3 font-bold active:scale-95 border-b-4 active:border-b-0 ${isHybrid ? "bg-[#202c33] border-[#354751] border-b-[#2a3942] text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]" : "bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-700 border-b-slate-100 dark:border-b-dark-900"}`}>
                                             <RotateCcw size={18} /> LIMPAR
                                         </button>
                                         {result && result.isBatch && (
-                                            <button onClick={() => window.print()} className="bg-primary-600 hover:bg-primary-700 text-white px-10 py-3.5 rounded-xl shadow-xl shadow-primary-500/20 transition-all flex items-center gap-3 font-bold active:scale-95">
+                                            <button onClick={() => window.print()} className={`px-10 py-3.5 rounded-xl shadow-xl transition-all flex items-center gap-3 font-bold active:scale-95 ${isHybrid ? "bg-[#2a3942] border border-[#354751] hover:bg-[#354751] text-[#e9edef]" : "bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20"}`}>
                                                 <Printer size={18} /> IMPRIMIR
                                             </button>
                                         )}
@@ -919,7 +957,7 @@ const Calculations: React.FC = () => {
                             </>
                         )}
 
-                        <div className="mt-10 text-[10px] text-slate-500 dark:text-slate-400 space-y-1 border-t border-slate-100 dark:border-slate-700 pt-4 print:hidden">
+                        <div className={`mt-10 text-[12px] space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-5 print:hidden ${classes.textSecondary}`}>
                             <p>* Campos de preenchimento obrigatório</p>
                             <p>O cálculo acima não possui valor legal. Trata-se apenas de uma ferramenta de auxílio na elaboração de contas.</p>
                             <p>Datas devem ser informadas no formato dd/mm/aaaa.</p>
@@ -929,83 +967,83 @@ const Calculations: React.FC = () => {
 
                         {/* Results Display */}
                         {result && (
-                            <div className="mt-12 overflow-hidden border border-slate-200 dark:border-slate-700 rounded-lg animate-in fade-in duration-500 shadow-xl no-print-break">
-                                <div className="bg-slate-50 dark:bg-dark-900 border-b border-slate-200 dark:border-slate-700 p-6">
-                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <div className={`mt-12 overflow-hidden rounded-lg animate-in fade-in duration-500 shadow-xl no-print-break ${classes.tableWrapper}`}>
+                                <div className={`p-6 border-b ${classes.tableHeaderRow}`}>
+                                    <h3 className={`text-xl font-bold flex items-center gap-2 ${classes.textPrimary}`}>
                                         <Briefcase className="text-primary-500" size={20} /> Memória de Cálculo
                                     </h3>
                                 </div>
 
-                                <div className="p-0 bg-white dark:bg-dark-950 overflow-x-auto">
+                                <div className={`p-0 overflow-x-auto ${isHybrid ? "bg-[#2a3942]" : "bg-white dark:bg-dark-950"}`}>
                                     <table className="w-full text-sm">
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tbody className={`divide-y ${isHybrid ? "divide-[#354751]" : "divide-slate-100 dark:divide-slate-800"}`}>
                                             {!result.isBatch ? (
                                                 <>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Valor a ser atualizado:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.initialValue)}</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Valor a ser atualizado:</td>
+                                                        <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.initialValue)}</td>
                                                     </tr>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período de atualização monetária:</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Período de atualização monetária:</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>
                                                             de {formatDate(result.startDate)} até {formatDate(result.endDate)} ({result.daysDiffCorrection} dias)
                                                         </td>
                                                     </tr>
                                                     {result.interestRate > 0 && (
                                                         <>
-                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Tipo de juros:</td>
-                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">Juros Simples (360 dias no ano)</td>
+                                                            <tr className={classes.tableRowHover}>
+                                                                <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Tipo de juros:</td>
+                                                                <td className={`p-4 text-right ${classes.textSecondary}`}>Juros Simples (360 dias no ano)</td>
                                                             </tr>
-                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Taxa de juros:</td>
-                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate}% a.a</td>
+                                                            <tr className={classes.tableRowHover}>
+                                                                <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Taxa de juros:</td>
+                                                                <td className={`p-4 text-right ${classes.textSecondary}`}>{result.interestRate}% a.a</td>
                                                             </tr>
-                                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Período dos juros:</td>
-                                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                            <tr className={classes.tableRowHover}>
+                                                                <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Período dos juros:</td>
+                                                                <td className={`p-4 text-right ${classes.textSecondary}`}>
                                                                     de {formatDate(result.interestStartDate)} até {formatDate(result.endDate)} ({result.daysDiffInterest} dias)
                                                                 </td>
                                                             </tr>
                                                         </>
                                                     )}
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Honorários (%):</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Honorários (%):</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>{result.feesRate.toFixed(2)}%</td>
                                                     </tr>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Inicial:</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>UFIR Data Inicial:</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>
                                                             {getUfirValue(new Date(result.startDate + 'T12:00:00'))?.toFixed(4)}
                                                         </td>
                                                     </tr>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">UFIR Data Final (Ano {new Date(result.endDate + 'T12:00:00').getFullYear()}):</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>UFIR Data Final (Ano {new Date(result.endDate + 'T12:00:00').getFullYear()}):</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>
                                                             {getUfirValue(new Date(result.endDate + 'T12:00:00'))?.toFixed(4)}
                                                         </td>
                                                     </tr>
-                                                    <tr className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-dark-900/50">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Índice de correção monetária:</td>
-                                                        <td className="p-4 text-right font-mono font-medium text-slate-900 dark:text-white">{result.correctionFactor.toFixed(6)}</td>
+                                                    <tr className={`border-t-2 ${isHybrid ? "bg-[#2a3942] border-[#354751]" : "bg-slate-50/50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-800"}`}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Índice de correção monetária:</td>
+                                                        <td className={`p-4 text-right font-mono font-medium ${classes.textPrimary}`}>{result.correctionFactor.toFixed(6)}</td>
                                                     </tr>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor Principal Corrigido:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue)}</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Valor Principal Corrigido:</td>
+                                                        <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.correctedValue)}</td>
                                                     </tr>
                                                     {result.interestRate > 0 && (
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor dos juros:</td>
-                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.interestValue)}</td>
+                                                        <tr className={classes.tableRowHover}>
+                                                            <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Valor dos juros:</td>
+                                                            <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.interestValue)}</td>
                                                         </tr>
                                                     )}
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Valor corrigido + juros:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.correctedValue + result.interestValue)}</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Valor corrigido + juros:</td>
+                                                        <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.correctedValue + result.interestValue)}</td>
                                                     </tr>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Total de honorários:</td>
-                                                        <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.feesValue)}</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Total de honorários:</td>
+                                                        <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.feesValue)}</td>
                                                     </tr>
                                                 </>
                                             ) : (
@@ -1028,28 +1066,28 @@ const Calculations: React.FC = () => {
                                                                 <>
                                                                     {/* Principal Block */}
                                                                     {principalItems.length > 0 && (
-                                                                        <table className="w-full text-xs border-b border-slate-100 dark:border-slate-800">
-                                                                            <thead className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                                                                        <table className={`w-full text-xs border-b ${isHybrid ? "border-[#354751]" : "border-slate-100 dark:border-slate-800"}`}>
+                                                                            <thead className={`${isHybrid ? "bg-[#1d272e] text-[#00a884]" : "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"}`}>
                                                                                 <tr>
                                                                                     <td colSpan={6} className="px-3 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest">⬤ Principal</td>
                                                                                 </tr>
                                                                                 {colHeaders}
                                                                             </thead>
-                                                                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                                                                            <tbody className={`divide-y ${isHybrid ? "divide-[#354751]" : "divide-slate-50 dark:divide-slate-800/50"}`}>
                                                                                 {principalItems.map((item) => (
-                                                                                    <tr key={item.id} className="hover:bg-white dark:hover:bg-dark-900">
-                                                                                        <td className="p-3 text-slate-700 dark:text-slate-300">{item.description || '-'}</td>
-                                                                                        <td className="p-3 text-slate-700 dark:text-slate-300">{formatDate(item.startDate)}</td>
-                                                                                        <td className="p-3 text-right text-slate-700 dark:text-slate-300">{formatCurrency(item.initialValue)}</td>
-                                                                                        <td className="p-3 text-right text-slate-500 font-mono">{item.factor.toFixed(6)}</td>
-                                                                                        <td className="p-3 text-right font-medium text-slate-900 dark:text-white">{formatCurrency(item.correctedValue)}</td>
+                                                                                    <tr key={item.id} className={`${isHybrid ? "hover:bg-[#354751]" : "hover:bg-white dark:hover:bg-dark-900"}`}>
+                                                                                        <td className={`p-3 ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{item.description || '-'}</td>
+                                                                                        <td className={`p-3 ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{formatDate(item.startDate)}</td>
+                                                                                        <td className={`p-3 text-right ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{formatCurrency(item.initialValue)}</td>
+                                                                                        <td className={`p-3 text-right font-mono ${isHybrid ? "text-[#8696a0]" : "text-slate-500"}`}>{item.factor.toFixed(6)}</td>
+                                                                                        <td className={`p-3 text-right font-medium ${isHybrid ? "text-[#e9edef]" : "text-slate-900 dark:text-white"}`}>{formatCurrency(item.correctedValue)}</td>
                                                                                         <td className="p-3 text-right text-amber-600 dark:text-amber-400 font-medium">+{formatCurrency(item.interestValue)}</td>
                                                                                     </tr>
                                                                                 ))}
                                                                             </tbody>
-                                                                            <tfoot className="bg-blue-50/80 dark:bg-blue-900/20 font-semibold">
+                                                                            <tfoot className={`font-semibold ${isHybrid ? "bg-[#1d272e] border-t border-[#354751]" : "bg-blue-50/80 dark:bg-blue-900/20"}`}>
                                                                                 <tr>
-                                                                                    <td colSpan={4} className="p-3 text-blue-700 dark:text-blue-300">Subtotal Principal:</td>
+                                                                                    <td colSpan={4} className={`p-3 ${isHybrid ? "text-[#00a884]" : "text-blue-700 dark:text-blue-300"}`}>Subtotal Principal:</td>
                                                                                     <td colSpan={2} className="p-3 text-right text-blue-700 dark:text-blue-300">{formatCurrency(result.principalSubtotal || 0)}</td>
                                                                                 </tr>
                                                                             </tfoot>
@@ -1058,28 +1096,28 @@ const Calculations: React.FC = () => {
 
                                                                     {/* Costs Block */}
                                                                     {costItems.length > 0 && (
-                                                                        <table className="w-full text-xs border-b border-slate-100 dark:border-slate-800">
-                                                                            <thead className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300">
+                                                                        <table className={`w-full text-xs border-b ${isHybrid ? "border-[#354751]" : "border-slate-100 dark:border-slate-800"}`}>
+                                                                            <thead className={`${isHybrid ? "bg-[#1d272e] text-[#ffbc2c]" : "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"}`}>
                                                                                 <tr>
                                                                                     <td colSpan={6} className="px-3 pt-3 pb-1 text-[10px] font-black uppercase tracking-widest">⬤ Custas / Despesas Processuais</td>
                                                                                 </tr>
                                                                                 {colHeaders}
                                                                             </thead>
-                                                                            <tbody className="divide-y divide-amber-50 dark:divide-amber-800/20">
+                                                                            <tbody className={`divide-y ${isHybrid ? "divide-[#354751]" : "divide-amber-50 dark:divide-amber-800/20"}`}>
                                                                                 {costItems.map((item) => (
-                                                                                    <tr key={item.id} className="hover:bg-amber-50/30 dark:hover:bg-amber-900/10">
-                                                                                        <td className="p-3 text-slate-700 dark:text-slate-300">{item.description || '-'}</td>
-                                                                                        <td className="p-3 text-slate-700 dark:text-slate-300">{formatDate(item.startDate)}</td>
-                                                                                        <td className="p-3 text-right text-slate-700 dark:text-slate-300">{formatCurrency(item.initialValue)}</td>
-                                                                                        <td className="p-3 text-right text-slate-500 font-mono">{item.factor.toFixed(6)}</td>
-                                                                                        <td className="p-3 text-right font-medium text-slate-900 dark:text-white">{formatCurrency(item.correctedValue)}</td>
+                                                                                    <tr key={item.id} className={`${isHybrid ? "hover:bg-[#354751]" : "hover:bg-amber-50/30 dark:hover:bg-amber-900/10"}`}>
+                                                                                        <td className={`p-3 ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{item.description || '-'}</td>
+                                                                                        <td className={`p-3 ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{formatDate(item.startDate)}</td>
+                                                                                        <td className={`p-3 text-right ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{formatCurrency(item.initialValue)}</td>
+                                                                                        <td className={`p-3 text-right font-mono ${isHybrid ? "text-[#8696a0]" : "text-slate-500"}`}>{item.factor.toFixed(6)}</td>
+                                                                                        <td className={`p-3 text-right font-medium ${isHybrid ? "text-[#e9edef]" : "text-slate-900 dark:text-white"}`}>{formatCurrency(item.correctedValue)}</td>
                                                                                         <td className="p-3 text-right text-amber-600 dark:text-amber-400 font-medium">{item.interestValue > 0 ? '+' + formatCurrency(item.interestValue) : '-'}</td>
                                                                                     </tr>
                                                                                 ))}
                                                                             </tbody>
-                                                                            <tfoot className="bg-amber-50/80 dark:bg-amber-900/20 font-semibold">
+                                                                            <tfoot className={`font-semibold ${isHybrid ? "bg-[#1d272e] border-t border-[#354751]" : "bg-amber-50/80 dark:bg-amber-900/20"}`}>
                                                                                 <tr>
-                                                                                    <td colSpan={4} className="p-3 text-amber-700 dark:text-amber-300">Subtotal Custas:</td>
+                                                                                    <td colSpan={4} className={`p-3 ${isHybrid ? "text-[#ffbc2c]" : "text-amber-700 dark:text-amber-300"}`}>Subtotal Custas:</td>
                                                                                     <td colSpan={2} className="p-3 text-right text-amber-700 dark:text-amber-300">{formatCurrency(result.costsSubtotal || 0)}</td>
                                                                                 </tr>
                                                                             </tfoot>
@@ -1092,15 +1130,15 @@ const Calculations: React.FC = () => {
                                                 </tr>
                                             )}
 
-                                            <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Taxa de juros:</td>
-                                                <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
+                                            <tr className={classes.tableRowHover}>
+                                                <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Taxa de juros:</td>
+                                                <td className={`p-4 text-right ${classes.textSecondary}`}>{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
                                             </tr>
 
                                             {result.isBatch && result.interestRate > 0 && (
-                                                <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                    <td className="p-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">Incidência dos juros:</td>
-                                                    <td className="p-4 text-right text-slate-700 dark:text-slate-300">
+                                                <tr className={classes.tableRowHover}>
+                                                    <td className={`p-4 font-medium whitespace-nowrap ${classes.textSecondary}`}>Incidência dos juros:</td>
+                                                    <td className={`p-4 text-right ${classes.textSecondary}`}>
                                                         desde {formatDate(result.interestStartDate)} ({result.daysDiffInterest} dias)
                                                     </td>
                                                 </tr>
@@ -1108,45 +1146,45 @@ const Calculations: React.FC = () => {
 
                                             {result.isBatch && (
                                                 <>
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Honorários (%):</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{result.feesRate.toFixed(2)}%</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Honorários (%):</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>{result.feesRate.toFixed(2)}%</td>
                                                     </tr>
 
-                                                    <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
-                                                        <td className="p-4 text-slate-600 dark:text-slate-400 font-medium">Atualizado até:</td>
-                                                        <td className="p-4 text-right text-slate-700 dark:text-slate-300">{formatDate(result.endDate)}</td>
+                                                    <tr className={classes.tableRowHover}>
+                                                        <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Atualizado até:</td>
+                                                        <td className={`p-4 text-right ${classes.textSecondary}`}>{formatDate(result.endDate)}</td>
                                                     </tr>
                                                 </>
                                             )}
 
-                                            <tr className="bg-slate-50 dark:bg-dark-900 border-t border-slate-200 dark:border-slate-700">
-                                                <td className="p-4 text-slate-900 dark:text-white font-bold uppercase">Subtotal:</td>
-                                                <td className="p-4 text-right font-bold text-lg text-primary-600 dark:text-primary-400">{formatCurrency(result.subtotal)}</td>
+                                            <tr className={`border-t ${isHybrid ? "bg-[#2a3942] border-[#354751]" : "bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700"}`}>
+                                                <td className={`p-4 font-bold uppercase ${isHybrid ? "text-[#e9edef]" : "text-slate-900 dark:text-white"}`}>Subtotal:</td>
+                                                <td className={`p-4 text-right font-bold text-lg ${isHybrid ? "text-[#00a884]" : "text-primary-600 dark:text-primary-400"}`}>{formatCurrency(result.subtotal)}</td>
                                             </tr>
 
                                             {(result.fine523 > 0 || result.fees523 > 0) && (
                                                 <>
-                                                    <tr className="bg-slate-50 dark:bg-dark-900 font-medium">
-                                                        <td colSpan={2} className="p-4 text-slate-800 dark:text-white uppercase tracking-wider text-xs">Art. 523 § 1º CPC</td>
+                                                    <tr className={`font-medium ${isHybrid ? "bg-[#2a3942]" : "bg-slate-50 dark:bg-dark-900"}`}>
+                                                        <td colSpan={2} className={`p-4 uppercase tracking-wider text-xs ${isHybrid ? "text-[#aebac1]" : "text-slate-800 dark:text-white"}`}>Art. 523 § 1º CPC</td>
                                                     </tr>
                                                     {result.fine523 > 0 && (
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <tr className={classes.tableRowHover}>
                                                             <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Multa - 10%:</td>
-                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fine523)}</td>
+                                                            <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.fine523)}</td>
                                                         </tr>
                                                     )}
                                                     {result.fees523 > 0 && (
-                                                        <tr className="hover:bg-slate-50 dark:hover:bg-dark-900 transition-colors">
+                                                        <tr className={classes.tableRowHover}>
                                                             <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Honorários - 10%:</td>
-                                                            <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{formatCurrency(result.fees523)}</td>
+                                                            <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.fees523)}</td>
                                                         </tr>
                                                     )}
                                                 </>
                                             )}
-                                            <tr className="bg-primary-50 dark:bg-primary-900/20 border-t-2 border-primary-500">
-                                                <td className="p-6 text-primary-900 dark:text-primary-400 font-black text-lg uppercase">Total Geral:</td>
-                                                <td className="p-6 text-right font-black text-2xl text-primary-600 dark:text-primary-400">{formatCurrency(result.total)}</td>
+                                            <tr className={`border-t-2 ${isHybrid ? "bg-[#1d272e] border-[#00a884]" : "bg-primary-50 dark:bg-primary-900/20 border-primary-500"}`}>
+                                                <td className={`p-6 font-black text-lg uppercase ${isHybrid ? "text-[#00a884]" : "text-primary-900 dark:text-primary-400"}`}>Total Geral:</td>
+                                                <td className={`p-6 text-right font-black text-2xl ${isHybrid ? "text-[#00a884]" : "text-primary-600 dark:text-primary-400"}`}>{formatCurrency(result.total)}</td>
                                             </tr>
                                         </tbody>
                                     </table>
