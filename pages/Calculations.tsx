@@ -731,11 +731,11 @@ const Calculations: React.FC = () => {
                                                     <div className="flex gap-4">
                                                         <label className={`flex items-center gap-2 text-sm cursor-pointer group ${classes.textSecondary}`}>
                                                             <input type="checkbox" checked={batchHasFine523} onChange={(e) => setBatchHasFine523(e.target.checked)} className={`w-4 h-4 rounded transition-all ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 text-primary-600 focus:ring-primary-500"}`} />
-                                                            <span className="group-hover:text-primary-600 transition-colors">10% Multa</span>
+                                                             <span className={`${isHybrid ? "group-hover:text-[#00a884]" : "group-hover:text-primary-600"} transition-colors`}>10% Multa</span>
                                                         </label>
                                                         <label className={`flex items-center gap-2 text-sm cursor-pointer group ${classes.textSecondary}`}>
                                                             <input type="checkbox" checked={batchHasFees523} onChange={(e) => setBatchHasFees523(e.target.checked)} className={`w-4 h-4 rounded transition-all ${isHybrid ? "text-[#00a884] focus:ring-[#00a884] bg-[#2a3942] border-[#354751]" : "border-slate-300 text-primary-600 focus:ring-primary-500"}`} />
-                                                            <span className="group-hover:text-primary-600 transition-colors">10% Honorários</span>
+                                                             <span className={`${isHybrid ? "group-hover:text-[#00a884]" : "group-hover:text-primary-600"} transition-colors`}>10% Honorários</span>
                                                         </label>
                                                     </div>
                                                     {batchInterestType !== '0' && (
@@ -1047,7 +1047,7 @@ const Calculations: React.FC = () => {
                                                     </tr>
                                                 </>
                                             ) : (
-                                                <tr className="bg-slate-50/50 dark:bg-dark-900/50">
+                                                <tr className={isHybrid ? "bg-[#202c33]/50" : "bg-slate-50/50 dark:bg-dark-900/50"}>
                                                     <td colSpan={2} className="p-0">
                                                         {(() => {
                                                             const principalItems = result.batchDetails?.filter(i => i.type === 'principal') || [];
@@ -1081,14 +1081,14 @@ const Calculations: React.FC = () => {
                                                                                         <td className={`p-3 text-right ${isHybrid ? "text-[#e9edef]" : "text-slate-700 dark:text-slate-300"}`}>{formatCurrency(item.initialValue)}</td>
                                                                                         <td className={`p-3 text-right font-mono ${isHybrid ? "text-[#8696a0]" : "text-slate-500"}`}>{item.factor.toFixed(6)}</td>
                                                                                         <td className={`p-3 text-right font-medium ${isHybrid ? "text-[#e9edef]" : "text-slate-900 dark:text-white"}`}>{formatCurrency(item.correctedValue)}</td>
-                                                                                        <td className="p-3 text-right text-amber-600 dark:text-amber-400 font-medium">+{formatCurrency(item.interestValue)}</td>
+                                                                                         <td className={`p-3 text-right font-medium ${isHybrid ? "text-[#ffbc2c]" : "text-amber-600 dark:text-amber-400"}`}>+{formatCurrency(item.interestValue)}</td>
                                                                                     </tr>
                                                                                 ))}
                                                                             </tbody>
                                                                             <tfoot className={`font-semibold ${isHybrid ? "bg-[#1d272e] border-t border-[#354751]" : "bg-blue-50/80 dark:bg-blue-900/20"}`}>
                                                                                 <tr>
                                                                                     <td colSpan={4} className={`p-3 ${isHybrid ? "text-[#00a884]" : "text-blue-700 dark:text-blue-300"}`}>Subtotal Principal:</td>
-                                                                                    <td colSpan={2} className="p-3 text-right text-blue-700 dark:text-blue-300">{formatCurrency(result.principalSubtotal || 0)}</td>
+                                                                                     <td colSpan={2} className={`p-3 text-right ${isHybrid ? "text-[#e9edef]" : "text-blue-700 dark:text-blue-300"}`}>{formatCurrency(result.principalSubtotal || 0)}</td>
                                                                                 </tr>
                                                                             </tfoot>
                                                                         </table>
@@ -1118,7 +1118,7 @@ const Calculations: React.FC = () => {
                                                                             <tfoot className={`font-semibold ${isHybrid ? "bg-[#1d272e] border-t border-[#354751]" : "bg-amber-50/80 dark:bg-amber-900/20"}`}>
                                                                                 <tr>
                                                                                     <td colSpan={4} className={`p-3 ${isHybrid ? "text-[#ffbc2c]" : "text-amber-700 dark:text-amber-300"}`}>Subtotal Custas:</td>
-                                                                                    <td colSpan={2} className="p-3 text-right text-amber-700 dark:text-amber-300">{formatCurrency(result.costsSubtotal || 0)}</td>
+                                                                                     <td colSpan={2} className={`p-3 text-right ${isHybrid ? "text-[#e9edef]" : "text-amber-700 dark:text-amber-300"}`}>{formatCurrency(result.costsSubtotal || 0)}</td>
                                                                                 </tr>
                                                                             </tfoot>
                                                                         </table>
@@ -1132,7 +1132,7 @@ const Calculations: React.FC = () => {
 
                                             <tr className={classes.tableRowHover}>
                                                 <td className={`p-4 font-medium ${isHybrid ? "text-[#aebac1]" : "text-slate-600 dark:text-slate-400"}`}>Taxa de juros:</td>
-                                                <td className={`p-4 text-right ${classes.textSecondary}`}>{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
+                                                 <td className={`p-4 text-right ${isHybrid ? "text-[#e9edef]" : classes.textSecondary}`}>{result.interestRate > 0 ? `${result.interestRate}% a.a` : 'Sem juros'}</td>
                                             </tr>
 
                                             {result.isBatch && result.interestRate > 0 && (
@@ -1170,13 +1170,13 @@ const Calculations: React.FC = () => {
                                                     </tr>
                                                     {result.fine523 > 0 && (
                                                         <tr className={classes.tableRowHover}>
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Multa - 10%:</td>
+                                                             <td className={`p-4 pl-8 font-medium ${isHybrid ? "text-[#e9edef]" : "text-slate-600 dark:text-slate-400"}`}>Multa - 10%:</td>
                                                             <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.fine523)}</td>
                                                         </tr>
                                                     )}
                                                     {result.fees523 > 0 && (
                                                         <tr className={classes.tableRowHover}>
-                                                            <td className="p-4 text-slate-600 dark:text-slate-400 pl-8 font-medium">Honorários - 10%:</td>
+                                                             <td className={`p-4 pl-8 font-medium ${isHybrid ? "text-[#e9edef]" : "text-slate-600 dark:text-slate-400"}`}>Honorários - 10%:</td>
                                                             <td className={`p-4 text-right font-bold ${classes.textPrimary}`}>{formatCurrency(result.fees523)}</td>
                                                         </tr>
                                                     )}
