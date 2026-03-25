@@ -11,7 +11,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
     return (
         <div className={`md:hidden fixed top-0 left-0 right-0 h-16 border-b px-4 flex items-center justify-between z-[100] no-print transition-colors ${theme === 'hybrid'
             ? 'bg-[#111b21] border-[#202c33]'
-            : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800')
+            : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800'
             }`}>
             <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-primary-600'}`}>

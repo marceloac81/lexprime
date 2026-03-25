@@ -493,12 +493,12 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             {/* Header - Sticky */}
             <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
-                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Publicações DJEN</h1>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Publicações DJEN</h1>
 
                             {/* Animated Results Badge */}
                             {totalCount > 0 && (
@@ -512,7 +512,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                 </div>
                             )}
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Consulte publicações do Diário de Justiça Eletrônico Nacional.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Consulte publicações do Diário de Justiça Eletrônico Nacional.</p>
                     </div>
 
                     <button

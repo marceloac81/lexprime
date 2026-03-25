@@ -51,12 +51,12 @@ const Calculations: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'civic' | 'batch'>('civic');
     
     const isHybrid = theme === 'hybrid';
-    const isSober = theme === 'sober';
+
     const classes = {
         container: `animate-fade-in pb-20 relative min-h-full ${isHybrid ? 'bg-[#222e35]' : ''}`,
-        header: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751] shadow-none' : (isSober ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')}`,
-        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : (isSober ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`,
-        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : (isSober ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`,
+        header: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751] shadow-none' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`,
+        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`,
+        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`,
         
         mainPanel: `rounded-xl shadow-lg border p-8 ${isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
         genPanel: `p-5 rounded-2xl border relative overflow-hidden group/gen no-print ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50 dark:bg-dark-900/40 border-slate-200 dark:border-slate-700'}`,

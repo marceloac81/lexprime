@@ -175,16 +175,16 @@ export const Dashboard: React.FC = () => {
       {/* Header - Sticky */}
       <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
           ? 'bg-[#202c33] border-emerald-500/20'
-          : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+          : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
           }`}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Dashboard</h1>
-            <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Bem-vindo(a) ao LexPrime.</p>
+            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Dashboard</h1>
+            <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Bem-vindo(a) ao LexPrime.</p>
           </div>
           <div className="text-left md:text-right">
-            <p className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-500' : 'text-slate-400')}`}>Hoje</p>
-            <p className={`text-lg font-bold capitalize leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>
+            <p className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>Hoje</p>
+            <p className={`text-lg font-bold capitalize leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
               {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>

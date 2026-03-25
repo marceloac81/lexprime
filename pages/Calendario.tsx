@@ -156,15 +156,15 @@ export const Calendario: React.FC = () => {
             {/* Header - Sticky */}
             <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
-                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Calendário</h1>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Calendário</h1>
                             <CalendarIcon size={24} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'} />
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie seus compromissos e prazos.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie seus compromissos e prazos.</p>
                     </div>
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                         <div className={`flex rounded-lg border shadow-sm relative date-picker-container z-20 ${theme === 'hybrid' ? 'bg-[#202c33] border-[#202c33]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>

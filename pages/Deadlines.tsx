@@ -397,13 +397,13 @@ export const Deadlines: React.FC = () => {
             {/* Header - Sticky */}
             <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
-                : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')
+                : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Title & Badge */}
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-3 shrink-0">
-                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>Prazos</h1>
+                            <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Prazos</h1>
 
                             {/* Animated Pending Badge */}
                             {deadlines.filter(d => getStatus(d) === 'Pending').length > 0 && (
@@ -419,7 +419,7 @@ export const Deadlines: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : (theme === 'sober' ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`}>Gerencie e acompanhe todos os seus prazos processuais.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Gerencie e acompanhe todos os seus prazos processuais.</p>
                     </div>
 
                     {/* Consolidated Filters and Search */}

@@ -77,7 +77,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden transition-colors font-sans animate-fade-in ${theme === 'dark' ? 'bg-dark-950' : 'bg-white'}`}>
+    <div className={`flex h-screen w-screen overflow-hidden transition-colors font-sans animate-fade-in ${theme === 'hybrid' ? 'bg-[#222e35]' : 'bg-white'}`}>
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (

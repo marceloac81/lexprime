@@ -28,9 +28,7 @@ const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed, t
         : 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold')
       : (theme === 'hybrid'
         ? 'text-[#e9edef] hover:bg-[#202c33] hover:text-[#00a884]'
-        : (theme === 'sober'
-          ? 'text-slate-700 hover:bg-slate-300/50 hover:text-slate-900'
-          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white'))
+        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-800 hover:text-slate-900 dark:hover:text-white')
       } ${collapsed ? 'justify-center' : ''}`}
   >
     <Icon size={20} className={`transition-colors flex-shrink-0 ${active
@@ -39,9 +37,7 @@ const NavItem = ({ page, icon: Icon, label, active, onClick, count, collapsed, t
         : 'text-primary-600 dark:text-primary-400')
       : (theme === 'hybrid'
         ? 'text-[#8696a0] group-hover:text-[#00a884]'
-        : (theme === 'sober'
-          ? 'text-slate-600 group-hover:text-slate-800'
-          : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white'))}`} />
+        : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white')}`} />
 
     {!collapsed && <span>{label}</span>}
 
@@ -69,8 +65,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
 
   const themeOptions = [
     { value: 'light', label: 'Claro', icon: '☀' },
-    { value: 'sober', label: 'Neutro', icon: '🧊' },
-    { value: 'dark', label: 'Dark', icon: '🌙' },
     { value: 'hybrid', label: 'Dark Verde', icon: '💬' }
   ];
 
@@ -120,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         fixed inset-y-0 left-0 z-[120] 
         ${theme === 'hybrid'
         ? 'bg-[#111b21] border-[#202c33]'
-        : (theme === 'sober' ? 'bg-slate-200 border-slate-300' : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800')
+        : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-800'
       }
         border-r 
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
@@ -158,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         onClick={toggleCollapse}
         className={`hidden md:flex absolute -right-3 top-9 z-50 w-6 h-6 border rounded-full items-center justify-center transition-colors shadow-sm ${theme === 'hybrid'
           ? 'bg-[#202c33] border-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
-          : (theme === 'sober' ? 'bg-slate-300 border-slate-400 text-slate-600 hover:text-slate-900' : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white')
+          : 'bg-slate-100 dark:bg-dark-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white'
           }`}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -174,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         <NavItem collapsed={collapsed} theme={theme} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} theme={theme} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
 
-        {collapsed && <div className={`my-4 h-px w-full ${theme === 'hybrid' ? 'bg-[#202c33]' : (theme === 'sober' ? 'bg-slate-300' : 'bg-slate-200 dark:bg-slate-800')}`} />}
+        {collapsed && <div className={`my-4 h-px w-full ${theme === 'hybrid' ? 'bg-[#202c33]' : 'bg-slate-200 dark:bg-slate-800'}`} />}
 
         <NavItem collapsed={collapsed} theme={theme} page="team" icon={User} label="Equipe" active={activePage === 'team'} onClick={handleNavClick} />
         {currentUser?.isAdmin && (
@@ -182,10 +176,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         )}
       </nav>
 
-      <div className={`p-4 border-t ${theme === 'hybrid' ? 'border-[#202c33]' : (theme === 'sober' ? 'border-slate-300' : 'border-slate-200 dark:border-slate-800')} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+      <div className={`p-4 border-t ${theme === 'hybrid' ? 'border-[#202c33]' : 'border-slate-200 dark:border-slate-800'} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
         <div className={`rounded-xl p-3 flex items-center gap-3 border ${collapsed ? 'justify-center p-2' : ''} ${theme === 'hybrid'
           ? 'bg-[#202c33] border-[#202c33]'
-          : (theme === 'sober' ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700')
+          : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700'
           }`}>
           <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
             {currentUser?.photo ? (
@@ -196,8 +190,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-bold break-words leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : (theme === 'sober' ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>{currentUser?.name}</p>
-              <p className={`text-xs truncate ${theme === 'hybrid' ? 'text-[#8696a0]' : (theme === 'sober' ? 'text-slate-600' : 'text-slate-500')}`}>{currentUser?.role}</p>
+              <p className={`text-xs font-bold break-words leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{currentUser?.name}</p>
+              <p className={`text-xs truncate ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>{currentUser?.role}</p>
             </div>
           )}
           {!collapsed && (
@@ -206,52 +200,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
             </button>
           )}
         </div>
-        {/* Theme Selector Dropdown */}
-        <div className="relative" ref={themeMenuRef}>
+        {/* Modern Segmented Theme Switcher */}
+        <div className={`mt-4 p-1 rounded-[14px] flex transition-all relative ${collapsed ? 'flex-col gap-1.5 items-center' : 'w-full gap-1'} 
+          ${theme === 'hybrid' 
+            ? 'bg-[#1c272e] shadow-inner shadow-black/20' 
+            : 'bg-slate-100/80 dark:bg-dark-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-inner'
+          }`}>
+          
           <button
-            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${collapsed ? 'px-0 justify-center' : ''} ${theme === 'hybrid'
-              ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33]'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-dark-800'
-              } ${isThemeMenuOpen ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-50 dark:bg-dark-800') : ''}`}
-            title={collapsed ? `Tema: ${currentThemeLabel}` : ""}
+            onClick={() => setTheme('light')}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[11px] text-[10px] font-bold uppercase tracking-wider transition-all duration-300 relative z-10
+              ${collapsed ? 'w-10 h-10 p-0' : 'flex-1'}
+              ${theme === 'light' 
+                ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-600 scale-[1.02]' 
+                : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
+            title="Tema Claro"
           >
-            <div className="flex items-center gap-2 overflow-hidden">
-              {!collapsed && (
-                <span className="truncate">🎨 Tema: <span className="font-bold">{currentThemeLabel}</span></span>
-              )}
-              {collapsed && <span className="text-sm">🎨</span>}
-            </div>
-            {!collapsed && <ChevronUp size={12} className={`transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-0' : 'rotate-180'}`} />}
+            <Sun size={collapsed ? 20 : 14} className={theme === 'light' ? 'animate-pulse-subtle' : ''} />
+            {!collapsed && <span>Claro</span>}
           </button>
-
-          {isThemeMenuOpen && (
-            <div className={`absolute bottom-full left-0 w-full mb-2 p-1.5 rounded-xl border shadow-2xl z-[150] animate-scale-in ${theme === 'hybrid'
-              ? 'bg-[#1c272e] border-[#202c33] text-[#e9edef]'
-              : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-dark-700 text-slate-700 dark:text-slate-200'
-              }`}>
-              <div className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 mb-1 border-b ${theme === 'hybrid' ? 'text-[#8696a0] border-[#202c33]' : 'text-slate-400 border-slate-100 dark:border-dark-700'}`}>
-                Escolher Tema
-              </div>
-              {themeOptions.map((opt: any) => (
-                <button
-                  key={opt.value}
-                  onClick={() => {
-                    setTheme(opt.value);
-                    setIsThemeMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors group ${theme === opt.value
-                    ? (theme === 'hybrid' ? 'bg-[#00a884]/10 text-[#00a884] font-bold' : 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold')
-                    : (theme === 'hybrid' ? 'hover:bg-[#202c33]' : 'hover:bg-slate-50 dark:hover:bg-dark-700')
-                    }`}
-                >
-                  <span className="text-base shrink-0">{opt.icon}</span>
-                  <span className="flex-1 text-left">{opt.label}</span>
-                  {theme === opt.value && <Check size={12} className="shrink-0" />}
-                </button>
-              ))}
-            </div>
-          )}
+          
+          <button
+            onClick={() => setTheme('hybrid')}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[11px] text-[10px] font-bold uppercase tracking-wider transition-all duration-300 relative z-10
+              ${collapsed ? 'w-10 h-10 p-0' : 'flex-1'}
+              ${theme === 'hybrid' 
+                ? 'bg-[#00a884] shadow-[0_2px_12px_rgba(0,168,132,0.3)] text-white scale-[1.02]' 
+                : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-white/5'}`}
+            title="Tema Escuro"
+          >
+            <Moon size={collapsed ? 20 : 14} className={theme === 'hybrid' ? 'animate-float-subtle' : ''} />
+            {!collapsed && <span>Escuro</span>}
+          </button>
         </div>
       </div>
     </aside>

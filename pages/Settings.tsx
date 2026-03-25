@@ -139,13 +139,12 @@ export const Settings: React.FC = () => {
     };
 
     const isHybrid = theme === 'hybrid';
-    const isSober = theme === 'sober';
 
     const classes = {
         container: `animate-fade-in pb-20 relative min-h-full flex flex-col ${isHybrid ? 'bg-[#222e35]' : ''}`,
-        headerContainer: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751]' : (isSober ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')}`,
-        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : (isSober ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`,
-        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : (isSober ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`,
+        headerContainer: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`,
+        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`,
+        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`,
         
         panel: `rounded-xl shadow-sm border ${isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`,
         subPanel: `rounded-lg border ${isHybrid ? 'bg-[#202c33] border-[#354751]' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700'}`,
@@ -199,17 +198,17 @@ export const Settings: React.FC = () => {
                         <h3 className={`text-lg font-bold mb-4 ${classes.textPrimary}`}>Aparência</h3>
                         <div className={`flex items-center justify-between p-4 ${classes.subPanel}`}>
                             <div className="flex items-center gap-3">
-                                {isDarkMode ? <Moon className="text-purple-500" /> : (theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : (theme === 'sober' ? <Clock className={classes.textSecondary} /> : <Sun className="text-orange-500" />))}
+                                 {theme === 'hybrid' ? <Moon className="text-[#00a884]" /> : <Sun className="text-orange-500" />}
                                 <div>
-                                    <p className={`font-medium ${classes.textPrimary}`}>Tema: {theme === 'dark' ? 'Dark' : theme === 'hybrid' ? 'Dark Verde' : theme === 'sober' ? 'Neutro' : 'Claro'}</p>
+                                    <p className={`font-medium ${classes.textPrimary}`}>Tema: {theme === 'hybrid' ? 'Escuro' : 'Claro'}</p>
                                     <p className={`text-xs ${classes.textSecondary}`}>Altere o visual da interface</p>
                                 </div>
                             </div>
-                            <button
+                             <button
                                 onClick={toggleTheme}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-primary-600' : theme === 'hybrid' ? 'bg-[#00a884]' : theme === 'sober' ? 'bg-slate-500' : 'bg-slate-300'}`}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-slate-300'}`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${theme === 'dark' || theme === 'hybrid' || theme === 'sober' ? 'left-7' : 'left-1'}`} />
+                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${theme === 'hybrid' ? 'left-7' : 'left-1'}`} />
                             </button>
                         </div>
                     </div>

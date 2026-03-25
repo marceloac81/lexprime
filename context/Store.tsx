@@ -53,8 +53,8 @@ interface StoreContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;
 
-  theme: 'light' | 'dark' | 'sober' | 'hybrid';
-  setTheme: (theme: 'light' | 'dark' | 'sober' | 'hybrid') => void;
+  theme: 'light' | 'hybrid';
+  setTheme: (theme: 'light' | 'hybrid') => void;
   toggleTheme: () => void;
   isDarkMode: boolean;
 
@@ -372,12 +372,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'sober' | 'hybrid'>(() => {
+  const [theme, setTheme] = useState<'light' | 'hybrid'>(() => {
     const saved = localStorage.getItem('lexprime_theme');
-    if (saved === 'dark' || saved === 'sober' || saved === 'hybrid') return saved as any;
+    if (saved === 'hybrid') return saved as any;
     return 'light';
   });
-  const isDarkMode = theme === 'dark';
+  const isDarkMode = false;
   const [notifications, setNotifications] = useState<{ id: string, msg: string, type: 'info' | 'warning' | 'success' }[]>([]);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -541,11 +541,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Sync to local storage as backup
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
     localStorage.setItem('lexprime_theme', theme);
   }, [theme]);
 
@@ -1315,9 +1311,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const toggleTheme = () => {
     setTheme(prev => {
-      if (prev === 'light') return 'dark';
-      if (prev === 'dark') return 'sober';
-      if (prev === 'sober') return 'hybrid';
+      if (prev === 'light') return 'hybrid';
       return 'light';
     });
   };

@@ -212,13 +212,12 @@ export const Team: React.FC = () => {
     };
 
     const isHybrid = theme === 'hybrid';
-    const isSober = theme === 'sober';
 
     const classes = {
         container: `animate-fade-in pb-20 relative min-h-full flex flex-col ${isHybrid ? 'bg-[#222e35]' : ''}`,
-        headerContainer: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-emerald-500/20' : (isSober ? 'bg-slate-200 border-slate-300' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800')}`,
-        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : (isSober ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`,
-        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : (isSober ? 'text-slate-700' : 'text-slate-500 dark:text-slate-400')}`,
+        headerContainer: `sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${isHybrid ? 'bg-[#202c33] border-emerald-500/20' : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'}`,
+        pageTitle: `text-2xl md:text-3xl font-bold tracking-tight ${isHybrid ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`,
+        pageSubtitle: `text-sm mt-1 ${isHybrid ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`,
         panel: isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700',
         input: isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-[#00a884]/50 focus:border-[#00a884]' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 focus:ring-primary-500 text-slate-900 dark:text-white',
         inputIcon: isHybrid ? 'text-[#aebac1]' : 'text-slate-400',
