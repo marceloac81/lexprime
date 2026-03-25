@@ -6,6 +6,7 @@ import { useStore } from '../context/Store';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
+import { DateRangePicker } from '../components/DateRangePicker';
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -51,8 +52,9 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const [selectedOabs, setSelectedOabs] = useState<string[]>(['5173']);
     const [uf, setUf] = useState('RJ');
     const [processo, setProcesso] = useState('');
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-    const [endDate, setEndDate] = useState('');
+    const todayYMD = new Date().toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState(todayYMD);
+    const [endDate, setEndDate] = useState(todayYMD);
 
     // Pagination
     const [pageNumber, setPageNumber] = useState(1);
@@ -537,20 +539,18 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     <div className="flex flex-wrap lg:flex-nowrap gap-6">
 
                         {/* Multi-select OAB Dropdown with Manual Entry */}
-                        <div className="flex-1 min-w-[300px] flex flex-col gap-1.5" ref={oabDropdownRef}>
+                        <div className="flex-1 min-w-[480px] flex flex-col gap-1.5" ref={oabDropdownRef}>
                             <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>OABs da Equipe</span>
                             <div className="relative">
                                 <div className={`w-full flex items-center pl-4 pr-3 py-1.5 rounded-xl border transition-all min-h-[46px] ${theme === 'hybrid' 
-                                    ? 'bg-transparent border-[#354751] focus-within:ring-2 focus-within:ring-[#00a884]/20 focus-within:border-[#00a884]' 
+                                    ? 'bg-transparent border-[#354751] focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500' 
                                     : 'bg-slate-50 dark:bg-dark-800 border-slate-200 dark:border-dark-700 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500'}`}>
                                     <User className="h-4 w-4 text-slate-400 shrink-0 mr-2" />
                                     <div className="flex flex-wrap gap-1 flex-1 overflow-hidden">
                                         {selectedOabs.map(o => (
-                                            <span key={o} className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 ${theme === 'hybrid' 
-                                                ? 'bg-[#00a884]/20 text-[#00a884]' 
-                                                : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'}`}>
+                                            <span key={o} className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300`}>
                                                 {o}
-                                                <X size={10} className="cursor-pointer hover:opacity-70" onClick={() => toggleOab(o)} />
+                                                <X size={10} className="cursor-pointer hover:opacity-70" onClick={(e) => { e.stopPropagation(); toggleOab(o); }} />
                                             </span>
                                         ))}
                                         <input
@@ -560,7 +560,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                             onChange={(e) => setManualOab(e.target.value)}
                                             onKeyDown={handleAddManualOab}
                                             onFocus={() => setIsOabDropdownOpen(true)}
-                                            className={`bg-transparent border-none outline-none text-sm flex-1 min-w-[80px] ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'placeholder:text-slate-400'}`}
+                                            className={`bg-transparent border-none outline-none text-sm flex-1 ${selectedOabs.length >= 5 ? 'min-w-[10px]' : 'min-w-[80px]'} ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'placeholder:text-slate-400'}`}
                                         />
                                     </div>
                                     <ChevronDown
@@ -587,8 +587,8 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                     className="hidden"
                                                 />
                                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selectedOabs.includes(o) 
-                                                    ? (theme === 'hybrid' ? 'bg-[#00a884] border-[#00a884]' : 'bg-blue-600 border-blue-600') 
-                                                    : (theme === 'hybrid' ? 'border-[#354751] group-hover:border-[#00a884]' : 'border-slate-300 dark:border-slate-600 group-hover:border-blue-400')}`}>
+                                                    ? 'bg-blue-600 border-blue-600' 
+                                                    : (theme === 'hybrid' ? 'border-[#354751] group-hover:border-blue-500' : 'border-slate-300 dark:border-slate-600 group-hover:border-blue-400')}`}>
                                                     {selectedOabs.includes(o) && <Check size={12} className="text-white" />}
                                                 </div>
                                                 <span className={`text-sm font-medium ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700 dark:text-slate-300'}`}>{o}</span>
@@ -616,7 +616,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         </div>
 
                         {/* Processo - Expanded */}
-                        <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
+                        <div className="flex-1 min-w-[130px] flex flex-col gap-1.5">
                             <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Processo</span>
                             <div className="relative">
                                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -632,27 +632,13 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             </div>
                         </div>
 
-                        {/* Datas */}
-                        <div className="w-40 shrink-0 flex flex-col gap-1.5">
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Disp. Início</span>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all h-[46px] ${theme === 'hybrid' 
-                                    ? 'bg-transparent border-[#354751] text-[#e9edef] focus:ring-2 focus:ring-[#00a884]/20 focus:border-[#00a884]' 
-                                    : 'bg-slate-50 dark:bg-dark-800 border-slate-200 dark:border-dark-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'}`}
-                            />
-                        </div>
-                        <div className="w-40 shrink-0 flex flex-col gap-1.5">
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Disp. Fim</span>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all h-[46px] ${theme === 'hybrid' 
-                                    ? 'bg-transparent border-[#354751] text-[#e9edef] focus:ring-2 focus:ring-[#00a884]/20 focus:border-[#00a884]' 
-                                    : 'bg-slate-50 dark:bg-dark-800 border-slate-200 dark:border-dark-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'}`}
+                        {/* Date Range Picker */}
+                        <div className="flex-1 min-w-[180px] flex flex-col gap-1.5">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Período de Disponibilização</span>
+                            <DateRangePicker
+                                startDate={startDate}
+                                endDate={endDate}
+                                onChange={(s, e) => { setStartDate(s); setEndDate(e); }}
                             />
                         </div>
                     </div>
