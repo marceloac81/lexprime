@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer, Eye, CalendarPlus, FolderPlus, Copy } from 'lucide-react';
+import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Eye, CalendarPlus, FolderPlus, Copy } from 'lucide-react';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
@@ -58,7 +58,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
     // Pagination
     const [pageNumber, setPageNumber] = useState(1);
-    const itemsPerPage = 10;
+    const itemsPerPage = 30;
 
     // Modal State
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
@@ -71,9 +71,19 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const [manualOab, setManualOab] = useState('');
     // Selection State
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const [readItems, setReadItems] = useState<Set<string>>(new Set());
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [detailItem, setDetailItem] = useState<DJENItem | null>(null);
     const oabDropdownRef = useRef<HTMLDivElement>(null);
+
+    const markAsRead = (id: string) => {
+        setReadItems(prev => {
+            if (prev.has(id)) return prev;
+            const newSet = new Set(prev);
+            newSet.add(id);
+            return newSet;
+        });
+    };
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
         e.stopPropagation();
@@ -96,7 +106,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         const savedData = localStorage.getItem('lexprime_publications_state');
         if (savedData) {
             try {
-                const { filters, results: savedResults, totalCount: savedTotal, page: savedPage } = JSON.parse(savedData);
+                const { filters, results: savedResults, totalCount: savedTotal, page: savedPage, readItems: savedRead } = JSON.parse(savedData);
                 if (filters.selectedOabs) setSelectedOabs(filters.selectedOabs);
                 if (filters.uf) setUf(filters.uf);
                 if (filters.processo) setProcesso(filters.processo);
@@ -105,6 +115,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 if (savedResults) setResults(savedResults);
                 if (savedTotal) setTotalCount(savedTotal);
                 if (savedPage) setPageNumber(savedPage);
+                if (savedRead) setReadItems(new Set(savedRead));
             } catch (e) {
                 console.error("Error loading publications state", e);
             }
@@ -117,10 +128,11 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             filters: { selectedOabs, uf, processo, startDate, endDate },
             results,
             totalCount,
-            page: pageNumber
+            page: pageNumber,
+            readItems: Array.from(readItems)
         };
         localStorage.setItem('lexprime_publications_state', JSON.stringify(stateToSave));
-    }, [selectedOabs, uf, processo, startDate, endDate, results, totalCount, pageNumber]);
+    }, [selectedOabs, uf, processo, startDate, endDate, results, totalCount, pageNumber, readItems]);
 
     // OAB Options from team, cleaned
     const oabOptions = Array.from(new Set([
@@ -144,7 +156,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleSearch = async (targetPage = 1) => {
+    const handleSearch = async (e?: React.MouseEvent) => {
         if (selectedOabs.length === 0 && !processo && (!startDate || !endDate)) {
             setError('Preencha pelo menos um critério de busca (OAB, Processo ou Período).');
             return;
@@ -165,50 +177,68 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
         try {
             let allItems: DJENItem[] = [];
-            let combinedCount = 0;
 
             if (selectedOabs.length > 0) {
-                const searchPromises = selectedOabs.map(oabVal =>
-                    fetchPublications({
-                        numeroOab: oabVal,
-                        ufOab: uf,
-                        numeroProcesso: processo || undefined,
-                        dataDisponibilizacaoInicio: startDate || undefined,
-                        dataDisponibilizacaoFim: endDate || undefined,
-                        pagina: targetPage,
-                        itensPorPagina: itemsPerPage
-                    })
-                );
+                const fetchAllForOab = async (oabVal: string) => {
+                    let items: DJENItem[] = [];
+                    let page = 1;
+                    let hasMore = true;
+                    while (hasMore) {
+                        const resp = await fetchPublications({
+                            numeroOab: oabVal,
+                            ufOab: uf,
+                            numeroProcesso: processo || undefined,
+                            dataDisponibilizacaoInicio: startDate || undefined,
+                            dataDisponibilizacaoFim: endDate || undefined,
+                            pagina: page,
+                            itensPorPagina: 100
+                        });
+                        items.push(...(resp.items || []));
+                        if (!resp.items || resp.items.length < 100 || items.length >= 1000) {
+                            hasMore = false;
+                        } else {
+                            page++;
+                        }
+                    }
+                    return items;
+                };
 
-                const responses = await Promise.all(searchPromises);
+                const responses = await Promise.all(selectedOabs.map(oabVal => fetchAllForOab(oabVal)));
 
                 const seenIds = new Set();
-                responses.forEach(resp => {
-                    (resp.items || []).forEach(item => {
+                responses.forEach(items => {
+                    items.forEach(item => {
                         if (!seenIds.has(item.id)) {
                             allItems.push(item);
                             seenIds.add(item.id);
                         }
                     });
-                    combinedCount += resp.count || 0;
                 });
 
                 allItems.sort((a, b) => new Date(b.data_disponibilizacao).getTime() - new Date(a.data_disponibilizacao).getTime());
             } else if (processo) {
-                const response = await fetchPublications({
-                    numeroProcesso: processo.replace(/\D/g, ''),
-                    dataDisponibilizacaoInicio: startDate || undefined,
-                    dataDisponibilizacaoFim: endDate || undefined,
-                    pagina: targetPage,
-                    itensPorPagina: itemsPerPage
-                });
-                allItems = response.items || [];
-                combinedCount = response.count || 0;
+                let page = 1;
+                let hasMore = true;
+                while (hasMore) {
+                     const response = await fetchPublications({
+                        numeroProcesso: processo.replace(/\D/g, ''),
+                        dataDisponibilizacaoInicio: startDate || undefined,
+                        dataDisponibilizacaoFim: endDate || undefined,
+                        pagina: page,
+                        itensPorPagina: 100
+                    });
+                    allItems.push(...(response.items || []));
+                    if (!response.items || response.items.length < 100 || allItems.length >= 1000) {
+                        hasMore = false;
+                    } else {
+                        page++;
+                    }
+                }
             }
 
             setResults(allItems);
-            setTotalCount(combinedCount);
-            setPageNumber(targetPage);
+            setTotalCount(allItems.length);
+            setPageNumber(1);
         } catch (err: any) {
             setError(err.message || 'Erro ao buscar publicações.');
         } finally {
@@ -242,24 +272,6 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             newSelection.add(id);
         }
         setSelectedItems(newSelection);
-    };
-
-    const handlePrint = () => {
-        if (selectedItems.size === 0) {
-            alert('Por favor, selecione pelo menos uma publicação para imprimir.');
-            return;
-        }
-
-        // Temporarily change title to remove "LexPrime" from print header
-        const originalTitle = document.title;
-        document.title = "Publicações";
-
-        window.print();
-
-        // Restore original title
-        setTimeout(() => {
-            document.title = originalTitle;
-        }, 100);
     };
 
     const formatDateForDisplay = (dateString: string) => {
@@ -315,49 +327,59 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         return cases.find(c => sanitizeCNJ(c.number) === sanitized);
     };
 
-    const totalPages = Math.ceil(totalCount / itemsPerPage);
+    const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
+    const displayedResults = results.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage);
 
     return (
         <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             <style>
                 {`
                 @media print {
-                    @page { margin: 15mm 15mm; size: A4; }
+                    @page { margin: 15mm; size: A4; }
 
-                    body * {
-                        visibility: hidden;
+                    /* CRITICAL: Force natural document flow for printing */
+                    html, body {
+                        height: auto !important;
+                        overflow: visible !important;
                     }
 
-                    nav, aside, header, .no-print {
+                    /* Hide sidebar, navbar and anything we don't need */
+                    nav, aside, header, .no-print, .publications-main-view {
                         display: none !important;
                     }
 
-                    /* 3. RELEASE ALL LAYOUT TRAPS! */
-                    .print-modal-wrapper, 
-                    .print-modal-content {
-                        position: static !important;
-                        overflow: visible !important;
-                        height: auto !important;
-                        max-height: none !important;
-                        transform: none !important;
-                        background: none !important;
-                        box-shadow: none !important;
-                        border: none !important;
-                        visibility: visible !important;
+                    body {
+                        background: white !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }
 
-                    /* 4. Turn visibility back ON for the print section and all its children */
-                    #print-section {
+                    .publications-print-view {
+                        display: block !important;
                         visibility: visible !important;
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 100vw !important;
+                        position: static !important;
+                        background: white !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                    }
+
+                    /* Flow normally for pagination */
+                    .print-modal-wrapper, 
+                    .print-modal-content,
+                    #print-section {
+                        position: static !important;
+                        display: block !important;
+                        visibility: visible !important;
                         height: auto !important;
                         max-height: none !important;
+                        width: 100% !important;
+                        transform: none !important;
                         overflow: visible !important;
-                        display: block !important;
                         background: transparent !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }
 
                     #print-section * {
@@ -423,8 +445,9 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 `}
             </style>
 
-            {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+            <div className="publications-main-view">
+                {/* Header - Sticky */}
+                <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
                 : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
@@ -449,7 +472,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     </div>
 
                     <button
-                        onClick={() => handleSearch(1)}
+                        onClick={(e) => handleSearch(e)}
                         disabled={loading}
                         className={`w-full md:w-auto mt-3 md:mt-0 px-6 py-2.5 rounded-lg font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${theme === 'hybrid' 
                             ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' 
@@ -605,12 +628,12 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                 )}
                                 {totalPages > 1 && (
                                     <div className="flex items-center gap-1.5">
-                                        <button onClick={() => handleSearch(pageNumber - 1)} disabled={pageNumber === 1 || loading}
+                                        <button onClick={() => setPageNumber(p => Math.max(1, p - 1))} disabled={pageNumber === 1 || loading}
                                             className={`p-1 rounded disabled:opacity-30 ${theme === 'hybrid' ? 'hover:bg-[#354751] text-[#aebac1]' : 'hover:bg-slate-100 text-slate-600'}`}>
                                             <ChevronLeft size={16} />
                                         </button>
                                         <span className={`text-xs font-bold ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700'}`}>{pageNumber}/{totalPages}</span>
-                                        <button onClick={() => handleSearch(pageNumber + 1)} disabled={pageNumber === totalPages || loading}
+                                        <button onClick={() => setPageNumber(p => Math.min(totalPages, p + 1))} disabled={pageNumber === totalPages || loading}
                                             className={`p-1 rounded disabled:opacity-30 ${theme === 'hybrid' ? 'hover:bg-[#354751] text-[#aebac1]' : 'hover:bg-slate-100 text-slate-600'}`}>
                                             <ChevronRight size={16} />
                                         </button>
@@ -624,16 +647,18 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             <table className="w-full table-fixed text-sm">
                                 <colgroup>
                                     <col style={{ width: '3%' }} />
+                                    <col style={{ width: '3%' }} />
                                     <col style={{ width: '20%' }} />
-                                    <col style={{ width: '35%' }} />
+                                    <col style={{ width: '34%' }} />
                                     <col style={{ width: '7%' }} />
-                                    <col style={{ width: '15%' }} />
+                                    <col style={{ width: '13%' }} />
                                     <col style={{ width: '10%' }} />
                                     <col style={{ width: '10%' }} />
                                 </colgroup>
                                 <thead>
                                     <tr className={`text-xs font-bold uppercase tracking-widest border-b ${theme === 'hybrid' ? 'bg-[#202c33] text-[#8696a0] border-[#354751]' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                                        <th className="pl-3 py-3 text-center">
+                                        <th className="pl-3 py-3 text-center">#</th>
+                                        <th className="pl-1 py-3 text-center">
                                             <div
                                                 onClick={handleToggleAll}
                                                 className={`w-4 h-4 mx-auto rounded border flex items-center justify-center cursor-pointer transition-all ${selectedItems.size === results.length && results.length > 0
@@ -647,15 +672,18 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                         <th className="pl-3 py-3 text-left">Partes</th>
                                         <th className="pl-3 py-3 text-left">Tribunal</th>
                                         <th className="pl-3 py-3 text-left">Classe</th>
+                                        <th className="pl-3 py-3 text-left">Data de Disp.</th>
                                         <th className="pr-4 py-3 text-center w-[100px]">
                                             <span className="sr-only">Ações</span>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {results.map((item, idx) => {
+                                    {displayedResults.map((item, idx) => {
+                                        const seqNum = ((pageNumber - 1) * itemsPerPage) + idx + 1;
                                         const existingCase = findProcessInDatabase(item.numero_processo);
                                         const isSelected = selectedItems.has(item.id);
+                                        const isRead = readItems.has(item.id);
                                         const parties = (item.destinatarios || []).map(d => d.nome).join(' X ');
                                         return (
                                             <tr
@@ -665,8 +693,25 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                     ? (isSelected ? 'bg-[#00a884]/10 border-[#354751]' : idx % 2 === 0 ? 'bg-[#2a3942] border-[#354751] hover:bg-[#354751]/60' : 'bg-[#222e35] border-[#354751] hover:bg-[#354751]/60')
                                                     : (isSelected ? 'bg-blue-50 border-slate-200' : idx % 2 === 0 ? 'bg-white border-slate-100 hover:bg-slate-50' : 'bg-slate-50/50 border-slate-100 hover:bg-slate-100/70')}`}
                                             >
-                                                {/* Checkbox */}
+                                                {/* Seq Num */}
                                                 <td className="pl-3 py-3.5 text-center" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        {isRead && (
+                                                            <Check 
+                                                                size={12} 
+                                                                strokeWidth={4} 
+                                                                className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-green-600'} 
+                                                                title="Lida"
+                                                            />
+                                                        )}
+                                                        <span className={`text-[11px] font-bold ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'} ${isRead ? (theme === 'hybrid' ? 'text-[#00a884]' : 'text-green-600') : ''}`}>
+                                                            {seqNum}
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                {/* Checkbox */}
+                                                <td className="pl-1 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                                                     <div
                                                         onClick={() => toggleSelection(item.id)}
                                                         className={`w-4 h-4 mx-auto rounded border flex items-center justify-center cursor-pointer transition-all ${isSelected
@@ -767,7 +812,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                         {/* Ver Detalhes (Slot 2) */}
                                                         <div className="flex-[0_0_24px] flex justify-center">
                                                             <button
-                                                                onClick={() => setDetailItem(item)}
+                                                                onClick={() => { setDetailItem(item); markAsRead(item.id); }}
                                                                 title="Ver Publicação"
                                                                 className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
                                                                     ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]'
@@ -783,6 +828,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                                                     href={item.link}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
+                                                                    onClick={() => markAsRead(item.id)}
                                                                     title="Ver Original (DJEN)"
                                                                     className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
                                                                         ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]'
@@ -810,7 +856,10 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         </div>
                     )
                 )}
+                </div>
+            </div>
 
+            <div className="publications-print-view">
                 {/* Detail Modal (Eye) */}
                 {detailItem && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailItem(null)}>
@@ -945,14 +994,6 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     <p className={`text-sm ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>{selectedItems.size} publicação(ões)</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={handlePrint}
-                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow active:scale-95 ${theme === 'hybrid'
-                                            ? 'bg-[#00a884] text-white hover:bg-[#008f6f]'
-                                            : 'bg-slate-900 text-white hover:opacity-90'}`}
-                                    >
-                                        <Printer size={16} /> Imprimir
-                                    </button>
                                     <button onClick={() => setShowMultiModal(false)} className={`p-2 rounded-xl transition-colors ${theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#354751]' : 'text-slate-400 hover:bg-slate-100'}`}>
                                         <X size={20} />
                                     </button>
