@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer } from 'lucide-react';
+import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Printer, Eye, CalendarPlus, FolderPlus, Copy } from 'lucide-react';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
@@ -63,6 +63,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     // Modal State
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
     const [showCaseModal, setShowCaseModal] = useState(false);
+    const [showMultiModal, setShowMultiModal] = useState(false);
     const [pendingProcessNumber, setPendingProcessNumber] = useState('');
 
     // Dropdown State
@@ -70,7 +71,16 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const [manualOab, setManualOab] = useState('');
     // Selection State
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [detailItem, setDetailItem] = useState<DJENItem | null>(null);
     const oabDropdownRef = useRef<HTMLDivElement>(null);
+
+    const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     // Sanitization Helper
     const cleanOab = (val: string) => {
@@ -312,182 +322,103 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
             <style>
                 {`
                 @media print {
-                    @page {
-                        margin: 10mm 10mm;
-                        size: A4;
+                    @page { margin: 15mm 15mm; size: A4; }
+
+                    body * {
+                        visibility: hidden;
                     }
 
-                    /* ===== 1. HIDE ALL UI / BRANDING ===== */
-                    aside,
-                    nav,
-                    [class*="Navbar"],
-                    header,
-                    .no-print {
+                    nav, aside, header, .no-print {
                         display: none !important;
                     }
 
-                    /* ===== 2. RESET GLOBAL LAYOUT ===== */
-                    html, body, #root {
-                        display: block !important;
-                        width: 100% !important;
+                    /* 3. RELEASE ALL LAYOUT TRAPS! */
+                    .print-modal-wrapper, 
+                    .print-modal-content {
+                        position: static !important;
+                        overflow: visible !important;
                         height: auto !important;
-                        overflow: visible !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        position: relative !important;
-                        background: white !important;
-                        color: #000 !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
+                        max-height: none !important;
+                        transform: none !important;
+                        background: none !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        visibility: visible !important;
                     }
 
-                    .animate-fade-in,
-                    [class*="animate-"] {
-                        display: block !important;
-                        width: 100% !important;
+                    /* 4. Turn visibility back ON for the print section and all its children */
+                    #print-section {
+                        visibility: visible !important;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100vw !important;
                         height: auto !important;
+                        max-height: none !important;
                         overflow: visible !important;
-                        position: relative !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        animation: none !important;
-                    }
-
-                    main, [role="main"], .flex-1 {
-                        width: 100% !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        overflow: visible !important;
-                        position: relative !important;
-                    }
-
-                    /* Remove gap heights between items in lists */
-                    .space-y-4 > * + * { margin-top: 5px !important; }
-
-                    /* ===== 3. PUBLICATION CARD ===== */
-                    .print-card {
                         display: block !important;
-                        width: 100% !important;
-                        margin-bottom: 12px !important;
-                        padding: 0 !important;
+                        background: transparent !important;
+                    }
+
+                    #print-section * {
+                        visibility: visible !important;
+                        color: #000 !important; /* Force black text */
+                    }
+
+                    /* --- Typography & Spacing --- */
+                    
+                    .print-pub-text {
+                        font-size: 11pt !important;
+                        line-height: 1.5 !important;
+                        text-align: justify !important;
+                        white-space: pre-wrap !important;
+                        margin-top: 15px !important;
+                    }
+
+                    .print-meta-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 15px;
+                        margin-bottom: 20px;
+                        /* Try to keep metadata together */
                         page-break-inside: avoid !important;
                         break-inside: avoid !important;
-                        background: white !important;
-                        border: 1px solid #000 !important;
-                        border-radius: 0 !important;
-                        box-shadow: none !important;
-                        ring: none !important;
-                        outline: none !important;
                     }
 
-                    /* Show ONLY selected cards */
-                    .print-card-selected {
+                    .print-meta-label {
+                        font-weight: 800;
+                        font-size: 8pt;
+                        text-transform: uppercase;
+                        color: #555 !important;
+                        margin-bottom: 2px;
+                    }
+
+                    .print-title {
+                        font-family: monospace;
+                        font-size: 15pt;
+                        font-weight: 800;
+                        margin-bottom: 10px;
+                        /* Never break right after title */
+                        page-break-after: avoid !important;
+                        break-after: avoid !important;
+                    }
+
+                    /* Publication Container - Allow natural breaks to save paper */
+                    .print-item-container {
+                        page-break-inside: auto !important;
+                        break-inside: auto !important;
+                        border-bottom: 2px dashed #999 !important;
+                        padding-bottom: 25px !important;
+                        margin-bottom: 25px !important;
                         display: block !important;
-                    }
-                    .print-card-not-selected {
-                        display: none !important;
-                    }
-
-                    /* ===== 4. PROCESS HEADER BAR (AASP Style) ===== */
-                    .print-card-header {
-                        background: #f3f4f6 !important;
-                        border-bottom: 1px solid #000 !important;
-                        padding: 6px 10px !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        justify-content: space-between !important;
-                    }
-                    .print-card-header span {
-                        color: #000 !important;
-                        font-weight: 700 !important;
-                        font-size: 11pt !important;
-                        background: transparent !important;
-                        border: none !important;
-                    }
-
-                    /* ===== 5. TWO-COLUMN GRID ===== */
-                    .pub-card-grid {
-                        display: flex !important;
-                        flex-direction: row !important;
                         width: 100% !important;
                     }
 
-                    /* Left column: Metadata (35%) */
-                    .pub-card-meta {
-                        width: 35% !important;
-                        min-width: 35% !important;
-                        max-width: 35% !important;
-                        border-right: 1px solid #000 !important;
-                        padding: 8px !important;
-                        box-sizing: border-box !important;
-                        display: block !important;
+                    .print-item-container:last-child {
+                        border-bottom: none !important;
+                        margin-bottom: 0 !important;
+                        padding-bottom: 0 !important;
                     }
-
-                    /* Right column: Text (65%) */
-                    .pub-card-content {
-                        width: 65% !important;
-                        min-width: 65% !important;
-                        max-width: 65% !important;
-                        padding: 8px 10px !important;
-                        box-sizing: border-box !important;
-                        display: block !important;
-                    }
-
-                    /* ===== 6. TYPOGRAPHY & COLORS ===== */
-                    .pub-card-meta *, .pub-card-content * {
-                        color: #000 !important;
-                        background: transparent !important;
-                    }
-
-                    /* Metadata structure */
-                    .meta-block {
-                        margin-bottom: 6px !important;
-                    }
-                    .meta-label {
-                        font-weight: 700 !important;
-                        font-size: 10pt !important;
-                        text-transform: uppercase !important;
-                        display: inline !important;
-                        margin-right: 4px !important;
-                    }
-                    .meta-text {
-                        font-size: 11pt !important;
-                        display: inline !important;
-                    }
-                    
-                    .meta-list {
-                        margin: 0 !important;
-                        padding-left: 0 !important;
-                        list-style-type: none !important;
-                    }
-                    .meta-list li {
-                        font-size: 11pt !important;
-                        margin-bottom: 2px !important;
-                        display: block !important;
-                    }
-
-                    .meta-lawyer-highlight {
-                        font-weight: 700 !important;
-                    }
-
-                    /* Hide icons in print */
-                    .pub-card-meta svg, .pub-card-content svg {
-                        display: none !important;
-                    }
-
-                    /* Publication text body */
-                    .pub-card-text-container p {
-                        font-size: 11pt !important;
-                        line-height: 1.3 !important;
-                        text-align: justify !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-
-                    /* ===== 8. MISC CLEANUP ===== */
-                    [class*="shadow"] { box-shadow: none !important; }
-                    [class*="rounded"] { border-radius: 0 !important; }
-                    .desktop-only-bg { background: none !important; }
                 }
                 `}
             </style>
@@ -514,7 +445,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                 </div>
                             )}
                         </div>
-                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Consulte publicações do Diário de Justiça Eletrônico Nacional.</p>
+                        <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Consulte publicações do Diário de Justiça Eletrá´nico Nacional.</p>
                     </div>
 
                     <button
@@ -652,252 +583,340 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     )}
                 </div>
 
-                {/* Results List */}
-                <div className="space-y-4">
-                    {results.length > 0 ? (
-                        <>
-                            <div className="flex justify-between items-center px-2 no-print">
-                                <div className="flex items-center gap-4 ml-auto">
+
+                {/* Results Table */}
+                {results.length > 0 ? (
+                    <div className="mt-2">
+                        {/* Toolbar */}
+                        <div className={`flex items-center justify-between px-1 mb-2 no-print`}>
+                            <span className={`text-xs font-medium ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>
+                                {selectedItems.size > 0 ? `${selectedItems.size} selecionada(s)` : `${results.length} publicações`}
+                            </span>
+                            <div className="flex items-center gap-3">
+                                {selectedItems.size > 0 && (
                                     <button
-                                        onClick={handleToggleAll}
-                                        className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-all active:scale-95 ${theme === 'hybrid'
-                                            ? 'bg-[#2a3942] border-[#354751] text-[#e9edef] hover:bg-[#354751]'
-                                            : 'bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-dark-700 hover:bg-slate-50 dark:hover:bg-dark-750'}`}
+                                        onClick={() => setShowMultiModal(true)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow active:scale-95 ${theme === 'hybrid'
+                                            ? 'bg-[#00a884] text-white hover:bg-[#008f6f]'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                     >
-                                        {selectedItems.size === results.length && results.length > 0 ? (
-                                            <>
-                                                <X size={16} className="text-red-500" />
-                                                Desmarcar Todas
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Check size={16} className="text-green-500" />
-                                                Selecionar Todas
-                                            </>
-                                        )}
+                                        <Eye size={13} /> Ver Selecionadas ({selectedItems.size})
                                     </button>
-
-                                    {selectedItems.size > 0 && (
-                                        <button
-                                            onClick={handlePrint}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95 ${theme === 'hybrid'
-                                                ? 'bg-[#00a884] text-white hover:bg-[#008f6f] shadow-[#00a884]/20'
-                                                : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-all shadow-lg active:scale-95'}`}
-                                        >
-                                            <Printer size={16} />
-                                            Imprimir Selecionadas ({selectedItems.size})
+                                )}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center gap-1.5">
+                                        <button onClick={() => handleSearch(pageNumber - 1)} disabled={pageNumber === 1 || loading}
+                                            className={`p-1 rounded disabled:opacity-30 ${theme === 'hybrid' ? 'hover:bg-[#354751] text-[#aebac1]' : 'hover:bg-slate-100 text-slate-600'}`}>
+                                            <ChevronLeft size={16} />
                                         </button>
-                                    )}
-                                    {totalPages > 1 && (
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleSearch(pageNumber - 1)}
-                                                disabled={pageNumber === 1 || loading}
-                                                className={`p-1.5 rounded-lg disabled:opacity-30 transition-colors ${theme === 'hybrid' ? 'hover:bg-[#202c33] text-[#aebac1]' : 'hover:bg-slate-100 dark:hover:bg-dark-800 text-slate-700 dark:text-slate-300'}`}
-                                            >
-                                                <ChevronLeft className="h-5 w-5" />
-                                            </button>
-                                            <span className={`text-sm font-bold w-12 text-center ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700 dark:text-slate-300'}`}>{pageNumber} / {totalPages}</span>
-                                            <button
-                                                onClick={() => handleSearch(pageNumber + 1)}
-                                                disabled={pageNumber === totalPages || loading}
-                                                className={`p-1.5 rounded-lg disabled:opacity-30 transition-colors ${theme === 'hybrid' ? 'hover:bg-[#202c33] text-[#aebac1]' : 'hover:bg-slate-100 dark:hover:bg-dark-800 text-slate-700 dark:text-slate-300'}`}
-                                            >
-                                                <ChevronRight className="h-5 w-5" />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                        <span className={`text-xs font-bold ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700'}`}>{pageNumber}/{totalPages}</span>
+                                        <button onClick={() => handleSearch(pageNumber + 1)} disabled={pageNumber === totalPages || loading}
+                                            className={`p-1 rounded disabled:opacity-30 ${theme === 'hybrid' ? 'hover:bg-[#354751] text-[#aebac1]' : 'hover:bg-slate-100 text-slate-600'}`}>
+                                            <ChevronRight size={16} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
+                        </div>
 
-                            {results.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className={`group rounded-2xl border transition-all duration-300 relative print-card overflow-hidden shadow-md hover:shadow-xl ${theme === 'hybrid'
-                                        ? (selectedItems.has(item.id) ? 'bg-[#2a3942] border-[#00a884] ring-2 ring-[#00a884]/20' : 'bg-[#2a3942] border-[#354751] hover:border-[#00a884]/50')
-                                        : (selectedItems.has(item.id)
-                                            ? 'bg-blue-50/10 dark:bg-blue-900/5 border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900 bg-blue-50/10 dark:bg-blue-900/5 print-card-selected'
-                                            : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-dark-800 hover:border-blue-200 dark:hover:border-dark-700 print-card-not-selected')
-                                        }`}
-                                >
-                                    {/* Process Number Header Bar */}
-                                    <div className="print-card-header flex items-center justify-between px-5 py-3 bg-gradient-to-r from-slate-700 to-slate-800 dark:from-dark-800 dark:to-dark-900 border-b border-slate-300 dark:border-dark-700">
-                                        <div className="flex items-center gap-3">
-                                            {/* Selection Checkbox */}
-                                            <div className="no-print">
-                                                <div
-                                                    onClick={() => toggleSelection(item.id)}
-                                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${selectedItems.has(item.id)
-                                                        ? (theme === 'hybrid' ? 'bg-[#00a884] border-[#00a884] shadow-lg shadow-[#00a884]/30' : 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/30')
-                                                        : (theme === 'hybrid' ? 'border-[#aebac1]/30 bg-white/5 hover:border-[#00a884]' : 'border-slate-400 bg-white/10 hover:border-blue-400')
-                                                        }`}
-                                                >
-                                                    {selectedItems.has(item.id) && <Check size={14} className="text-white" strokeWidth={3} />}
-                                                </div>
+                        {/* Table */}
+                        <div className={`rounded-xl border overflow-hidden ${theme === 'hybrid' ? 'border-[#354751]' : 'border-slate-200'}`}>
+                            <table className="w-full table-fixed text-sm">
+                                <colgroup>
+                                    <col style={{ width: '3%' }} />
+                                    <col style={{ width: '20%' }} />
+                                    <col style={{ width: '35%' }} />
+                                    <col style={{ width: '7%' }} />
+                                    <col style={{ width: '15%' }} />
+                                    <col style={{ width: '10%' }} />
+                                    <col style={{ width: '10%' }} />
+                                </colgroup>
+                                <thead>
+                                    <tr className={`text-xs font-bold uppercase tracking-widest border-b ${theme === 'hybrid' ? 'bg-[#202c33] text-[#8696a0] border-[#354751]' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                        <th className="pl-3 py-3 text-center">
+                                            <div
+                                                onClick={handleToggleAll}
+                                                className={`w-4 h-4 mx-auto rounded border flex items-center justify-center cursor-pointer transition-all ${selectedItems.size === results.length && results.length > 0
+                                                    ? (theme === 'hybrid' ? 'bg-[#00a884] border-[#00a884]' : 'bg-blue-600 border-blue-600')
+                                                    : (theme === 'hybrid' ? 'border-[#8696a0]/40' : 'border-slate-300')}`}
+                                            >
+                                                {selectedItems.size === results.length && results.length > 0 && <Check size={10} className="text-white" strokeWidth={3} />}
                                             </div>
-                                            <span className="text-sm font-bold text-white tracking-wide flex items-center gap-2">
-                                                Processo {formatCNJ(item.numero_processo)}
-                                            </span>
-                                        </div>
-                                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-white/15 text-white border border-white/20 tracking-wider">
-                                            {item.siglaTribunal}
-                                        </span>
-                                    </div>
-
-                                    {/* Two-column body */}
-                                    <div className="pub-card-grid flex flex-col md:flex-row">
-                                        {/* LEFT COLUMN — Metadata */}
-                                        <div className={`pub-card-meta w-full md:w-[35%] border-b md:border-b-0 md:border-r px-5 py-5 space-y-4 text-sm desktop-only-bg ${theme === 'hybrid'
-                                            ? 'bg-[#202c33]/40 border-[#354751]'
-                                            : 'bg-slate-50/60 dark:bg-dark-950/40 border-slate-200 dark:border-dark-700'}`}>
-
-                                            {/* Órgão */}
-                                            {item.nomeOrgao && (
-                                                <div className="meta-block">
-                                                    <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Órgão:</p>
-                                                    <p className={`meta-text font-semibold leading-snug ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-800 dark:text-slate-200'}`}>{item.nomeOrgao}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Data de Disponibilização */}
-                                            <div className="meta-block">
-                                                <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Data de disponibilização:</p>
-                                                <p className={`meta-text font-medium ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>{formatDateForDisplay(item.data_disponibilizacao)}</p>
-                                            </div>
-
-                                            {/* Tipo de Comunicação */}
-                                            {item.tipoComunicacao && (
-                                                <div className="meta-block">
-                                                    <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Tipo de comunicação:</p>
-                                                    <p className={`meta-text font-medium ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>{item.tipoComunicacao}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Meio */}
-                                            {item.meiocompleto && (
-                                                <div className="meta-block">
-                                                    <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Meio:</p>
-                                                    <p className={`meta-text font-medium text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-700 dark:text-slate-300'}`}>{item.meiocompleto}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Partes */}
-                                            {item.destinatarios && item.destinatarios.length > 0 && (
-                                                <div className="meta-block">
-                                                    <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1.5 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Parte(s):</p>
-                                                    <ul className="meta-list space-y-1.5 inline">
-                                                        {item.destinatarios.map((dest, idx) => (
-                                                            <li key={idx} className="flex items-start gap-2">
-                                                                <span className={`no-print mt-0.5 shrink-0 ${theme === 'hybrid' ? 'text-[#00a884]' : 'text-blue-500 dark:text-blue-400'}`}>
-                                                                    <User size={12} />
-                                                                </span>
-                                                                <span className={`meta-text text-xs leading-snug ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                                    {dest.nome}
-                                                                    {dest.polo && (
-                                                                        <span className={`ml-1 text-[9px] uppercase font-semibold ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>({dest.polo})</span>
-                                                                    )}
-                                                                </span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            {/* Advogados */}
-                                            {item.destinatarioadvogados && item.destinatarioadvogados.length > 0 && (
-                                                <div className="meta-block">
-                                                    <p className={`meta-label text-[10px] font-bold uppercase tracking-widest mb-1.5 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400 dark:text-slate-500'}`}>Advogado(s):</p>
-                                                    <ul className="meta-list space-y-1.5 inline">
-                                                        {item.destinatarioadvogados.map((adv) => {
-                                                            const isTeam = isTeamLawyer(adv.advogado.nome);
-                                                            return (
-                                                                <li key={adv.id} className="flex items-start gap-2">
-                                                                    <span className={`no-print mt-0.5 shrink-0 ${isTeam ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                                        <Briefcase size={12} />
-                                                                    </span>
-                                                                    <span className={`meta-text text-xs leading-snug ${isTeam
-                                                                        ? (theme === 'hybrid' ? 'text-[#00a884] font-bold meta-lawyer-highlight' : 'text-blue-700 dark:text-blue-300 font-bold meta-lawyer-highlight')
-                                                                        : (theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-600 dark:text-slate-400')
-                                                                        }`}>
-                                                                        {adv.advogado.nome} – OAB {adv.advogado.uf_oab}/{adv.advogado.numero_oab}
-                                                                    </span>
-                                                                </li>
-                                                            );
-                                                        })}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* RIGHT COLUMN — Actions + Text */}
-                                        <div className="pub-card-content w-full md:w-[70%] flex flex-col">
-                                            {/* Action Bar */}
-                                            <div className={`flex items-center justify-end gap-2 px-5 py-3 border-b no-print ${theme === 'hybrid' ? 'border-[#354751]/50' : 'border-slate-100 dark:border-dark-800'}`}>
-                                                {item.link && (
-                                                    <a
-                                                        href={item.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${theme === 'hybrid' 
-                                                            ? 'bg-[#202c33] text-[#e9edef] border-[#354751] hover:bg-[#354751]' 
-                                                            : 'bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-dark-700 hover:bg-slate-800 hover:text-white dark:hover:bg-slate-600'}`}
+                                        </th>
+                                        <th className="pl-3 py-3 text-left">Processo</th>
+                                        <th className="pl-3 py-3 text-left">Partes</th>
+                                        <th className="pl-3 py-3 text-left">Tribunal</th>
+                                        <th className="pl-3 py-3 text-left">Classe</th>
+                                        <th className="pr-4 py-3 text-center w-[100px]">
+                                            <span className="sr-only">Ações</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {results.map((item, idx) => {
+                                        const existingCase = findProcessInDatabase(item.numero_processo);
+                                        const isSelected = selectedItems.has(item.id);
+                                        const parties = (item.destinatarios || []).map(d => d.nome).join(' X ');
+                                        return (
+                                            <tr
+                                                key={item.id}
+                                                onClick={() => toggleSelection(item.id)}
+                                                className={`border-b last:border-b-0 cursor-pointer transition-colors group print-card ${isSelected ? 'print-card-selected' : 'print-card-not-selected'} ${theme === 'hybrid'
+                                                    ? (isSelected ? 'bg-[#00a884]/10 border-[#354751]' : idx % 2 === 0 ? 'bg-[#2a3942] border-[#354751] hover:bg-[#354751]/60' : 'bg-[#222e35] border-[#354751] hover:bg-[#354751]/60')
+                                                    : (isSelected ? 'bg-blue-50 border-slate-200' : idx % 2 === 0 ? 'bg-white border-slate-100 hover:bg-slate-50' : 'bg-slate-50/50 border-slate-100 hover:bg-slate-100/70')}`}
+                                            >
+                                                {/* Checkbox */}
+                                                <td className="pl-3 py-3.5 text-center" onClick={e => e.stopPropagation()}>
+                                                    <div
+                                                        onClick={() => toggleSelection(item.id)}
+                                                        className={`w-4 h-4 mx-auto rounded border flex items-center justify-center cursor-pointer transition-all ${isSelected
+                                                            ? (theme === 'hybrid' ? 'bg-[#00a884] border-[#00a884]' : 'bg-blue-600 border-blue-600')
+                                                            : (theme === 'hybrid' ? 'border-[#8696a0]/40 group-hover:border-[#00a884]' : 'border-slate-300 group-hover:border-blue-500')}`}
                                                     >
-                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                        Ver Original
-                                                    </a>
-                                                )}
-                                                {(() => {
-                                                    const existingCase = findProcessInDatabase(item.numero_processo);
-                                                    if (existingCase) {
-                                                        return (
-                                                            <button
-                                                                onClick={() => handleCreateDeadline(item.numero_processo)}
-                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 ${theme === 'hybrid' 
-                                                                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500 hover:text-white' 
-                                                                    : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-500 hover:text-white'}`}
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5" />
-                                                                Criar Prazo
-                                                            </button>
-                                                        );
-                                                    } else {
-                                                        return (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setPendingProcessNumber(formatCNJ(item.numero_processo));
-                                                                    setShowCaseModal(true);
-                                                                }}
-                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 ${theme === 'hybrid' 
-                                                                    ? 'bg-[#00a884]/10 text-[#00a884] border-[#00a884]/30 hover:bg-[#00a884] hover:text-white' 
-                                                                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-600 hover:text-white'}`}
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5" />
-                                                                Cadastrar Processo
-                                                            </button>
-                                                        );
-                                                    }
-                                                })()}
-                                            </div>
+                                                        {isSelected && <Check size={10} className="text-white" strokeWidth={3} />}
+                                                    </div>
+                                                </td>
 
-                                            {/* Publication Text */}
-                                            <div className="pub-card-text-container flex-1 px-6 py-5">
-                                                <p className={`text-sm whitespace-pre-wrap leading-relaxed text-justify ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                    {sanitizeText(item.texto)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </>
-                    ) : (
-                        !loading && <div className={`text-center py-24 animate-fade-in no-print ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>
+                                                {/* Processo */}
+                                                <td className="pl-3 py-3.5" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`text-sm font-semibold truncate ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-800'}`}>
+                                                            {formatCNJ(item.numero_processo)}
+                                                        </span>
+                                                        <button
+                                                            onClick={(e) => handleCopy(e, formatCNJ(item.numero_processo), item.id + '-proc')}
+                                                            className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === item.id + '-proc' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                            title={copiedId === item.id + '-proc' ? "Processo copiado!" : "Copiar número"}
+                                                        >
+                                                            {copiedId === item.id + '-proc' ? (
+                                                                <>
+                                                                    <Check size={11} strokeWidth={3} />
+                                                                    <span className="text-[9px] font-bold">Copiado</span>
+                                                                </>
+                                                            ) : (
+                                                                <Copy size={11} />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                {/* Partes */}
+                                                <td className="pl-3 py-3.5 pr-3">
+                                                    <span
+                                                        className={`text-sm line-clamp-2 leading-snug uppercase ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700'}`}
+                                                        title={parties}
+                                                    >
+                                                        {parties || '—'}
+                                                    </span>
+                                                </td>
+
+                                                {/* Tribunal */}
+                                                <td className="pl-3 py-3.5">
+                                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded inline-block ${theme === 'hybrid' ? 'bg-[#354751] text-[#00a884]' : 'bg-blue-50 text-blue-700'}`}>
+                                                        {item.siglaTribunal || '—'}
+                                                    </span>
+                                                </td>
+
+                                                {/* Classe */}
+                                                <td className="pl-3 py-3.5 pr-2">
+                                                    <span
+                                                        className={`text-xs uppercase line-clamp-2 leading-snug font-medium ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}
+                                                        title={item.nomeClasse || ''}
+                                                    >
+                                                        {item.nomeClasse || '—'}
+                                                    </span>
+                                                </td>
+
+                                                {/* Data */}
+                                                <td className="pl-3 py-3.5">
+                                                    <span className={`text-sm tabular-nums whitespace-nowrap ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600'}`}>
+                                                        {formatDateForDisplay(item.data_disponibilizacao)}
+                                                    </span>
+                                                </td>
+
+                                                {/* Ações */}
+                                                <td className="pr-4 py-3.5 no-print" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-center gap-1 w-[84px] mx-auto">
+                                                        {/* Ação Inteligente (Slot 1) */}
+                                                        <div className="flex-[0_0_24px] flex justify-center">
+                                                            {existingCase ? (
+                                                                <button
+                                                                    onClick={() => handleCreateDeadline(item.numero_processo)}
+                                                                    title="Criar Prazo"
+                                                                    className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
+                                                                        ? 'text-amber-400 hover:bg-amber-500/10'
+                                                                        : 'text-amber-500 hover:bg-amber-50'}`}
+                                                                >
+                                                                    <CalendarPlus size={15} />
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setPendingProcessNumber(formatCNJ(item.numero_processo));
+                                                                        setShowCaseModal(true);
+                                                                    }}
+                                                                    title="Cadastrar Processo"
+                                                                    className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
+                                                                        ? 'text-[#00a884] hover:bg-[#00a884]/10'
+                                                                        : 'text-blue-500 hover:bg-blue-50'}`}
+                                                                >
+                                                                    <FolderPlus size={15} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {/* Ver Detalhes (Slot 2) */}
+                                                        <div className="flex-[0_0_24px] flex justify-center">
+                                                            <button
+                                                                onClick={() => setDetailItem(item)}
+                                                                title="Ver Publicação"
+                                                                className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
+                                                                    ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]'
+                                                                    : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'}`}
+                                                            >
+                                                                <Eye size={15} />
+                                                            </button>
+                                                        </div>
+                                                        {/* Link Original (Slot 3) */}
+                                                        <div className="flex-[0_0_24px] flex justify-center">
+                                                            {item.link ? (
+                                                                <a
+                                                                    href={item.link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    title="Ver Original (DJEN)"
+                                                                    className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid'
+                                                                        ? 'text-[#aebac1] hover:bg-[#354751] hover:text-[#e9edef]'
+                                                                        : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'}`}
+                                                                >
+                                                                    <ExternalLink size={15} />
+                                                                </a>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : (
+                    !loading && (
+                        <div className={`text-center py-24 animate-fade-in no-print ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>
                             <Search className={`h-16 w-16 mx-auto mb-6 opacity-10 ${theme === 'hybrid' ? 'text-[#e9edef]' : ''}`} />
                             <h4 className={`text-xl font-bold mb-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-300 dark:text-slate-700'}`}>Pronto para pesquisar</h4>
                             <p className="text-sm max-w-xs mx-auto">Utilize os filtros acima para consultar publicações e criar prazos sem sair da página.</p>
                         </div>
-                    )}
-                </div>
+                    )
+                )}
+
+                {/* Detail Modal (Eye) */}
+                {detailItem && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailItem(null)}>
+                        <div
+                            className={`relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl shadow-2xl border overflow-hidden animate-scale-in ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white border-slate-200'}`}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div className={`flex items-start justify-between px-6 py-4 border-b shrink-0 ${theme === 'hybrid' ? 'bg-[#202c33]/60 border-[#354751]' : 'bg-slate-50 border-slate-200'}`}>
+                                <div>
+                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-0.5 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Publicação DJEN</p>
+                                    <h3 className={`font-mono text-base font-bold ${theme === 'hybrid' ? 'text-[#00a884]' : 'text-blue-700'}`}>{formatCNJ(detailItem.numero_processo)}</h3>
+                                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                        {detailItem.siglaTribunal && (
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${theme === 'hybrid' ? 'bg-[#354751] text-[#00a884]' : 'bg-blue-50 text-blue-700'}`}>{detailItem.siglaTribunal}</span>
+                                        )}
+                                        {detailItem.tipoComunicacao && (
+                                            <span className={`text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{detailItem.tipoComunicacao}</span>
+                                        )}
+                                        <span className={`text-xs tabular-nums ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{formatDateForDisplay(detailItem.data_disponibilizacao)}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0 ml-4">
+                                    {detailItem.link && (
+                                        <a href={detailItem.link} target="_blank" rel="noopener noreferrer"
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef] border-[#425866] hover:bg-[#425866]' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}`}>
+                                            <ExternalLink size={13} /> Ver Original
+                                        </a>
+                                    )}
+                                    <button onClick={() => setDetailItem(null)} className={`p-1.5 rounded-lg transition-colors ${theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#354751]' : 'text-slate-400 hover:bg-slate-100'}`}>
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Meta Info */}
+                            {(detailItem.destinatarios?.length > 0 || detailItem.destinatarioadvogados?.length > 0 || detailItem.nomeOrgao || detailItem.nomeClasse) && (
+                                <div className={`px-6 py-3 border-b shrink-0 grid grid-cols-2 gap-x-6 gap-y-2 ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/30' : 'border-slate-100 bg-slate-50/50'}`}>
+                                    {detailItem.nomeOrgao && (
+                                        <div>
+                                            <p className={`text-[9px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Órgão</p>
+                                            <p className={`text-xs font-medium mt-0.5 ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700'}`}>{detailItem.nomeOrgao}</p>
+                                        </div>
+                                    )}
+                                    {detailItem.nomeClasse && (
+                                        <div>
+                                            <p className={`text-[9px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Classe</p>
+                                            <p className={`text-xs font-medium mt-0.5 ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700'}`}>{detailItem.nomeClasse}</p>
+                                        </div>
+                                    )}
+                                    {detailItem.destinatarios && detailItem.destinatarios.length > 0 && (
+                                        <div>
+                                            <p className={`text-[9px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Partes</p>
+                                            <p className={`text-xs mt-0.5 ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700'}`}>{detailItem.destinatarios.map(d => d.nome).join(' á— ')}</p>
+                                        </div>
+                                    )}
+                                    {detailItem.destinatarioadvogados && detailItem.destinatarioadvogados.length > 0 && (
+                                        <div>
+                                            <p className={`text-[9px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Advogado(s)</p>
+                                            <div className="mt-0.5 space-y-0.5">
+                                                {detailItem.destinatarioadvogados.map(adv => {
+                                                    const isTeam = isTeamLawyer(adv.advogado.nome);
+                                                    return (
+                                                        <p key={adv.id} className={`text-xs ${isTeam ? (theme === 'hybrid' ? 'text-[#00a884] font-bold' : 'text-blue-700 font-bold') : (theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500')}`}>
+                                                            {adv.advogado.nome} – OAB {adv.advogado.uf_oab}/{adv.advogado.numero_oab}
+                                                        </p>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Publication Text */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5">
+                                <p className={`text-sm whitespace-pre-wrap leading-relaxed text-justify ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700'}`}>
+                                    {sanitizeText(detailItem.texto)}
+                                </p>
+                            </div>
+
+                            {/* Modal Footer Actions */}
+                            <div className={`flex items-center justify-end gap-2 px-6 py-3 border-t shrink-0 ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/40' : 'border-slate-100 bg-slate-50'}`}>
+                                {findProcessInDatabase(detailItem.numero_processo) ? (
+                                    <button
+                                        onClick={() => { handleCreateDeadline(detailItem.numero_processo); setDetailItem(null); }}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 ${theme === 'hybrid' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500 hover:text-white' : 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-500 hover:text-white'}`}
+                                    >
+                                        <CalendarPlus size={14} /> Criar Prazo
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => { setPendingProcessNumber(formatCNJ(detailItem.numero_processo)); setShowCaseModal(true); setDetailItem(null); }}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 ${theme === 'hybrid' ? 'bg-[#00a884]/10 text-[#00a884] border-[#00a884]/30 hover:bg-[#00a884] hover:text-white' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-600 hover:text-white'}`}
+                                    >
+                                        <FolderPlus size={14} /> Cadastrar Processo
+                                    </button>
+                                )}
+                                <button onClick={() => setDetailItem(null)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef] hover:bg-[#425866]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* In-page Deadline Modal */}
                 {showDeadlineModal && (
@@ -913,6 +932,91 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         teamMembers={teamMembers}
                     />
                 )}
+                {/* Multi Detail Modal for Selected Items */}
+                {showMultiModal && (
+                    <div className="print-modal-wrapper fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setShowMultiModal(false)}>
+                        <div
+                            className={`print-modal-content relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border overflow-hidden animate-scale-in ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white border-slate-200'}`}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className={`no-print flex items-center justify-between px-6 py-4 border-b shrink-0 ${theme === 'hybrid' ? 'bg-[#202c33]/60 border-[#354751]' : 'bg-slate-50 border-slate-200'}`}>
+                                <div>
+                                    <h3 className={`font-bold text-lg ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-800'}`}>Publicações Selecionadas</h3>
+                                    <p className={`text-sm ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>{selectedItems.size} publicação(ões)</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handlePrint}
+                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow active:scale-95 ${theme === 'hybrid'
+                                            ? 'bg-[#00a884] text-white hover:bg-[#008f6f]'
+                                            : 'bg-slate-900 text-white hover:opacity-90'}`}
+                                    >
+                                        <Printer size={16} /> Imprimir
+                                    </button>
+                                    <button onClick={() => setShowMultiModal(false)} className={`p-2 rounded-xl transition-colors ${theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#354751]' : 'text-slate-400 hover:bg-slate-100'}`}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto w-full custom-scrollbar p-0 bg-white" id="print-section">
+                                {Array.from(selectedItems).map(id => results.find(r => r.id === id)).filter(Boolean).map((item, index, array) => (
+                                    <div key={item!.id} className={`print-item-container p-8 ${index !== array.length - 1 ? 'border-b border-dashed border-slate-300' : ''}`}>
+                                        <div className="print-title text-slate-800">
+                                            {formatCNJ(item!.numero_processo)}
+                                        </div>
+                                        
+                                        <div className="print-meta-grid text-slate-700">
+                                            {item!.nomeOrgao && (
+                                                <div>
+                                                    <p className="print-meta-label">Órgão / Tribunal</p>
+                                                    <p className="text-sm font-medium">{item!.siglaTribunal} - {item!.nomeOrgao}</p>
+                                                </div>
+                                            )}
+                                            {item!.nomeClasse && (
+                                                <div>
+                                                    <p className="print-meta-label">Classe</p>
+                                                    <p className="text-sm font-medium">{item!.nomeClasse}</p>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="print-meta-label">Data Disp.</p>
+                                                <p className="text-sm font-medium">{formatDateForDisplay(item!.data_disponibilizacao)}</p>
+                                            </div>
+                                            {item!.tipoComunicacao && (
+                                                <div>
+                                                    <p className="print-meta-label">Tipo da Comunicação</p>
+                                                    <p className="text-sm font-medium">{item!.tipoComunicacao}</p>
+                                                </div>
+                                            )}
+                                            {item!.destinatarios && item!.destinatarios.length > 0 && (
+                                                <div className="col-span-2">
+                                                    <p className="print-meta-label">Partes</p>
+                                                    <p className="text-sm">{item!.destinatarios.map(d => d.nome).join(' X ')}</p>
+                                                </div>
+                                            )}
+                                            {item!.destinatarioadvogados && item!.destinatarioadvogados.length > 0 && (
+                                                <div className="col-span-2">
+                                                    <p className="print-meta-label">Advogados Citados</p>
+                                                    <div className="text-sm space-y-0.5">
+                                                        {item!.destinatarioadvogados.map(adv => (
+                                                            <p key={adv.id}>{adv.advogado.nome} – OAB {adv.advogado.uf_oab}/{adv.advogado.numero_oab}</p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="print-pub-text text-slate-800">
+                                            {sanitizeText(item!.texto)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Case Registration Modal */}
                 {showCaseModal && (
                     <CaseModal

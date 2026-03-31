@@ -39,6 +39,13 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext }: any) => {
   );
 };
 
+const decodeHTMLEntities = (text: string) => {
+  if (!text) return '';
+  const textArea = document.createElement('textarea');
+  textArea.innerHTML = text;
+  return textArea.value;
+};
+
 const LegalNewsCard = () => {
   const [news, setNews] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -106,7 +113,7 @@ const LegalNewsCard = () => {
                       : 'text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400'
                   }`}>
                     <span className={`text-[10px] font-bold mr-2 tabular-nums ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>{item.time} —</span>
-                    {item.title}
+                    {decodeHTMLEntities(item.title)}
                   </p>
                 </div>
                 <ChevronRight size={14} className={`transition-all self-center shrink-0 group-hover:translate-x-1 ${theme === 'hybrid' ? 'text-[#aebac1] group-hover:text-[#00a884]' : 'text-slate-300 group-hover:text-primary-400'}`} />
