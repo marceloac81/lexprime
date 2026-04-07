@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../context/Store';
-import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer } from '../components/Icons';
+import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer, Copy, Check } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
 import { normalizeText } from '../utils/textUtils';
 import { CalculatorModal } from '../components/CalculatorModal';
@@ -45,6 +45,14 @@ export const Cases: React.FC = () => {
     const [selectedCase, setSelectedCase] = useState<Case | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Case | 'clientName'; direction: 'asc' | 'desc' } | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     // New Case Form State
     const [newCase, setNewCase] = useState<Partial<Case>>({
@@ -361,7 +369,23 @@ export const Cases: React.FC = () => {
                                                     <Briefcase size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</div>
+                                                        <button
+                                                            onClick={(e) => handleCopy(e, c.number, c.id + '-desktop')}
+                                                            className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === c.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                            title={copiedId === c.id + '-desktop' ? "Processo copiado!" : "Copiar número"}
+                                                        >
+                                                            {copiedId === c.id + '-desktop' ? (
+                                                                <>
+                                                                    <Check size={11} strokeWidth={3} />
+                                                                    <span className="text-[9px] font-bold">Copiado</span>
+                                                                </>
+                                                            ) : (
+                                                                <Copy size={11} />
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                     {(c.tribunal || c.area) && (
                                                         <div className={`text-xs mt-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>
                                                             {c.tribunal && <span>{c.tribunal} {c.area && '- '}</span>}
@@ -433,7 +457,23 @@ export const Cases: React.FC = () => {
                                         <div className={`p-1.5 rounded ${theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
                                             <Briefcase size={16} />
                                         </div>
-                                        <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</span>
+                                            <button
+                                                onClick={(e) => handleCopy(e, c.number, c.id + '-mobile')}
+                                                className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === c.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                title={copiedId === c.id + '-mobile' ? "Processo copiado!" : "Copiar número"}
+                                            >
+                                                {copiedId === c.id + '-mobile' ? (
+                                                    <>
+                                                        <Check size={11} strokeWidth={3} />
+                                                        <span className="text-[9px] font-bold">Copiado</span>
+                                                    </>
+                                                ) : (
+                                                    <Copy size={11} />
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <StatusBadge status={c.status} />
