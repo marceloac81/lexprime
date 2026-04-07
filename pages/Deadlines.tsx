@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Clock, Check, X, Printer, CalendarIcon, Edit, ChevronLeft, ChevronRight, User as UserIcon, Users, Search, Plus, Trash2 } from '../components/Icons';
+import { Clock, Check, X, Printer, CalendarIcon, Edit, ChevronLeft, ChevronRight, User as UserIcon, Users, Search, Plus, Trash2, Copy } from '../components/Icons';
 import { formatDate } from '../utils/dateUtils';
 import { normalizeText, getInitials } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
@@ -69,6 +69,15 @@ export const Deadlines: React.FC = () => {
     const [showPrintModal, setShowPrintModal] = useState(false);
     const responsibleFilterRef = useRef<HTMLDivElement>(null);
     const [printRange, setPrintRange] = useState({ start: todayStr, end: getFutureDate(30) });
+
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     // Click Outside to close Dropdowns
     useEffect(() => {
@@ -587,7 +596,25 @@ export const Deadlines: React.FC = () => {
                                                         {d.title}
                                                     </td>
                                                     <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
-                                                        <div className="text-sm font-bold">{relatedCase?.number || '-'}</div>
+                                                        <div className="text-sm font-bold flex items-center gap-1.5">
+                                                            <span>{relatedCase?.number || '-'}</span>
+                                                            {relatedCase?.number && (
+                                                                <button
+                                                                    onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-desktop')}
+                                                                    className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === d.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    title={copiedId === d.id + '-desktop' ? "Processo copiado!" : "Copiar número"}
+                                                                >
+                                                                    {copiedId === d.id + '-desktop' ? (
+                                                                        <>
+                                                                            <Check size={11} strokeWidth={3} />
+                                                                            <span className="text-[9px] font-bold">Copiado</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <Copy size={11} />
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                         {(relatedCase?.tribunal || relatedCase?.area) && (
                                                             <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
                                                                 {relatedCase?.tribunal && <span>{relatedCase.tribunal} {relatedCase.area && '- '}</span>}
@@ -743,7 +770,23 @@ export const Deadlines: React.FC = () => {
                                                 {relatedCase && (
                                                     <div className="flex flex-col gap-1 mb-3">
                                                         <div className="bg-slate-50 dark:bg-dark-900 border border-slate-100 dark:border-slate-700 rounded-lg px-2 py-1 w-fit">
-                                                            <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
+                                                                <button
+                                                                    onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-mobile')}
+                                                                    className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === d.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    title={copiedId === d.id + '-mobile' ? "Processo copiado!" : "Copiar número"}
+                                                                >
+                                                                    {copiedId === d.id + '-mobile' ? (
+                                                                        <>
+                                                                            <Check size={11} strokeWidth={3} />
+                                                                            <span className="text-[9px] font-bold">Copiado</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <Copy size={11} />
+                                                                    )}
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         {(relatedCase.tribunal || relatedCase.area) && (
                                                             <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-1">
