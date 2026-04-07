@@ -8,6 +8,7 @@ import { getAvatarColorStyles } from '../utils/styleUtils';
 import { Deadline } from '../types';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { StatusDropdown, Status } from '../components/StatusDropdown';
+import { DateRangePicker } from '../components/DateRangePicker';
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -58,26 +59,20 @@ export const Deadlines: React.FC = () => {
 
 
     // Filters State
-    const [filterDate, setFilterDate] = useState('');
+    const [filterStartDate, setFilterStartDate] = useState('');
+    const [filterEndDate, setFilterEndDate] = useState('');
     const [filterResponsible, setFilterResponsible] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
     // Dropdown States
-    const [showDatePicker, setShowDatePicker] = useState(false);
     const [showResponsibleDropdown, setShowResponsibleDropdown] = useState(false);
-    const [pickerViewDate, setPickerViewDate] = useState(new Date()); // Controls the month currently viewed in picker
-    const datePickerRef = useRef<HTMLDivElement>(null);
-    const responsibleFilterRef = useRef<HTMLDivElement>(null);
     const [showPrintModal, setShowPrintModal] = useState(false);
+    const responsibleFilterRef = useRef<HTMLDivElement>(null);
     const [printRange, setPrintRange] = useState({ start: todayStr, end: getFutureDate(30) });
 
     // Click Outside to close Dropdowns
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // Close Date Picker
-            if (showDatePicker && datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
-                setShowDatePicker(false);
-            }
             // Close Responsible Dropdown
             if (showResponsibleDropdown && responsibleFilterRef.current && !responsibleFilterRef.current.contains(event.target as Node)) {
                 setShowResponsibleDropdown(false);
@@ -85,7 +80,7 @@ export const Deadlines: React.FC = () => {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [showDatePicker, showResponsibleDropdown]);
+    }, [showResponsibleDropdown]);
 
     // Helper to get case details inside filter
     const getCaseDetails = (caseId?: string) => {
@@ -124,11 +119,25 @@ export const Deadlines: React.FC = () => {
         const status = getStatus(d);
         const relatedCase = getCaseDetails(d.caseId);
 
-        if (d.dueDate < todayStr && status !== 'Pending') {
-            return false;
+        // Date filter and audit logic
+        if (filterStartDate && filterEndDate) {
+            // Filter by selected range
+            if (d.dueDate < filterStartDate || d.dueDate > filterEndDate) return false;
+            
+            // Audit view: if the range includes past dates, WE DO NOT HIDE completed/canceled.
+            const includesPastDates = filterStartDate < todayStr;
+            if (!includesPastDates) {
+                // Not an audit view of the past, so if it's a past deadline keep default rule
+                if (d.dueDate < todayStr && status !== 'Pending') {
+                    return false;
+                }
+            }
+        } else {
+            // Default rule when no date filter
+            if (d.dueDate < todayStr && status !== 'Pending') {
+                return false;
+            }
         }
-
-        if (filterDate && d.dueDate !== filterDate) return false;
 
         if (filterResponsible) {
             const assignedIds = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
@@ -236,32 +245,7 @@ export const Deadlines: React.FC = () => {
         setShowCalculator(false);
     };
 
-    // --- Date Picker Logic ---
-    const changePickerMonth = (offset: number) => {
-        setPickerViewDate(new Date(pickerViewDate.getFullYear(), pickerViewDate.getMonth() + offset, 1));
-    };
-
-    const selectDate = (day: number) => {
-        const newDateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        setFilterDate(newDateStr);
-        setShowDatePicker(false);
-    };
-
-    const getPickerDays = () => {
-        const year = pickerViewDate.getFullYear();
-        const month = pickerViewDate.getMonth();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const firstDayOfWeek = new Date(year, month, 1).getDay();
-
-        const days = [];
-        for (let i = 0; i < firstDayOfWeek; i++) days.push(null);
-        for (let i = 1; i <= daysInMonth; i++) days.push(i);
-        return days;
-    };
-
-    const pickerDays = getPickerDays();
-    const pickerMonthName = pickerViewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
+    // --- Date Picker Logic removed ---
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -442,70 +426,12 @@ export const Deadlines: React.FC = () => {
                         </div>
                         
                         {/* Date Filter Component */}
-                        <div className="relative shrink-0" ref={datePickerRef}>
-                            <button
-                                onClick={() => setShowDatePicker(!showDatePicker)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all shadow-sm h-full ${theme === 'hybrid'
-                                    ? 'bg-[#2a3942] border-[#354751] text-[#e9edef] hover:bg-[#354751]'
-                                    : filterDate
-                                        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-400 font-bold'
-                                        : 'bg-white dark:bg-dark-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
-                                    }`}
-                            >
-                                <CalendarIcon size={18} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
-                                <span className={`whitespace-nowrap ${theme === 'hybrid' ? (filterDate ? 'text-[#00a884] font-bold' : 'text-[#e9edef]') : ''}`}>{filterDate ? formatDate(filterDate) : 'Todas as Datas'}</span>
-                                {filterDate && (
-                                    <div
-                                        onClick={(e) => { e.stopPropagation(); setFilterDate(''); }}
-                                        className="ml-1 p-0.5 rounded-full hover:bg-rose-100 text-rose-500"
-                                    >
-                                        <X size={12} />
-                                    </div>
-                                )}
-                            </button>
-
-                            {showDatePicker && (
-                                <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 p-4 animate-fade-in">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <button onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronLeft size={18} /></button>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{pickerMonthName}</span>
-                                        <button onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-lg text-slate-600 dark:text-slate-300"><ChevronRight size={18} /></button>
-                                    </div>
-
-                                    <div className="grid grid-cols-7 gap-1 mb-2">
-                                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                                            <div key={i} className="text-center text-[10px] font-bold text-slate-400">{d}</div>
-                                        ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-7 gap-1">
-                                        {pickerDays.map((d, i) => {
-                                            if (d === null) return <div key={i} />;
-                                            const dateStr = `${pickerViewDate.getFullYear()}-${String(pickerViewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                                            const isSelected = dateStr === filterDate;
-                                            const isToday = dateStr === todayStr;
-
-                                            return (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => selectDate(d)}
-                                                    className={`
-                                            h-8 w-8 rounded-full text-xs font-medium flex items-center justify-center transition-all
-                                            ${isSelected
-                                                            ? 'bg-primary-600 text-white shadow-md'
-                                                            : isToday
-                                                                ? 'bg-amber-100 text-amber-700 font-bold border border-amber-300'
-                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'
-                                                        }
-                                        `}
-                                                >
-                                                    {d}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
+                        <div className="relative shrink-0 w-full md:w-[260px]">
+                            <DateRangePicker 
+                                startDate={filterStartDate}
+                                endDate={filterEndDate}
+                                onChange={(start, end) => { setFilterStartDate(start); setFilterEndDate(end); }}
+                            />
                         </div>
                     </div>
 
@@ -755,7 +681,7 @@ export const Deadlines: React.FC = () => {
                             {dates.length === 0 && (
                                 <tr>
                                     <td colSpan={8} className="p-8 text-center text-slate-400 bg-white dark:bg-dark-900 text-lg">
-                                        {searchTerm || filterDate ? 'Nenhum prazo encontrado para os filtros atuais.' : 'Nenhum prazo pendente.'}
+                                        {searchTerm || filterStartDate ? 'Nenhum prazo encontrado para os filtros atuais.' : 'Nenhum prazo pendente.'}
                                     </td>
                                 </tr>
                             )}
