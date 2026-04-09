@@ -609,12 +609,6 @@ export const Deadlines: React.FC = () => {
                                                                     ) : (
                                                                         <Copy size={14} />
                                                                     )}
-                                                                    {copiedId === d.id + '-desktop' && (
-                                                                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
-                                                                            Copiado!
-                                                                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></span>
-                                                                        </span>
-                                                                    )}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -784,12 +778,6 @@ export const Deadlines: React.FC = () => {
                                                                         <Check size={14} strokeWidth={3} />
                                                                     ) : (
                                                                         <Copy size={14} />
-                                                                    )}
-                                                                    {copiedId === d.id + '-mobile' && (
-                                                                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
-                                                                            Copiado!
-                                                                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></span>
-                                                                        </span>
                                                                     )}
                                                                 </button>
                                                             </div>
