@@ -530,7 +530,7 @@ export const Deadlines: React.FC = () => {
                             <tr>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Atividade</th>
-                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-[220px] min-w-[220px] max-w-[220px]">Processo</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-[265px] min-w-[265px] max-w-[265px]">Processo</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
@@ -595,8 +595,8 @@ export const Deadlines: React.FC = () => {
                                                     <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
                                                         {d.title}
                                                     </td>
-                                                    <td className={`py-2 px-4 whitespace-nowrap ${textStyle}`} title={relatedCase?.number}>
-                                                        <div className="text-sm font-bold flex items-center gap-1.5">
+                                                    <td className={`py-2 px-4 w-[265px] min-w-[265px] max-w-[265px] overflow-hidden ${textStyle}`} title={relatedCase?.number}>
+                                                        <div className="text-sm font-bold flex items-center gap-1.5 whitespace-nowrap">
                                                             <span>{relatedCase?.number || '-'}</span>
                                                             {relatedCase?.number && (
                                                                 <button
