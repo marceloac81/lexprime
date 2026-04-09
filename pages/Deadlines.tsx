@@ -529,8 +529,8 @@ export const Deadlines: React.FC = () => {
                         <thead className="bg-slate-800 dark:bg-dark-950 text-white transition-all">
                             <tr>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
-                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-1/4">Atividade</th>
-                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-48">Processo</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Atividade</th>
+                                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-[220px] min-w-[220px] max-w-[220px]">Processo</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Nome</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Local</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Município-UF</th>
@@ -601,16 +601,19 @@ export const Deadlines: React.FC = () => {
                                                             {relatedCase?.number && (
                                                                 <button
                                                                     onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-desktop')}
-                                                                    className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === d.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
-                                                                    title={copiedId === d.id + '-desktop' ? "Processo copiado!" : "Copiar número"}
+                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    title="Copiar número"
                                                                 >
                                                                     {copiedId === d.id + '-desktop' ? (
-                                                                        <>
-                                                                            <Check size={11} strokeWidth={3} />
-                                                                            <span className="text-[9px] font-bold">Copiado</span>
-                                                                        </>
+                                                                        <Check size={14} strokeWidth={3} />
                                                                     ) : (
-                                                                        <Copy size={11} />
+                                                                        <Copy size={14} />
+                                                                    )}
+                                                                    {copiedId === d.id + '-desktop' && (
+                                                                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+                                                                            Copiado!
+                                                                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></span>
+                                                                        </span>
                                                                     )}
                                                                 </button>
                                                             )}
@@ -774,16 +777,19 @@ export const Deadlines: React.FC = () => {
                                                                 <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
                                                                 <button
                                                                     onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-mobile')}
-                                                                    className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === d.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
-                                                                    title={copiedId === d.id + '-mobile' ? "Processo copiado!" : "Copiar número"}
+                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    title="Copiar número"
                                                                 >
                                                                     {copiedId === d.id + '-mobile' ? (
-                                                                        <>
-                                                                            <Check size={11} strokeWidth={3} />
-                                                                            <span className="text-[9px] font-bold">Copiado</span>
-                                                                        </>
+                                                                        <Check size={14} strokeWidth={3} />
                                                                     ) : (
-                                                                        <Copy size={11} />
+                                                                        <Copy size={14} />
+                                                                    )}
+                                                                    {copiedId === d.id + '-mobile' && (
+                                                                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+                                                                            Copiado!
+                                                                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></span>
+                                                                        </span>
                                                                     )}
                                                                 </button>
                                                             </div>
