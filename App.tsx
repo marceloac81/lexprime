@@ -14,17 +14,14 @@ import { Settings } from './pages/Settings';
 import { Team } from './pages/Team';
 import { Publications } from './pages/Publications';
 import Calculations from './pages/Calculations';
-import { SplashScreen } from './components/SplashScreen';
 
 const AppContent: React.FC = () => {
   const { currentUser, pendingAction, theme } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-
   const [showSearch, setShowSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Global Keyboard shortcut for Search (Cmd+K)
   useEffect(() => {
@@ -52,10 +49,6 @@ const AppContent: React.FC = () => {
       setCurrentPage('dashboard');
     }
   }, [currentPage, currentUser]);
-
-  if (isLoading) {
-    return <SplashScreen onFinish={() => setIsLoading(false)} />;
-  }
 
   if (!currentUser) {
     return <Login />;
