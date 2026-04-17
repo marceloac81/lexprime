@@ -42,13 +42,15 @@ export const Login: React.FC = () => {
   const { login, isLoading } = useStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setLocalError('');
       await login(email, password);
-    } catch (err) {
-      // Errors are handled by notifications in the store
+    } catch (err: any) {
+      setLocalError(err.message || 'Erro ao realizar login.');
     }
   };
 
@@ -337,6 +339,11 @@ export const Login: React.FC = () => {
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="w-full max-w-xs mt-16 flex flex-col gap-4 relative z-20"
                 >
+                  {localError && (
+                    <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 font-mono rounded">
+                      {localError}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1.5 text-left">
                     <label className="font-mono text-[10px] text-[#00a884] uppercase tracking-[2px]">E-mail de Acesso</label>
                     <input 
