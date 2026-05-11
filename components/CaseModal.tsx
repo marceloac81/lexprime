@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Briefcase, Search, FileText, User as UserIcon, AlertCircle, Shield, GitBranch,
     Loader2, Check, Copy, Download, CalendarIcon, ArrowRight, RotateCcw,
-    Maximize2, Minimize2
+    Maximize2, Minimize2, CheckCircle
 } from '../components/Icons';
 import { CaseStatus, Case } from '../types';
 import { maskCurrency, parseCurrency } from '../utils/currencyUtils';
@@ -75,6 +76,14 @@ export const CaseModal: React.FC<CaseModalProps> = ({
     const [isDataImported, setIsDataImported] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(true);
 
+    // --- HUD Validator State ---
+    type ValidateState = 'idle' | 'scanning' | 'validated';
+    type ValidationResult = 'found_new' | 'found_existing' | 'not_found' | null;
+    const [validateState, setValidateState] = useState<ValidateState>('idle');
+    const [validationResult, setValidationResult] = useState<ValidationResult>(null);
+    const [existingCase, setExistingCase] = useState<Case | null>(null);
+    const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const DEFAULT_AREAS = [
         'Civil', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
         'Administrativo', 'Sucessões', 'Empresarial', 'Ambiental'
@@ -92,28 +101,48 @@ export const CaseModal: React.FC<CaseModalProps> = ({
     const handleSearchDataJud = async () => {
         if (!newCase.number || newCase.number.length < 10) {
             setDataJudError("Digite um número de processo válido para buscar.");
+            setValidateState('idle');
             return;
         }
 
-        setLoadingDataJud(true);
+        setValidateState('scanning');
         setDataJudError(null);
         setDataJudResult(null);
+        setValidationResult(null);
+        setExistingCase(null);
         setIsDataImported(false);
 
-        try {
-            const response = await fetchProcessData(newCase.number);
-            if (response.hits.total.value > 0) {
-                const processData = response.hits.hits[0]._source;
-                setDataJudResult(processData);
-            } else {
-                setDataJudError("Processo não encontrado no DataJud. Verifique o número ou tente novamente mais tarde.");
+        if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
+        setLoadingDataJud(true);
+
+        scanTimerRef.current = setTimeout(async () => {
+            try {
+                const response = await fetchProcessData(newCase.number!);
+                if (response.hits.total.value > 0) {
+                    const src = response.hits.hits[0]._source;
+                    setDataJudResult(src);
+                    // Check if already registered (normalize both numbers)
+                    const normalize = (n: string) => n.replace(/\D/g, '');
+                    const dup = cases.find(c =>
+                        c.id !== newCase.id &&
+                        normalize(c.number || '') === normalize(newCase.number || '')
+                    );
+                    if (dup) {
+                        setExistingCase(dup);
+                        setValidationResult('found_existing');
+                    } else {
+                        setValidationResult('found_new');
+                    }
+                } else {
+                    setValidationResult('not_found');
+                }
+            } catch {
+                setValidationResult('not_found');
+            } finally {
+                setLoadingDataJud(false);
+                setValidateState('validated');
             }
-        } catch (error) {
-            setDataJudError("Erro ao conectar com DataJud. Verifique sua internet ou tente mais tarde.");
-            console.error(error);
-        } finally {
-            setLoadingDataJud(false);
-        }
+        }, 2700);
     };
 
     // --- Auto-fill Handler ---
@@ -315,21 +344,26 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                         Número do Processo (CNJ ou outro) <span className="text-rose-500">*</span>
                                     </label>
-                                    <div className="relative flex items-center">
+                                    <div className="relative flex items-center group">
                                         <input
                                             placeholder="0000000-00.0000.0.00.0000"
                                             value={newCase.number}
                                             onChange={e => setNewCase({ ...newCase, number: formatCNJ(e.target.value) })}
-                                            className="w-full pl-4 pr-12 py-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white font-mono tracking-wide focus:ring-2 focus:ring-primary-500 transition-all"
+                                            className="w-full pl-4 pr-28 py-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white font-mono tracking-wide focus:ring-2 focus:ring-primary-500 transition-all"
                                         />
                                         <button
                                             type="button"
                                             onClick={handleSearchDataJud}
                                             disabled={loadingDataJud || !newCase.number}
-                                            className="absolute right-2 p-2 rounded-lg bg-white dark:bg-dark-800 text-slate-400 hover:text-primary-600 hover:bg-slate-100 dark:hover:bg-dark-700 disabled:opacity-50 transition-colors shadow-sm border border-slate-100 dark:border-slate-600"
-                                            title="Buscar na DataJud"
+                                            className="absolute right-1.5 px-3 py-1.5 rounded-md bg-white dark:bg-dark-800 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 disabled:opacity-50 transition-all shadow-sm border border-slate-200 dark:border-slate-600 flex items-center gap-2 group-focus-within:border-primary-300"
+                                            title="Validar na base DataJud"
                                         >
-                                            {loadingDataJud ? <Loader2 size={18} className="animate-spin text-primary-600" /> : <Search size={18} />}
+                                            {loadingDataJud ? (
+                                                <Loader2 size={14} className="animate-spin" />
+                                            ) : (
+                                                <Search size={14} className="group-hover:scale-110 transition-transform" />
+                                            )}
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Validar</span>
                                         </button>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-1 ml-1">
@@ -730,162 +764,254 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                         </form>
                     </div>
 
-                    {/* RIGHT COLUMN: DataJud Viewer */}
-                    <div className="flex-[0.8] bg-slate-50 dark:bg-dark-900 border-l border-slate-100 dark:border-slate-700 overflow-y-auto custom-scrollbar p-0 relative">
-                        {/* Background Pattern */}
-                        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
-                            style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                    {/* RIGHT COLUMN: HUD Validator */}
+                    <div className="flex-[0.8] border-l border-slate-200 dark:border-slate-700/60 overflow-hidden relative flex flex-col bg-slate-50/50 dark:bg-dark-900/50">
+                        {/* Dot-grid background for light theme */}
+                        <div
+                            className="absolute inset-0 pointer-events-none opacity-30"
+                            style={{
+                                backgroundImage: 'radial-gradient(circle, rgba(148,163,184,0.4) 1px, transparent 1px)',
+                                backgroundSize: '22px 22px',
+                            }}
+                        />
 
-                        {loadingDataJud ? (
-                            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                                <Loader2 size={40} className="text-primary-600 animate-spin mb-4" />
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">Consultando DataJud...</h3>
-                                <p className="text-slate-500 max-w-xs mt-2">Estamos buscando os dados no tribunal. Isso pode levar alguns segundos.</p>
+                        {/* HUD header bar */}
+                        <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2 border-b border-slate-200 dark:border-slate-700/50 bg-white/50 dark:bg-dark-800/50">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Validador de Processos</span>
                             </div>
-                        ) : dataJudResult ? (
-                            <div className="p-6 md:p-8 space-y-6 animate-slide-in relative">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-                                                Processo Encontrado
-                                            </span>
-                                            <span className="text-xs text-slate-400 font-mono">CNJ API</span>
-                                        </div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                                            {dataJudResult.numeroProcesso}
-                                        </h3>
-                                        <p className="text-sm text-slate-500">{dataJudResult.classe?.nome}</p>
-                                    </div>
-                                </div>
+                            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 tracking-wider">CNJ API</span>
+                        </div>
 
-                                {/* Cards Grid */}
-                                <div className="grid grid-cols-1 gap-4">
-                                    {/* Tribunal Card */}
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                                            <Shield size={14} /> Tribunal e Órgão
-                                        </h4>
-                                        <div className="space-y-2">
-                                            <div>
-                                                <p className="text-xs text-slate-500">Tribunal</p>
-                                                <p className="font-medium text-slate-900 dark:text-white uppercase">{dataJudResult.tribunal}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500">Órgão Julgador</p>
-                                                <p className="font-medium text-slate-900 dark:text-white">{dataJudResult.orgaoJulgador?.nome}</p>
-                                                <p className="text-xs text-slate-400">{dataJudResult.orgaoJulgador?.codigoMunicipioIBGE ? `IBGE: ${dataJudResult.orgaoJulgador.codigoMunicipioIBGE}` : ''}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                        {/* Main HUD content */}
+                        <div className="flex-1 flex flex-col items-center justify-center relative p-6">
 
-                                    {/* Dates Card */}
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                                            <CalendarIcon size={14} /> Datas Importantes
-                                        </h4>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-xs text-slate-500">Distribuição</p>
-                                                <p className="font-medium text-slate-900 dark:text-white">
-                                                    {dataJudResult.dataAjuizamento ? new Date(dataJudResult.dataAjuizamento.replace(/\//g, '-')).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500">Última Atualização</p>
-                                                <p className="font-medium text-slate-900 dark:text-white">
-                                                    {dataJudResult.dataHoraUltimaAtualizacao ? new Date(dataJudResult.dataHoraUltimaAtualizacao).toLocaleDateString('pt-BR') : '-'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Status text */}
+                            <AnimatePresence mode="wait">
+                                {validateState === 'idle' && (
+                                    <motion.div
+                                        key="idle-text"
+                                        initial={{ opacity: 0, y: -8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="mb-6 text-center"
+                                    >
+                                        <span className="text-xs font-medium tracking-wide uppercase px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-800 text-slate-500 dark:text-slate-400 shadow-sm">
+                                            Aguardando Número CNJ
+                                        </span>
+                                    </motion.div>
+                                )}
 
-                                    {/* Parties Lists */}
-                                    <div className="space-y-4">
-                                        <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm border-l-4 border-l-green-500">
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase mb-3">Polo Ativo (Autores)</h4>
-                                            <div className="space-y-2">
-                                                {dataJudResult.polos?.find(p => p.polo === 'AT')?.partes.map((parte, idx) => (
-                                                    <div key={idx} className="flex flex-col">
-                                                        <span className="font-medium text-slate-900 dark:text-white text-sm">{parte.nome}</span>
-                                                        <span className="text-[10px] text-slate-400 uppercase">{parte.tipoPessoa}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm border-l-4 border-l-rose-500">
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase mb-3">Polo Passivo (Réus)</h4>
-                                            <div className="space-y-2">
-                                                {dataJudResult.polos?.find(p => p.polo === 'PA')?.partes.map((parte, idx) => (
-                                                    <div key={idx} className="flex flex-col">
-                                                        <span className="font-medium text-slate-900 dark:text-white text-sm">{parte.nome}</span>
-                                                        <span className="text-[10px] text-slate-400 uppercase">{parte.tipoPessoa}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
+                                {validateState === 'scanning' && (
+                                    <motion.div
+                                        key="scan-text"
+                                        initial={{ opacity: 0, y: -8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="mb-6 text-center flex items-center gap-2 px-4 py-2 rounded-full border border-primary-200 dark:border-primary-900/50 bg-primary-50 dark:bg-primary-900/20 shadow-sm"
+                                    >
+                                        <span className="text-xs font-bold tracking-wide uppercase text-primary-600 dark:text-primary-400">
+                                            Validando processo...
+                                        </span>
+                                        <Loader2 size={14} className="animate-spin text-primary-600 dark:text-primary-400" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                    {/* Assuntos */}
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                                            <FileText size={14} /> Assuntos
-                                        </h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {dataJudResult.assuntos?.map((assunto, idx) => (
-                                                <span key={idx} className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs px-2 py-1 rounded">
-                                                    {assunto.nome}
-                                                </span>
-                                            ))}
-                                            {(!dataJudResult.assuntos || dataJudResult.assuntos.length === 0) && <span className="text-xs text-slate-400 italic">Nenhum assunto listado.</span>}
-                                        </div>
-                                    </div>
-
-                                    {/* Last Movements */}
-                                    <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                                            <RotateCcw size={14} /> Últimas Movimentações
-                                        </h4>
-                                        <div className="space-y-3 relative before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-700/50">
-                                            {dataJudResult.movimentos?.slice(0, 5).map((mov, idx) => (
-                                                <div key={idx} className="relative pl-6">
-                                                    <div className="absolute left-[7px] top-1.5 w-2.5 h-2.5 bg-slate-200 dark:bg-slate-600 rounded-full border-2 border-white dark:border-dark-800"></div>
-                                                    <p className="text-[10px] font-bold text-slate-400">{new Date(mov.dataHora).toLocaleDateString('pt-BR')}</p>
-                                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{mov.nome}</p>
-                                                    {mov.complementosTabelados && mov.complementosTabelados.length > 0 && (
-                                                        <p className="text-[10px] text-slate-500 mt-0.5 italic">
-                                                            "{mov.complementosTabelados[0].descricao}"
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : dataJudError ? (
-                            <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                                <div className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-4">
-                                    <AlertCircle size={32} className="text-rose-500" />
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">Ops, algo deu errado.</h3>
-                                <p className="text-slate-500 max-w-xs mt-2 text-sm">{dataJudError}</p>
-                                <button
-                                    onClick={() => setDataJudError(null)}
-                                    className="mt-6 text-primary-600 hover:underline text-sm"
+                            {/* Document wireframe + laser container */}
+                            <div className="relative mb-6" style={{ width: 160, height: 210 }}>
+                                {/* Document ghost wireframe */}
+                                <motion.div
+                                    className="absolute inset-0 rounded-lg bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 shadow-md"
+                                    animate={
+                                        validateState === 'scanning'
+                                            ? {
+                                                rotateY: [0, 4, -4, 3, -3, 0],
+                                                rotateX: [0, 2, -2, 1, -1, 0],
+                                                y: [0, -4, 2, -2, 0]
+                                            }
+                                            : { rotateY: 0, rotateX: 0, y: 0 }
+                                    }
+                                    transition={
+                                        validateState === 'scanning'
+                                            ? { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+                                            : { duration: 0.5 }
+                                    }
+                                    style={{
+                                        transformStyle: 'preserve-3d',
+                                    }}
                                 >
-                                    Tentar novamente
-                                </button>
+                                    {/* Document lines skeleton */}
+                                    <div className="absolute inset-4 flex flex-col gap-2.5 justify-start pt-2">
+                                        <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 w-3/4" />
+                                        <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-700/50 w-1/2" />
+                                        <div className="h-px my-1 bg-slate-100 dark:bg-slate-700/50" />
+                                        {[90, 75, 85, 65, 80].map((w, i) => (
+                                            <div
+                                                key={i}
+                                                className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700"
+                                                style={{ width: `${w}%` }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Validated Icons Overlays */}
+                                    <AnimatePresence>
+                                        {validateState === 'validated' && validationResult === 'found_new' && (
+                                            <motion.div
+                                                className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-dark-800/80 backdrop-blur-[2px] rounded-lg"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                            >
+                                                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-full text-emerald-600 dark:text-emerald-400">
+                                                    <CheckCircle size={40} strokeWidth={2} />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                        {validateState === 'validated' && validationResult === 'found_existing' && (
+                                            <motion.div
+                                                className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-dark-800/80 backdrop-blur-[2px] rounded-lg"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                            >
+                                                <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-full text-amber-600 dark:text-amber-400">
+                                                    <AlertCircle size={40} strokeWidth={2} />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                        {validateState === 'validated' && validationResult === 'not_found' && (
+                                            <motion.div
+                                                className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-dark-800/80 backdrop-blur-[2px] rounded-lg"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                            >
+                                                <div className="bg-rose-100 dark:bg-rose-900/30 p-3 rounded-full text-rose-600 dark:text-rose-400">
+                                                    <Search size={40} strokeWidth={2} />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+
+                                {/* LASER LINE */}
+                                <AnimatePresence>
+                                    {validateState === 'scanning' && (
+                                        <motion.div
+                                            key="laser"
+                                            className="absolute left-[-10px] right-[-10px] z-20 pointer-events-none"
+                                            style={{
+                                                height: 2,
+                                                borderRadius: 2,
+                                                background: 'linear-gradient(90deg, transparent, #3b82f6, #3b82f6, transparent)',
+                                                boxShadow: '0 0 8px 2px rgba(59,130,246,0.3)'
+                                            }}
+                                            initial={{ top: '0%' }}
+                                            animate={{ top: ['2%', '95%', '2%'] }}
+                                            transition={{
+                                                duration: 1.6,
+                                                repeat: Infinity,
+                                                ease: 'easeInOut'
+                                            }}
+                                        />
+                                    )}
+                                </AnimatePresence>
                             </div>
-                        ) : (
-                            <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-60">
-                                <Search size={48} className="text-slate-300 mb-4" />
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">Visualizador DataJud</h3>
-                                <p className="text-sm text-slate-500 max-w-xs mt-2">
-                                    Digite o número do processo na esquerda e clique na lupa para visualizar os dados oficiais do tribunal aqui.
-                                </p>
+
+                            {/* Result Messages & Actions */}
+                            <AnimatePresence mode="wait">
+                                {validateState === 'validated' && (
+                                    <motion.div
+                                        key="result"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="w-full max-w-[280px] text-center flex flex-col items-center"
+                                    >
+                                        {validationResult === 'found_new' && (
+                                            <>
+                                                <h4 className="text-emerald-600 dark:text-emerald-400 font-bold mb-1">Processo Encontrado</h4>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+                                                    O processo foi localizado na base do CNJ e está pronto para ser cadastrado.
+                                                </p>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (dataJudResult) {
+                                                            setNewCase(prev => ({
+                                                                ...prev,
+                                                                title: dataJudResult.assuntos?.[0]?.nome || prev.title,
+                                                                court: dataJudResult.orgaoJulgador?.nome || prev.court,
+                                                                tribunal: dataJudResult.tribunal || prev.tribunal,
+                                                                subject: dataJudResult.assuntos?.[0]?.nome || prev.subject,
+                                                                value: dataJudResult.valorCausa || prev.value,
+                                                                clientName: dataJudResult.polos?.find(p => p.polo === 'AT')?.partes[0]?.nome || prev.clientName,
+                                                                opposingParty: dataJudResult.polos?.find(p => p.polo === 'PA')?.partes[0]?.nome || prev.opposingParty
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className="w-full py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <Download size={14} /> Preencher Formulário
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {validationResult === 'found_existing' && existingCase && (
+                                            <>
+                                                <h4 className="text-amber-600 dark:text-amber-500 font-bold mb-1">Já Cadastrado</h4>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+                                                    Este número de processo já está vinculado a um caso existente na sua base.
+                                                </p>
+                                                <div className="w-full bg-white dark:bg-dark-800 border border-amber-200 dark:border-amber-900/50 p-3 rounded-lg text-left">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Processo Existente</p>
+                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{existingCase.title || existingCase.number}</p>
+                                                    <p className="text-xs text-slate-500 truncate mt-1">{existingCase.clientName} vs {existingCase.opposingParty}</p>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {validationResult === 'not_found' && (
+                                            <>
+                                                <h4 className="text-rose-600 dark:text-rose-400 font-bold mb-1">Não Localizado</h4>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                                                    O processo não foi encontrado no DataJud. Pode estar em <b>segredo de justiça</b> ou a numeração está incorreta.
+                                                </p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-500 italic">
+                                                    Verifique o número, mas você ainda pode prosseguir preenchendo o formulário manualmente.
+                                                </p>
+                                            </>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* HUD footer telemetry */}
+                        <div className="relative z-10 px-5 py-2.5 border-t border-slate-200 dark:border-slate-700/50 bg-white/50 dark:bg-dark-800/50 flex items-center justify-between">
+                            <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 tracking-widest uppercase">
+                                {validateState === 'idle' && 'STATUS: STANDBY'}
+                                {validateState === 'scanning' && 'STATUS: SCANNING'}
+                                {validateState === 'validated' && 'STATUS: FINALIZADO'}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                                {[0, 1, 2].map(i => (
+                                    <motion.div
+                                        key={i}
+                                        className="w-1.5 h-1.5 rounded-full"
+                                        style={{
+                                            background: validateState === 'validated'
+                                                ? (validationResult === 'found_new' ? '#10b981' : validationResult === 'found_existing' ? '#f59e0b' : '#f43f5e')
+                                                : validateState === 'scanning' ? '#3b82f6'
+                                                    : '#cbd5e1'
+                                        }}
+                                        animate={validateState === 'scanning' ? { opacity: [0.4, 1, 0.4] } : {}}
+                                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+                                    />
+                                ))}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
 
