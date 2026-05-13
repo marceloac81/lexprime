@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Eye, CalendarPlus, FolderPlus, Copy } from 'lucide-react';
+import { Search, Loader2, AlertCircle, FileText, ExternalLink, ChevronLeft, ChevronRight, User, Briefcase, Plus, X, ChevronDown, Check, Eye, CalendarPlus, FolderPlus, Copy, Database, Cpu, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPublications } from '../utils/djen';
 import { DJENItem } from '../types';
 import { useStore } from '../context/Store';
@@ -7,6 +8,32 @@ import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
 import { DateRangePicker } from '../components/DateRangePicker';
+
+const DecodingText: React.FC<{ text: string }> = ({ text }) => {
+    const [displayValue, setDisplayValue] = useState('');
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+
+    useEffect(() => {
+        let iteration = 0;
+        const interval = setInterval(() => {
+            setDisplayValue(prev =>
+                text.split('')
+                    .map((char, index) => {
+                        if (index < iteration) return text[index];
+                        return characters[Math.floor(Math.random() * characters.length)];
+                    })
+                    .join('')
+            );
+
+            if (iteration >= text.length) clearInterval(interval);
+            iteration += 1 / 3;
+        }, 30);
+
+        return () => clearInterval(interval);
+    }, [text]);
+
+    return <span>{displayValue}</span>;
+};
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -44,6 +71,12 @@ interface PublicationsProps {
 export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
     const { theme, teamMembers, cases, addDeadline, holidays, addCase, clients } = useStore();
     const [loading, setLoading] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanStatus, setScanStatus] = useState<'idle' | 'connecting' | 'searching' | 'success'>('idle');
+    const [scanProgress, setScanProgress] = useState(0);
+    const [scannedOabs, setScannedOabs] = useState<string[]>([]);
+    const [showSuccessHUD, setShowSuccessHUD] = useState(false);
+    const [syncCount, setSyncCount] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<DJENItem[]>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -173,12 +206,25 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         }
 
         setLoading(true);
+        setIsScanning(true);
+        setScanStatus('connecting');
+        setScanProgress(5);
+        setScannedOabs([]);
+        setShowSuccessHUD(false);
         setError(null);
 
         try {
+            // Initial delay to show "Connecting"
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setScanStatus('searching');
+            setScanProgress(15);
+
             let allItems: DJENItem[] = [];
 
             if (selectedOabs.length > 0) {
+                const totalOabs = selectedOabs.length;
+                let oabsCompleted = 0;
+
                 const fetchAllForOab = async (oabVal: string) => {
                     let items: DJENItem[] = [];
                     let page = 1;
@@ -200,10 +246,20 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             page++;
                         }
                     }
+                    
+                    oabsCompleted++;
+                    setScannedOabs(prev => [...prev, oabVal]);
+                    setScanProgress(15 + Math.floor((oabsCompleted / totalOabs) * 75));
+                    
                     return items;
                 };
 
-                const responses = await Promise.all(selectedOabs.map(oabVal => fetchAllForOab(oabVal)));
+                // Sequential or limited parallel to show progress clearly
+                const responses = [];
+                for (const oabVal of selectedOabs) {
+                    const res = await fetchAllForOab(oabVal);
+                    responses.push(res);
+                }
 
                 const seenIds = new Set();
                 responses.forEach(items => {
@@ -228,6 +284,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         itensPorPagina: 100
                     });
                     allItems.push(...(response.items || []));
+                    setScanProgress(prev => Math.min(90, prev + 20));
                     if (!response.items || response.items.length < 100 || allItems.length >= 1000) {
                         hasMore = false;
                     } else {
@@ -236,13 +293,29 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 }
             }
 
+            setScanProgress(100);
+            setScanStatus('success');
+            setSyncCount(allItems.length);
+            setShowSuccessHUD(true);
+
+            // Give user a moment to see success
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             setResults(allItems);
             setTotalCount(allItems.length);
             setPageNumber(1);
         } catch (err: any) {
             setError(err.message || 'Erro ao buscar publicações.');
+            setIsScanning(false);
+            setScanStatus('idle');
         } finally {
             setLoading(false);
+            // Hide HUD after data is loaded and success message shown
+            setTimeout(() => {
+                setIsScanning(false);
+                setShowSuccessHUD(false);
+                setScanStatus('idle');
+            }, 500);
         }
     };
 
@@ -478,8 +551,17 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' 
                             : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'}`}
                     >
-                        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
-                        Buscar Publicações
+                        {loading ? (
+                            <>
+                                <Database className="h-5 w-5 animate-pulse" />
+                                <span>Analisando Diários...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Search className="h-5 w-5" />
+                                <span>Buscar Publicações</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -607,8 +689,96 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 </div>
 
 
-                {/* Results Table */}
-                {results.length > 0 ? (
+                {/* Results Table Area */}
+                <div className="relative">
+                    {/* Scanning Overlay */}
+                    <AnimatePresence>
+                        {isScanning && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 z-30 rounded-2xl flex items-center justify-center overflow-hidden"
+                            >
+                                {/* Translucent Blur Background */}
+                                <div className={`absolute inset-0 backdrop-blur-[2px] ${theme === 'hybrid' ? 'bg-dark-950/40' : 'bg-white/40'}`} />
+                                
+                                {/* HUD Popup */}
+                                <motion.div
+                                    initial={{ scale: 0.9, y: 20 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    exit={{ scale: 0.9, y: 20 }}
+                                    className={`relative z-40 w-full max-w-md p-8 rounded-2xl border shadow-2xl overflow-hidden ${theme === 'hybrid' ? 'bg-[#202c33] border-emerald-500/30 shadow-black' : 'bg-white border-blue-200 shadow-blue-500/10'}`}
+                                >
+                                    {/* Scanning Laser Line */}
+                                    <motion.div 
+                                        className="absolute left-0 right-0 h-[2px] z-10 bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.8)]"
+                                        animate={{ top: ['0%', '100%', '0%'] }}
+                                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                    />
+
+                                    <div className="flex flex-col items-center text-center space-y-6">
+                                        <div className={`p-4 rounded-full ${theme === 'hybrid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-50 text-blue-600'}`}>
+                                            <Cpu size={32} className="animate-pulse" />
+                                        </div>
+
+                                        <div className="space-y-2 w-full">
+                                            <div className={`text-[10px] font-mono font-bold uppercase tracking-[0.3em] ${theme === 'hybrid' ? 'text-emerald-500/70' : 'text-blue-500/70'}`}>
+                                                {scanStatus === 'connecting' ? 'Establishing link...' : 'SYNC_DJEN_API_ACTIVE'}
+                                            </div>
+                                            <div className={`text-sm font-mono font-bold ${theme === 'hybrid' ? 'text-emerald-400' : 'text-blue-700'}`}>
+                                                {scanStatus === 'connecting' ? (
+                                                    <DecodingText text="INITIATING SECURE CONNECTION..." />
+                                                ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                        <DecodingText text={`QUERYING OAB: ${selectedOabs.join(', ')}`} />
+                                                        {scannedOabs.length > 0 && (
+                                                            <div className="text-[10px] opacity-60">
+                                                                Completado: {scannedOabs.length}/{selectedOabs.length}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bar Container */}
+                                        <div className="w-full space-y-2">
+                                            <div className="h-1.5 w-full bg-slate-100 dark:bg-dark-900 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                                                <motion.div 
+                                                    className={`h-full ${theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-blue-600'}`}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${scanProgress}%` }}
+                                                    transition={{ duration: 0.5 }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
+                                                <span>PROGRESS_DATA</span>
+                                                <span>{scanProgress}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Success Floating Message */}
+                                <AnimatePresence>
+                                    {showSuccessHUD && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 50 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className={`absolute bottom-12 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full flex items-center gap-3 shadow-xl border ${theme === 'hybrid' ? 'bg-[#00a884] border-emerald-400 text-white shadow-emerald-900/40' : 'bg-emerald-600 border-emerald-500 text-white shadow-emerald-500/30'}`}
+                                        >
+                                            <CheckCircle2 size={20} />
+                                            <span className="font-bold text-sm">Busca Concluída - {syncCount} publicações sincronizadas</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {results.length > 0 ? (
                     <div className="mt-2">
                         {/* Toolbar */}
                         <div className={`flex items-center justify-between px-1 mb-2 no-print`}>
@@ -858,8 +1028,9 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                 )}
                 </div>
             </div>
+        </div>
 
-            <div className="publications-print-view">
+        <div className="publications-print-view">
                 {/* Detail Modal (Eye) */}
                 {detailItem && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailItem(null)}>
