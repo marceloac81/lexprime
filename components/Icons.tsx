@@ -62,7 +62,10 @@ import {
   ExternalLink,
   BookOpen,
   Palette,
-  ChevronUp
+  ChevronUp,
+  Building2,
+  ScrollText,
+  Cpu
 } from 'lucide-react';
 
 
@@ -129,5 +132,8 @@ export {
   ExternalLink,
   BookOpen,
   Palette,
-  ChevronUp
+  ChevronUp,
+  Building2,
+  ScrollText,
+  Cpu
 };

@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign, ExternalLink } from '../components/Icons';
+import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign, ExternalLink, Building2, ScrollText, Cpu, CheckCircle2 } from '../components/Icons';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Client } from '../types';
 import { normalizeText } from '../utils/textUtils';
 import { PowerOfAttorneyModal } from '../components/PowerOfAttorneyModal';
@@ -91,6 +92,30 @@ const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ targ
     return <span>{count}</span>;
 };
 
+const DecodingText = ({ text }: { text: string }) => {
+    const [displayText, setDisplayText] = useState('');
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+
+    useEffect(() => {
+        let iterations = 0;
+        const interval = setInterval(() => {
+            setDisplayText(prev => 
+                text.split('')
+                    .map((char, index) => {
+                        if (index < iterations) return text[index];
+                        return characters[Math.floor(Math.random() * characters.length)];
+                    })
+                    .join('')
+            );
+            if (iterations >= text.length) clearInterval(interval);
+            iterations += 1/3;
+        }, 30);
+        return () => clearInterval(interval);
+    }, [text]);
+
+    return <span>{displayText}</span>;
+};
+
 export const Clients: React.FC = () => {
     const { theme, clients, addClient, updateClient, deleteClient, clearClients, addNotification, teamMembers, cases, pendingAction, setPendingAction, isLoading, setIsLoading, currentUser } = useStore();
 
@@ -113,6 +138,12 @@ export const Clients: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loadingCep, setLoadingCep] = useState(false);
     const [loadingCnpj, setLoadingCnpj] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
+    const [isSynced, setIsSynced] = useState(false);
+    const [isScanningCep, setIsScanningCep] = useState(false);
+    const [cepScanStatus, setCepScanStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
+    const [isCepSynced, setIsCepSynced] = useState(false);
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
 
@@ -187,12 +218,24 @@ export const Clients: React.FC = () => {
             nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', profession: '', rg: '', birthDate: '', gender: 'Masculino',
             representative: '', representativeGender: 'Masculino', representativeId: '', representativeQualification: '', representativeAddress: ''
         });
+        setIsSynced(false);
+        setIsScanning(false);
+        setScanStatus('idle');
+        setIsCepSynced(false);
+        setIsScanningCep(false);
+        setCepScanStatus('idle');
         setShowFormModal(true);
     };
 
     const handleOpenEdit = (client: Client) => {
         setIsEditing(true);
         setFormData({ ...client });
+        setIsSynced(false);
+        setIsScanning(false);
+        setScanStatus('idle');
+        setIsCepSynced(false);
+        setIsScanningCep(false);
+        setCepScanStatus('idle');
         setShowDetailModal(false);
         setShowFormModal(true);
     };
@@ -203,6 +246,43 @@ export const Clients: React.FC = () => {
             setShowFormModal(false);
             setShowDetailModal(false);
         }
+    };
+
+    const handleTypeChange = (newType: Client['type']) => {
+        if (newType === formData.type) return;
+
+        setIsSynced(false);
+        setIsScanning(false);
+        setScanStatus('idle');
+        setIsCepSynced(false);
+        setIsScanningCep(false);
+        setCepScanStatus('idle');
+
+        setFormData(prev => ({
+            ...prev,
+            type: newType,
+            name: '',
+            email: '',
+            phone: '',
+            document: '',
+            notes: '',
+            group: '',
+            phoneHome: '',
+            phoneWork: '',
+            phoneWork2: '',
+            street: '',
+            addressNumber: '',
+            complement: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            zip: '',
+            representative: '',
+            representativeGender: 'Masculino',
+            representativeId: '',
+            representativeQualification: '',
+            representativeAddress: ''
+        }));
     };
 
     const handleOpenDetails = (client: Client) => {
@@ -260,6 +340,7 @@ export const Clients: React.FC = () => {
         // Espólio also uses CPF mask
         const masked = formData.type === 'Pessoa Jurídica' ? maskCNPJ(raw) : maskCPF(raw);
         setFormData({ ...formData, document: masked });
+        setIsSynced(false);
     };
 
     const handleWhatsApp = (phone: string, e: React.MouseEvent) => {
@@ -306,13 +387,30 @@ export const Clients: React.FC = () => {
         }
 
         setLoadingCep(true);
+        setIsScanningCep(true);
+        setCepScanStatus('scanning');
+        setIsCepSynced(false);
+
+        const startTime = Date.now();
+
         try {
             const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
             const data = await res.json();
+
+            // Wait for at least 2 seconds for the "high tech" feel
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsed));
+            }
+
             if (data.erro) {
+                setIsScanningCep(false);
+                setCepScanStatus('idle');
                 addNotification('CEP não encontrado. Preencha o endereço manualmente.', 'warning');
-                // We don't clear fields to allow manual entry, just warn user
             } else {
+                setCepScanStatus('success');
+                setIsCepSynced(true);
+
                 setFormData(prev => ({
                     ...prev,
                     street: data.logradouro,
@@ -322,9 +420,17 @@ export const Clients: React.FC = () => {
                     country: 'Brasil' // Ensure country is set
                 }));
                 addNotification('Endereço preenchido!', 'success');
+
+                // Reset scan state after 1.5s success message
+                setTimeout(() => {
+                    setIsScanningCep(false);
+                    setCepScanStatus('idle');
+                }, 1500);
             }
         } catch (error) {
             console.error(error);
+            setIsScanningCep(false);
+            setCepScanStatus('idle');
             addNotification('Erro na busca. Preencha manualmente.', 'warning');
         } finally {
             setLoadingCep(false);
@@ -339,10 +445,25 @@ export const Clients: React.FC = () => {
         }
 
         setLoadingCnpj(true);
+        setIsScanning(true);
+        setScanStatus('scanning');
+        setIsSynced(false);
+
+        const startTime = Date.now();
+
         try {
             const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
             if (!res.ok) throw new Error('CNPJ não encontrado.');
             const data = await res.json();
+
+            // Wait for at least 2 seconds for the "high tech" feel
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsed));
+            }
+
+            setScanStatus('success');
+            setIsSynced(true);
 
             // Auto Format Name - Razão Social
             const formattedName = toTitleCase(data.razao_social);
@@ -394,8 +515,17 @@ export const Clients: React.FC = () => {
             }));
 
             addNotification('Dados do CNPJ preenchidos!', 'success');
+            
+            // Reset scan state after 1.5s success message
+            setTimeout(() => {
+                setIsScanning(false);
+                setScanStatus('idle');
+            }, 1500);
+
         } catch (error) {
             console.error(error);
+            setIsScanning(false);
+            setScanStatus('idle');
             addNotification('CNPJ não encontrado ou erro na busca.', 'error');
         } finally {
             setLoadingCnpj(false);
@@ -772,9 +902,9 @@ export const Clients: React.FC = () => {
                                 <form id="clientForm" onSubmit={handleSubmit} className="space-y-8">
                                     {/* Type Selection */}
                                     <div className="flex bg-slate-100 dark:bg-dark-900 rounded-lg p-1">
-                                        <button type="button" onClick={() => setFormData({ ...formData, type: 'Pessoa Física' })} className={`flex-1 py-2 rounded text-sm font-medium transition-all ${formData.type === 'Pessoa Física' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}>Pessoa Física</button>
-                                        <button type="button" onClick={() => setFormData({ ...formData, type: 'Pessoa Jurídica' })} className={`flex-1 py-2 rounded text-sm font-medium transition-all ${formData.type === 'Pessoa Jurídica' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}>Pessoa Jurídica</button>
-                                        <button type="button" onClick={() => setFormData({ ...formData, type: 'Espólio' })} className={`flex-1 py-2 rounded text-sm font-medium transition-all ${formData.type === 'Espólio' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}>Espólio</button>
+                                        <button type="button" onClick={() => handleTypeChange('Pessoa Física')} className={`flex-1 py-2 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 ${formData.type === 'Pessoa Física' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}><User size={16} /> Pessoa Física</button>
+                                        <button type="button" onClick={() => handleTypeChange('Pessoa Jurídica')} className={`flex-1 py-2 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 ${formData.type === 'Pessoa Jurídica' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}><Building2 size={16} /> Pessoa Jurídica</button>
+                                        <button type="button" onClick={() => handleTypeChange('Espólio')} className={`flex-1 py-2 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 ${formData.type === 'Espólio' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500'}`}><ScrollText size={16} /> Espólio</button>
                                     </div>
 
                                     {/* 1. Dados Básicos */}
@@ -785,12 +915,12 @@ export const Clients: React.FC = () => {
                                             <>
                                                 {/* CNPJ First for PJ */}
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <div>
+                                                    <div className="relative">
                                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CNPJ</label>
                                                         <div className="flex gap-2">
                                                             <input
                                                                 placeholder="00.000.000/0000-00"
-                                                                className="flex-1 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                                className={`flex-1 p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                                 value={formData.document}
                                                                 onChange={handleDocumentChange}
                                                                 maxLength={18}
@@ -798,7 +928,7 @@ export const Clients: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={handleCnpjSearch}
-                                                                disabled={loadingCnpj}
+                                                                disabled={loadingCnpj || isScanning}
                                                                 className="p-3 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 disabled:opacity-50 transition-colors"
                                                                 title="Buscar CNPJ"
                                                             >
@@ -809,12 +939,55 @@ export const Clients: React.FC = () => {
                                                                 )}
                                                             </button>
                                                         </div>
+
+                                                        <AnimatePresence>
+                                                            {isScanning && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, height: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                                                    exit={{ opacity: 0, height: 0, y: -10 }}
+                                                                    className="mt-2 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 overflow-hidden relative shadow-sm"
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        {scanStatus === 'scanning' ? (
+                                                                            <>
+                                                                                <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                                                                                    <Cpu className="text-blue-500 animate-pulse" size={24} />
+                                                                                    <div className="absolute inset-0 bg-blue-500/20 blur-md rounded-full animate-pulse" />
+                                                                                </div>
+                                                                                <div className="flex-1">
+                                                                                    <div className="text-[10px] font-mono text-blue-600/70 uppercase tracking-widest mb-1">Recuperando metadados...</div>
+                                                                                    <div className="text-xs font-mono text-blue-700 font-bold">
+                                                                                        <DecodingText text="EXTRACTING_ENTITY_DATA" />
+                                                                                    </div>
+                                                                                </div>
+                                                                                <motion.div 
+                                                                                    className="absolute left-0 right-0 h-[2px] bg-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.8)] z-10"
+                                                                                    animate={{ top: ['0%', '100%', '0%'] }}
+                                                                                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                                                                />
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div className="w-10 h-10 flex items-center justify-center bg-emerald-500/20 rounded-full shrink-0">
+                                                                                    <CheckCircle2 className="text-emerald-500" size={24} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="text-[10px] font-mono text-emerald-600 uppercase tracking-widest">Sincronização Concluída</div>
+                                                                                    <div className="text-xs font-mono text-emerald-600 font-bold uppercase">Dados Sincronizados</div>
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
                                                     </div>
                                                     <div>
                                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grupo / Tag</label>
                                                         <input
                                                             placeholder="Ex: Cliente, Parceiro..."
-                                                            className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                            className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                             value={formData.group}
                                                             onChange={e => setFormData({ ...formData, group: e.target.value })}
                                                         />
@@ -822,7 +995,8 @@ export const Clients: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Razão Social <span className="text-rose-500">*</span></label>
-                                                    <input required placeholder="Nome da empresa" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                                    <input required placeholder="Nome da empresa" 
+                                                        className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                         value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                                 </div>
                                             </>
@@ -934,7 +1108,7 @@ export const Clients: React.FC = () => {
 
                                     {/* Additional Fields for PJ AND Espólio */}
                                     {(formData.type === 'Pessoa Jurídica' || formData.type === 'Espólio') && (
-                                        <section className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                        <motion.section layout className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
                                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 pb-2"><User size={14} /> {formData.type === 'Espólio' ? 'Dados do Inventariante' : 'Representante Legal'}</h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
                                                 <div className="md:col-span-2">
@@ -952,7 +1126,7 @@ export const Clients: React.FC = () => {
                                                         value={formData.representativeQualification} onChange={e => setFormData({ ...formData, representativeQualification: e.target.value })} />
                                                 </div>
                                             </div>
-                                        </section>
+                                        </motion.section>
                                     )}
 
 
@@ -1021,27 +1195,77 @@ export const Clients: React.FC = () => {
                                             </div>
 
                                             {/* Row 1: CEP/Postal & Logradouro */}
-                                            <div className="col-span-4">
+                                            <div className="col-span-4 relative">
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                                     {isBrazilianAddress ? 'CEP' : 'Código Postal'}
                                                 </label>
                                                 <div className="flex gap-2">
                                                     <input
                                                         placeholder={isBrazilianAddress ? "00000-000" : "Zip Code"}
-                                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                        className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                         value={formData.zip}
-                                                        onChange={e => setFormData({ ...formData, zip: isBrazilianAddress ? maskCEP(e.target.value) : e.target.value })}
+                                                        onChange={e => {
+                                                            setFormData({ ...formData, zip: isBrazilianAddress ? maskCEP(e.target.value) : e.target.value });
+                                                            setIsCepSynced(false);
+                                                        }}
                                                     />
                                                     {isBrazilianAddress && (
-                                                        <button type="button" onClick={handleCepSearch} disabled={loadingCep} className="p-3 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 disabled:opacity-50">
-                                                            {loadingCep ? '...' : <Search size={18} />}
+                                                        <button type="button" onClick={handleCepSearch} disabled={loadingCep || isScanningCep} className="p-3 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 disabled:opacity-50">
+                                                            {loadingCep ? (
+                                                                <div className="w-5 h-5 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Search size={18} />
+                                                            )}
                                                         </button>
                                                     )}
                                                 </div>
+
+                                                <AnimatePresence>
+                                                    {isScanningCep && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, height: 0, y: -10 }}
+                                                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                                            exit={{ opacity: 0, height: 0, y: -10 }}
+                                                            className="absolute left-0 right-0 top-full mt-2 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 overflow-hidden z-20 shadow-lg backdrop-blur-sm"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                {cepScanStatus === 'scanning' ? (
+                                                                    <>
+                                                                        <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+                                                                            <Cpu className="text-blue-500 animate-pulse" size={20} />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="text-[8px] font-mono text-blue-600/70 uppercase tracking-widest mb-0.5">RESOLVING_LAT_LONG</div>
+                                                                            <div className="text-[10px] font-mono text-blue-700 font-bold">
+                                                                                <DecodingText text="Consultando API Correios..." />
+                                                                            </div>
+                                                                        </div>
+                                                                        <motion.div 
+                                                                            className="absolute left-0 right-0 h-[1.5px] bg-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.8)] z-10"
+                                                                            animate={{ top: ['0%', '100%', '0%'] }}
+                                                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                                                        />
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="w-8 h-8 flex items-center justify-center bg-emerald-500/20 rounded-full shrink-0">
+                                                                            <CheckCircle2 className="text-emerald-500" size={20} />
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-[8px] font-mono text-emerald-600 uppercase tracking-widest">OK</div>
+                                                                            <div className="text-[10px] font-mono text-emerald-600 font-bold uppercase">Endereço Sincronizado</div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                             <div className="col-span-8">
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Logradouro</label>
-                                                <input placeholder="Rua, Av..." className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                <input placeholder="Rua, Av..." 
+                                                    className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                     value={formData.street} onChange={e => setFormData({ ...formData, street: e.target.value })} />
                                             </div>
 
@@ -1060,21 +1284,24 @@ export const Clients: React.FC = () => {
                                             {/* Row 3: Bairro */}
                                             <div className="col-span-12">
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bairro</label>
-                                                <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                <input 
+                                                    className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                     value={formData.neighborhood} onChange={e => setFormData({ ...formData, neighborhood: e.target.value })} />
                                             </div>
 
                                             {/* Row 4: City & UF */}
                                             <div className="col-span-9">
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cidade</label>
-                                                <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                <input 
+                                                    className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                     value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
                                             </div>
                                             <div className="col-span-3">
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                                     {isBrazilianAddress ? 'UF' : 'Estado/Prov'}
                                                 </label>
-                                                <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                                <input 
+                                                    className={`w-full p-3 rounded-lg border outline-none transition-all focus:ring-2 focus:ring-primary-500 ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white'}`}
                                                     value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} />
                                             </div>
                                         </div>

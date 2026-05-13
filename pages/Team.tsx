@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/Store';
-import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle, Check } from '../components/Icons';
+import { User, Users, Plus, Mail, MessageCircle, X, Edit, Trash2, Camera, Search, MapPin, FileText, List, AlertCircle, Check, Cpu, CheckCircle2 } from '../components/Icons';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TeamMember } from '../types';
 import { normalizeText, getInitials } from '../utils/textUtils';
 import { AVATAR_COLORS, getAvatarColorStyles } from '../utils/styleUtils';
@@ -19,6 +20,32 @@ const maskPhone = (value: string) => {
 const maskCPF = (value: string) => value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 const maskCEP = (value: string) => value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
 const removeMask = (value: string) => value.replace(/\D/g, '');
+
+const DecodingText: React.FC<{ text: string }> = ({ text }) => {
+    const [displayValue, setDisplayValue] = useState('');
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+
+    useEffect(() => {
+        let iteration = 0;
+        const interval = setInterval(() => {
+            setDisplayValue(prev =>
+                text.split('')
+                    .map((char, index) => {
+                        if (index < iteration) return text[index];
+                        return characters[Math.floor(Math.random() * characters.length)];
+                    })
+                    .join('')
+            );
+
+            if (iteration >= text.length) clearInterval(interval);
+            iteration += 1 / 3;
+        }, 30);
+
+        return () => clearInterval(interval);
+    }, [text]);
+
+    return <span>{displayValue}</span>;
+};
 
 const AnimatedCounter: React.FC<{ target: number, duration?: number }> = ({ target, duration = 800 }) => {
     const [count, setCount] = useState(0);
@@ -57,6 +84,9 @@ export const Team: React.FC = () => {
     const [loadingCep, setLoadingCep] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: keyof TeamMember; direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
     const [formErrors, setFormErrors] = useState<string[]>([]);
+    const [isScanningCep, setIsScanningCep] = useState(false);
+    const [cepScanStatus, setCepScanStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
+    const [isCepSynced, setIsCepSynced] = useState(false);
     const [formData, setFormData] = useState<Partial<TeamMember>>({
         name: '', role: 'Advogado', email: '', phone: '', active: true, oab: '',
         nationality: 'Brasileiro(a)', maritalStatus: 'Casado(a)', gender: 'Masculino',
@@ -116,6 +146,9 @@ export const Team: React.FC = () => {
             avatarColor: 'blue', initials: ''
         });
         setFormErrors([]);
+        setIsCepSynced(false);
+        setIsScanningCep(false);
+        setCepScanStatus('idle');
         setShowModal(true);
     };
 
@@ -123,6 +156,9 @@ export const Team: React.FC = () => {
         setIsEditing(true);
         setFormData({ ...m });
         setFormErrors([]);
+        setIsCepSynced(false);
+        setIsScanningCep(false);
+        setCepScanStatus('idle');
         setShowModal(true);
     };
 
@@ -188,12 +224,30 @@ export const Team: React.FC = () => {
         }
 
         setLoadingCep(true);
+        setIsScanningCep(true);
+        setCepScanStatus('scanning');
+        setIsCepSynced(false);
+
+        const startTime = Date.now();
+
         try {
             const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
             const data = await res.json();
+
+            // Wait for at least 2 seconds for the "high tech" feel
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsed));
+            }
+
             if (data.erro) {
+                setIsScanningCep(false);
+                setCepScanStatus('idle');
                 addNotification('CEP não encontrado. Preencha o endereço manualmente.', 'warning');
             } else {
+                setCepScanStatus('success');
+                setIsCepSynced(true);
+
                 setFormData(prev => ({
                     ...prev,
                     addressStreet: data.logradouro,
@@ -202,9 +256,17 @@ export const Team: React.FC = () => {
                     addressState: data.uf,
                 }));
                 addNotification('Endereço preenchido!', 'success');
+
+                // Reset scan state after 1.5s success message
+                setTimeout(() => {
+                    setIsScanningCep(false);
+                    setCepScanStatus('idle');
+                }, 1500);
             }
         } catch (error) {
             console.error(error);
+            setIsScanningCep(false);
+            setCepScanStatus('idle');
             addNotification('Erro na busca. Preencha manualmente.', 'warning');
         } finally {
             setLoadingCep(false);
@@ -565,28 +627,77 @@ export const Team: React.FC = () => {
                                     </div>
 
                                     <div className="grid grid-cols-4 gap-4">
-                                        <div className="col-span-1">
+                                        <div className="col-span-1 relative">
                                             <label className={classes.label}>CEP</label>
                                             <div className="flex gap-2">
                                                 <input
-                                                    className={`w-full p-2.5 rounded-lg border outline-none ${classes.input}`}
+                                                    className={`w-full p-2.5 rounded-lg border outline-none transition-all ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : classes.input}`}
                                                     value={formData.addressZip}
-                                                    onChange={e => setFormData({ ...formData, addressZip: maskCEP(e.target.value) })}
+                                                    onChange={e => {
+                                                        setFormData({ ...formData, addressZip: maskCEP(e.target.value) });
+                                                        setIsCepSynced(false);
+                                                    }}
                                                     placeholder="00000-000"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleCepSearch}
-                                                    disabled={loadingCep}
+                                                    disabled={loadingCep || isScanningCep}
                                                     className={classes.btnSearch}
                                                 >
-                                                    <Search size={16} />
+                                                    {loadingCep ? (
+                                                        <div className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                                                    ) : (
+                                                        <Search size={16} />
+                                                    )}
                                                 </button>
                                             </div>
+
+                                            <AnimatePresence>
+                                                {isScanningCep && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0, y: -10 }}
+                                                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                                        exit={{ opacity: 0, height: 0, y: -10 }}
+                                                        className={`absolute left-0 right-0 top-full mt-2 p-3 rounded-lg border overflow-hidden z-20 shadow-lg backdrop-blur-sm ${isHybrid ? 'bg-[#202c33]/90 border-[#354751]' : 'bg-blue-50/90 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            {cepScanStatus === 'scanning' ? (
+                                                                <>
+                                                                    <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+                                                                        <Cpu className={isHybrid ? 'text-[#00a884]' : 'text-blue-500'} size={20} />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <div className={`text-[8px] font-mono uppercase tracking-widest mb-0.5 ${isHybrid ? 'text-[#aebac1]/70' : 'text-blue-600/70'}`}>RESOLVING_LAT_LONG</div>
+                                                                        <div className={`text-[10px] font-mono font-bold ${isHybrid ? 'text-[#e9edef]' : 'text-blue-700'}`}>
+                                                                            <DecodingText text="Consultando API Correios..." />
+                                                                        </div>
+                                                                    </div>
+                                                                    <motion.div 
+                                                                        className={`absolute left-0 right-0 h-[1.5px] shadow-[0_0_10px_rgba(96,165,250,0.8)] z-10 ${isHybrid ? 'bg-[#00a884]' : 'bg-blue-400'}`}
+                                                                        animate={{ top: ['0%', '100%', '0%'] }}
+                                                                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                                                    />
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="w-8 h-8 flex items-center justify-center bg-emerald-500/20 rounded-full shrink-0">
+                                                                        <CheckCircle2 className="text-emerald-500" size={20} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-[8px] font-mono text-emerald-500 uppercase tracking-widest">OK</div>
+                                                                        <div className="text-[10px] font-mono text-emerald-500 font-bold uppercase">Sincronizado</div>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
                                         <div className="col-span-3">
                                             <label className={classes.label}>Rua / Av.</label>
-                                            <input className={`w-full p-2.5 rounded-lg border outline-none ${classes.input}`}
+                                            <input className={`w-full p-2.5 rounded-lg border outline-none transition-all ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : classes.input}`}
                                                 value={formData.addressStreet} onChange={e => setFormData({ ...formData, addressStreet: e.target.value })} />
                                         </div>
                                     </div>
@@ -607,17 +718,17 @@ export const Team: React.FC = () => {
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
                                             <label className={classes.label}>Bairro</label>
-                                            <input className={`w-full p-2.5 rounded-lg border outline-none ${classes.input}`}
+                                            <input className={`w-full p-2.5 rounded-lg border outline-none transition-all ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : classes.input}`}
                                                 value={formData.addressNeighborhood} onChange={e => setFormData({ ...formData, addressNeighborhood: e.target.value })} />
                                         </div>
                                         <div>
                                             <label className={classes.label}>Cidade</label>
-                                            <input className={`w-full p-2.5 rounded-lg border outline-none ${classes.input}`}
+                                            <input className={`w-full p-2.5 rounded-lg border outline-none transition-all ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : classes.input}`}
                                                 value={formData.addressCity} onChange={e => setFormData({ ...formData, addressCity: e.target.value })} />
                                         </div>
                                         <div>
                                             <label className={classes.label}>UF</label>
-                                            <input className={`w-full p-2.5 rounded-lg border outline-none ${classes.input}`}
+                                            <input className={`w-full p-2.5 rounded-lg border outline-none transition-all ${isCepSynced ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : classes.input}`}
                                                 value={formData.addressState} onChange={e => setFormData({ ...formData, addressState: e.target.value })} maxLength={2} />
                                         </div>
                                     </div>
