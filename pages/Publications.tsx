@@ -575,7 +575,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                     <div className="flex flex-wrap lg:flex-nowrap gap-6">
 
                         {/* Multi-select OAB Dropdown with Manual Entry */}
-                        <div className="flex-1 min-w-[480px] flex flex-col gap-1.5" ref={oabDropdownRef}>
+                        <div className="flex-1 w-full md:min-w-[300px] lg:min-w-[480px] flex flex-col gap-1.5" ref={oabDropdownRef}>
                             <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>OABs da Equipe</span>
                             <div className="relative">
                                 <div className={`w-full flex items-center pl-4 pr-3 py-1.5 rounded-xl border transition-all min-h-[46px] ${theme === 'hybrid' 
@@ -652,7 +652,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         </div>
 
                         {/* Processo - Expanded */}
-                        <div className="flex-1 min-w-[130px] flex flex-col gap-1.5">
+                        <div className="flex-1 w-full sm:min-w-[130px] flex flex-col gap-1.5">
                             <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Processo</span>
                             <div className="relative">
                                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -669,7 +669,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                         </div>
 
                         {/* Date Range Picker */}
-                        <div className="flex-1 min-w-[180px] flex flex-col gap-1.5">
+                        <div className="flex-1 w-full sm:min-w-[180px] flex flex-col gap-1.5">
                             <span className={`text-[10px] font-bold uppercase tracking-widest ml-1 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Período de Disponibilização</span>
                             <DateRangePicker
                                 startDate={startDate}
@@ -812,8 +812,8 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                             </div>
                         </div>
 
-                        {/* Table */}
-                        <div className={`rounded-xl border overflow-hidden ${theme === 'hybrid' ? 'border-[#354751]' : 'border-slate-200'}`}>
+                        {/* Desktop Table View */}
+                        <div className={`hidden lg:block rounded-xl border overflow-hidden ${theme === 'hybrid' ? 'border-[#354751]' : 'border-slate-200'}`}>
                             <table className="w-full table-fixed text-sm">
                                 <colgroup>
                                     <col style={{ width: '3%' }} />
@@ -1015,6 +1015,106 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Mobile Cards View */}
+                        <div className="lg:hidden flex flex-col gap-4 overflow-y-auto pb-4 mt-4 custom-scrollbar">
+                            {displayedResults.map((item, idx) => {
+                                const seqNum = ((pageNumber - 1) * itemsPerPage) + idx + 1;
+                                const existingCase = findProcessInDatabase(item.numero_processo);
+                                const isSelected = selectedItems.has(item.id);
+                                const isRead = readItems.has(item.id);
+                                const parties = (item.destinatarios || []).map(d => d.nome).join(' X ');
+                                
+                                return (
+                                    <div 
+                                        key={item.id}
+                                        onClick={() => toggleSelection(item.id)}
+                                        className={`p-5 rounded-xl border shadow-sm active:scale-[0.99] transition-all animate-stagger-slide-in opacity-0 cursor-pointer ${
+                                            theme === 'hybrid' 
+                                                ? (isSelected ? 'bg-[#00a884]/10 border-[#00a884]' : 'bg-[#2a3942] border-[#354751]')
+                                                : (isSelected ? 'bg-blue-50 border-blue-400' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700')
+                                        }`}
+                                        style={{ animationDelay: `${idx * 50}ms` }}
+                                    >
+                                       <div className="flex justify-between items-start mb-3">
+                                           <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded ${theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-blue-50 text-blue-600'}`}>
+                                                    <FileText size={16} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{formatCNJ(item.numero_processo)}</span>
+                                                    </div>
+                                                </div>
+                                           </div>
+                                           <div className="flex items-center gap-2">
+                                                {isRead && <Check size={14} strokeWidth={4} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-green-600'} />}
+                                                <div
+                                                    onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
+                                                    className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isSelected
+                                                        ? (theme === 'hybrid' ? 'bg-[#00a884] border-[#00a884]' : 'bg-blue-600 border-blue-600')
+                                                        : (theme === 'hybrid' ? 'border-[#8696a0]/40' : 'border-slate-300')}`}
+                                                >
+                                                    {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
+                                                </div>
+                                           </div>
+                                       </div>
+                                       
+                                       <div className="mb-3 space-y-1">
+                                           <div className="flex items-start gap-2">
+                                               <span className={`w-1.5 h-1.5 mt-1.5 shrink-0 rounded-full bg-blue-500`} />
+                                               <span className={`font-bold text-sm line-clamp-2 ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-800 dark:text-slate-200'}`}>{parties || '—'}</span>
+                                           </div>
+                                       </div>
+
+                                       <div className={`pt-3 border-t flex flex-wrap gap-2 justify-between items-end ${theme === 'hybrid' ? 'border-[#354751]' : 'border-slate-100 dark:border-slate-700'}`}>
+                                           <div>
+                                               <p className={`text-xs font-medium ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{item.siglaTribunal || '—'} - {item.nomeClasse || '—'}</p>
+                                               <p className={`text-xs mt-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Disp: {formatDateForDisplay(item.data_disponibilizacao)}</p>
+                                           </div>
+                                           
+                                           <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                                                {existingCase ? (
+                                                    <button
+                                                        onClick={() => handleCreateDeadline(item.numero_processo)}
+                                                        className={`p-2 rounded-lg transition-colors ${theme === 'hybrid' ? 'text-amber-400 bg-amber-500/10' : 'text-amber-500 bg-amber-50'}`}
+                                                    >
+                                                        <CalendarPlus size={16} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setPendingProcessNumber(formatCNJ(item.numero_processo));
+                                                            setShowCaseModal(true);
+                                                        }}
+                                                        className={`p-2 rounded-lg transition-colors ${theme === 'hybrid' ? 'text-[#00a884] bg-[#00a884]/10' : 'text-blue-500 bg-blue-50'}`}
+                                                    >
+                                                        <FolderPlus size={16} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => { setDetailItem(item); markAsRead(item.id); }}
+                                                    className={`p-2 rounded-lg transition-colors ${theme === 'hybrid' ? 'text-[#aebac1] bg-[#354751]' : 'text-slate-500 bg-slate-100'}`}
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                                {item.link && (
+                                                    <a
+                                                        href={item.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={() => markAsRead(item.id)}
+                                                        className={`p-2 rounded-lg transition-colors flex items-center justify-center ${theme === 'hybrid' ? 'text-[#aebac1] bg-[#354751]' : 'text-slate-500 bg-slate-100'}`}
+                                                    >
+                                                        <ExternalLink size={16} />
+                                                    </a>
+                                                )}
+                                           </div>
+                                       </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 ) : (
