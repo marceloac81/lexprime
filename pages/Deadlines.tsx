@@ -160,10 +160,12 @@ export const Deadlines: React.FC = () => {
                 normalizeText(d.customerName || '').includes(normalizedTerm) ||
                 normalizeText(d.court || '').includes(normalizedTerm) ||
                 normalizeText(d.city || '').includes(normalizedTerm) ||
+                normalizeText(d.caseTitle || '').includes(normalizedTerm) ||
                 normalizeText(relatedCase?.number || '').includes(normalizedTerm) ||
                 normalizeText(relatedCase?.clientName || '').includes(normalizedTerm) ||
                 normalizeText(relatedCase?.court || '').includes(normalizedTerm) ||
-                normalizeText(relatedCase?.city || '').includes(normalizedTerm);
+                normalizeText(relatedCase?.city || '').includes(normalizedTerm) ||
+                normalizeText(relatedCase?.opposingParty || '').includes(normalizedTerm);
 
             if (!matches) return false;
         }
@@ -546,6 +548,9 @@ export const Deadlines: React.FC = () => {
                                 let formattedDate = dateStr;
                                 let weekday = '';
                                 let isToday = dateStr === todayStr;
+                                const isPast = dateStr < todayStr;
+                                const hasPending = groupItems.some(d => getStatus(d) === 'Pending');
+                                const isDelayed = isPast && hasPending;
 
                                 if (parts.length === 3) {
                                     const [y, m, d] = parts.map(Number);
@@ -567,6 +572,19 @@ export const Deadlines: React.FC = () => {
                                                     <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
                                                     <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
                                                     {isToday && <span className="bg-slate-900 text-amber-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">HOJE</span>}
+                                                    {isDelayed && (
+                                                        <div className="relative group inline-block">
+                                                            <span className="cursor-help bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">
+                                                                ATRASADO
+                                                            </span>
+                                                            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center z-50 w-64 pointer-events-none">
+                                                                <div className="w-2.5 h-2.5 shrink-0 bg-slate-900 dark:bg-slate-800 border-l border-b border-slate-700/50 dark:border-slate-600/50 transform rotate-45 -mr-1.5 z-10"></div>
+                                                                <div className="bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl border border-slate-700/50 dark:border-slate-600/50 leading-normal font-normal">
+                                                                    Este dia possui prazos pendentes atrasados. Reagende, cumpra ou cancele a atividade.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -719,6 +737,9 @@ export const Deadlines: React.FC = () => {
                         let formattedDate = dateStr;
                         let weekday = '';
                         let isToday = dateStr === todayStr;
+                        const isPast = dateStr < todayStr;
+                        const hasPending = groupItems.some(d => getStatus(d) === 'Pending');
+                        const isDelayed = isPast && hasPending;
 
                         const parts = dateStr.split('-');
                         if (parts.length === 3) {
@@ -737,6 +758,19 @@ export const Deadlines: React.FC = () => {
                                 `}>
                                     <div className={`font-bold ${isToday ? 'text-lg' : ''}`}>{formattedDate} <span className="text-sm font-normal opacity-80 capitalize ml-1">{weekday}</span></div>
                                     {isToday && <span className="bg-slate-900 text-amber-400 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse">HOJE</span>}
+                                    {isDelayed && (
+                                        <div className="relative group inline-block">
+                                            <span className="bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse cursor-help">
+                                                ATRASADO
+                                            </span>
+                                            <div className="absolute right-0 top-full mt-2 hidden group-hover:flex flex-col items-end z-50 w-60 pointer-events-none">
+                                                <div className="w-2.5 h-2.5 shrink-0 bg-slate-900 dark:bg-slate-800 border-t border-l border-slate-700/50 dark:border-slate-600/50 transform rotate-45 -mb-1.5 mr-4 z-10"></div>
+                                                <div className="bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl border border-slate-700/50 dark:border-slate-600/50 leading-normal font-normal text-right">
+                                                    Este dia possui prazos pendentes atrasados. Reagende, cumpra ou cancele a atividade.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-3">

@@ -527,6 +527,7 @@ export const Cases: React.FC = () => {
                         deadlines={deadlines.filter(d => d.caseId === selectedCase.id)}
                         onEdit={() => handleOpenEdit(selectedCase)}
                         onDelete={() => handleDelete(selectedCase.id)}
+                        onSelectCase={(newCase) => setSelectedCase(newCase)}
                     />
                 )}
 
@@ -619,9 +620,9 @@ export const Cases: React.FC = () => {
     );
 };
 
-const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadline[], onEdit: () => void, onDelete: () => void }> = ({ c, onClose, deadlines, onEdit, onDelete }) => {
+const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadline[], onEdit: () => void, onDelete: () => void, onSelectCase?: (c: Case) => void }> = ({ c, onClose, deadlines, onEdit, onDelete, onSelectCase }) => {
     const { addDeadline, holidays, cases, updateCase, currentUser, teamMembers } = useStore();
-    const [activeTab, setActiveTab] = useState<'timeline' | 'occurrences' | 'info'>('timeline');
+    const [activeTab, setActiveTab] = useState<'timeline' | 'occurrences' | 'info'>('info');
     const [showDeadlineModal, setShowDeadlineModal] = useState(false);
 
     // Occurrences form state
@@ -683,10 +684,15 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                             <Briefcase size={24} className="text-primary-600" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white font-mono truncate max-w-[200px] md:max-w-none">{c.number}</h2>
-                                <button onClick={onEdit} className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-500 transition-colors" title="Editar Processo">
-                                    <Edit size={16} />
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white truncate max-w-[200px] md:max-w-none">{c.number}</h2>
+                                <button
+                                    onClick={onEdit}
+                                    className="px-3 py-1.5 rounded-lg bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/30 dark:hover:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold text-sm transition-all flex items-center gap-1.5 border border-primary-200/50 dark:border-primary-800/30 active:scale-95 shadow-sm shrink-0"
+                                    title="Editar Processo"
+                                >
+                                    <Edit size={14} />
+                                    <span>Editar Processo</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mt-1 flex-wrap">
@@ -840,126 +846,218 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                     )}
 
                     {activeTab === 'info' && (
-                        <div className="space-y-6">
-                            <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><Briefcase size={16} /> Dados Principais</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Número</p>
-                                        <p className="font-mono font-medium break-all">{c.number}</p>
+                        <div className="space-y-6 max-w-5xl mx-auto text-sm">
+                            {/* Partes Principais */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-start gap-3">
+                                    <div className="p-2.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                        <UserIcon size={22} />
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Tribunal</p>
-                                        <p className="font-medium">{c.tribunal || '-'}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">
+                                            Cliente ({c.clientPosition === 'Ativo' ? 'Autor / Requerente' : 'Réu / Requerido'})
+                                        </span>
+                                        <p className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">{c.clientName}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Área</p>
-                                        <p className="font-medium">{c.area}</p>
+                                </div>
+
+                                <div className="p-4 bg-rose-50/40 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/30 rounded-xl flex items-start gap-3">
+                                    <div className="p-2.5 bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg">
+                                        <UserIcon size={22} />
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Assunto</p>
-                                        <p className="font-medium">{c.subject || '-'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Pasta Física</p>
-                                        <p className="font-mono font-medium">{c.folderNumber || '-'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Valor da Causa</p>
-                                        <p className="font-medium">{c.value ? formatCurrency(c.value) : '-'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Data do Valor</p>
-                                        <p className="font-medium">{c.valueDate ? new Date(c.valueDate).toLocaleDateString() : '-'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Probabilidade de Êxito</p>
-                                        <p className={`font-bold ${c.probability === 'Alta' ? 'text-green-600' : c.probability === 'Média' ? 'text-amber-600' : 'text-rose-600'}`}>
-                                            {c.probability || '-'}
-                                        </p>
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block mb-0.5">
+                                            Parte Contrária ({c.clientPosition === 'Ativo' ? 'Réu / Requerido' : 'Autor / Requerente'})
+                                        </span>
+                                        <p className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">{c.opposingParty}</p>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Informações Estruturadas em Grade Compacta */}
+                            <div className="bg-white dark:bg-dark-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-dark-900/30 flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                        <Briefcase size={16} className="text-primary-500" /> Detalhes do Processo
+                                    </h4>
+                                    {c.status && (
+                                        <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${
+                                            c.status === CaseStatus.Active 
+                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' 
+                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                        }`}>
+                                            Status: {c.status}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-100 dark:divide-slate-700/50">
+                                    {/* Row 1 */}
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-t-0 border-l-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Processo nº</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200 break-all select-all">{c.number}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-t-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Tribunal</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.tribunal || '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-t-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Área do Direito</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.area || '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-t-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Assunto</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200 truncate" title={c.subject}>{c.subject || '-'}</p>
+                                    </div>
+
+                                    {/* Row 2 */}
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-l-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Juízo / Vara</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200 truncate" title={c.court}>{c.court || '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Cidade / UF</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.city && c.uf ? `${c.city} - ${c.uf}` : '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Pasta Física</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.folderNumber || '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Probabilidade</span>
+                                        <p className={`text-sm font-extrabold ${
+                                            c.probability === 'Alta' ? 'text-green-600 dark:text-green-400' : 
+                                            c.probability === 'Média' ? 'text-amber-600 dark:text-amber-400' : 
+                                            c.probability === 'Baixa' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-850 dark:text-slate-200'
+                                        }`}>{c.probability || '-'}</p>
+                                    </div>
+
+                                    {/* Row 3 */}
+                                    <div className="p-4 flex flex-col justify-between min-w-0 border-l-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Valor da Causa</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.value ? formatCurrency(c.value) : '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Data de Distribuição</span>
+                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200">{c.valueDate ? new Date(c.valueDate + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</p>
+                                    </div>
+                                    <div className="p-4 flex flex-col justify-between min-w-0 col-span-2">
+                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider mb-1">Marcadores (Tags)</span>
+                                        <div className="flex flex-wrap gap-1.5 mt-1">
+                                            {c.tags && c.tags.length > 0 ? (
+                                                c.tags.map(t => (
+                                                    <span key={t} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-700/60 text-slate-650 dark:text-slate-300 text-xs font-bold rounded uppercase tracking-wider">
+                                                        {t}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-sm text-slate-400 italic font-medium">-</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Desdobramentos e Vínculos */}
+                            {(c.parentId || cases.some(other => other.parentId === c.id)) && (
+                                <div className="bg-white dark:bg-dark-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                        <GitBranch size={16} className="text-purple-500" /> Processos Relacionados
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {/* Parent */}
+                                        {c.parentId && (() => {
+                                            const parent = cases.find(p => p.id === c.parentId);
+                                            return parent ? (
+                                                <div className="p-4 bg-purple-50/50 dark:bg-purple-950/10 border border-purple-100 dark:border-purple-900/30 rounded-lg flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase mb-1">Processo Originário ({c.relatedType || 'Origem'})</p>
+                                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200 break-all">{parent.number}</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (onSelectCase) {
+                                                                onSelectCase(parent);
+                                                            } else {
+                                                                onClose();
+                                                                window.setTimeout(() => updateCase(parent), 100);
+                                                            }
+                                                        }} 
+                                                        className="px-3 py-1.5 text-xs font-bold text-purple-600 bg-white dark:bg-dark-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800/50 rounded-lg transition-colors flex items-center gap-1.5"
+                                                    >
+                                                        <Briefcase size={14} />
+                                                        <span>Acessar</span>
+                                                    </button>
+                                                </div>
+                                            ) : null;
+                                        })()}
+
+                                        {/* Children */}
+                                        {cases.filter(child => child.parentId === c.id).map(child => (
+                                            <div key={child.id} className="p-3 ml-4 border-l-2 border-slate-200 dark:border-slate-700 pl-4 relative">
+                                                <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-200 dark:bg-slate-700"></div>
+                                                <div className="flex justify-between items-center gap-3">
+                                                    <div>
+                                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 mb-1 inline-block uppercase tracking-wider">
+                                                            {child.relatedType || 'Desdobramento'}
+                                                        </span>
+                                                        <p className="text-sm font-bold text-slate-850 dark:text-slate-200 break-all">{child.number}</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (onSelectCase) {
+                                                                onSelectCase(child);
+                                                            } else {
+                                                                onClose();
+                                                                window.setTimeout(() => updateCase(child), 100);
+                                                            }
+                                                        }} 
+                                                        className="px-3 py-1.5 text-xs font-bold text-slate-650 bg-white dark:bg-dark-800 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors flex items-center gap-1.5"
+                                                    >
+                                                        <Briefcase size={14} />
+                                                        <span>Acessar</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Descrição / Observações */}
                             {c.description && (
-                                <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><FileText size={16} /> Descrição / Observações</h4>
-                                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                <div className="bg-white dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+                                        <FileText size={16} className="text-amber-500" /> Descrição / Observações
+                                    </h4>
+                                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50/50 dark:bg-dark-900/30 p-4 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                         {c.description}
                                     </div>
                                 </div>
                             )}
 
-                            <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><UserIcon size={16} /> Partes</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
-                                        <p className="text-xs text-slate-500 uppercase mb-1">Cliente ({c.clientPosition})</p>
-                                        <p className="font-bold text-lg">{c.clientName}</p>
-                                    </div>
-                                    <div className="p-4 bg-slate-50 dark:bg-dark-900 rounded-lg">
-                                        <p className="text-xs text-slate-500 uppercase mb-1">Parte Contrária</p>
-                                        <p className="font-bold text-lg">{c.opposingParty}</p>
-                                    </div>
+                            {/* Informações do Sistema (Metadados) */}
+                            <div className="bg-slate-50/50 dark:bg-dark-900/20 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+                                <div className="text-sm text-slate-400 font-medium">
+                                    <span className="uppercase text-xs font-bold tracking-wider block mb-1 text-slate-400/80">Criado Por</span>
+                                    <span className="font-bold text-slate-600 dark:text-slate-400">
+                                        {teamMembers.find(t => t.id === c.createdBy)?.name || 'Dr. Admin'}
+                                    </span>
+                                </div>
+                                <div className="text-sm text-slate-400 font-medium">
+                                    <span className="uppercase text-xs font-bold tracking-wider block mb-1 text-slate-400/80">Data de Cadastro</span>
+                                    <span className="font-bold text-slate-600 dark:text-slate-400">
+                                        {c.createdAt ? new Date(c.createdAt).toLocaleString('pt-BR') : '-'}
+                                    </span>
+                                </div>
+                                <div className="text-sm text-slate-400 font-medium">
+                                    <span className="uppercase text-xs font-bold tracking-wider block mb-1 text-slate-400/80">Última Atualização</span>
+                                    <span className="font-bold text-slate-600 dark:text-slate-400">
+                                        {c.lastUpdate ? new Date(c.lastUpdate).toLocaleString('pt-BR') : '-'}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><Shield size={16} /> Localização</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Vara / Órgão</p>
-                                        <p className="font-medium">{c.court}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Cidade / UF</p>
-                                        <p className="font-medium">{c.city} - {c.uf}</p>
-                                    </div>
-
-                                    {/* Related Cases Section */}
-                                    {(c.parentId || cases.some(other => other.parentId === c.id)) && (
-                                        <div className="bg-white dark:bg-dark-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><GitBranch size={16} /> Processos Relacionados</h4>
-                                            <div className="space-y-3">
-                                                {/* Parent */}
-                                                {c.parentId && (() => {
-                                                    const parent = cases.find(p => p.id === c.parentId);
-                                                    return parent ? (
-                                                        <div className="p-3 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800 rounded-lg flex items-center justify-between">
-                                                            <div>
-                                                                <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase mb-1">Processo Originário</p>
-                                                                <p className="font-mono text-sm font-medium text-slate-900 dark:text-white">{parent.number}</p>
-                                                                <p className="text-xs text-slate-500">{parent.title}</p>
-                                                            </div>
-                                                            <button onClick={() => { onClose(); window.setTimeout(() => updateCase(parent), 100); }} className="p-1 hover:bg-white dark:hover:bg-dark-800 rounded transition-colors text-purple-500">
-                                                                <Briefcase size={16} />
-                                                            </button>
-                                                        </div>
-                                                    ) : null;
-                                                })()}
-
-                                                {/* Children */}
-                                                {cases.filter(child => child.parentId === c.id).map(child => (
-                                                    <div key={child.id} className="p-3 ml-4 border-l-2 border-slate-200 dark:border-slate-600 pl-4 relative">
-                                                        <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-200 dark:bg-slate-600"></div>
-                                                        <div className="flex justify-between items-start">
-                                                            <div>
-                                                                <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 mb-1 inline-block">
-                                                                    {child.relatedType || 'Desdobramento'}
-                                                                </span>
-                                                                <p className="font-mono text-sm font-medium text-slate-900 dark:text-white">{child.number}</p>
-                                                            </div>
-                                                            {/* We might need a way to open this child case, but let's keep it simple for now as per instructions */}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="text-[10px] text-slate-400 font-mono text-center pt-4 uppercase tracking-widest">
+                            <div className="text-xs text-slate-400 text-center pt-2 uppercase tracking-widest">
                                 ID do Registro: {c.id}
                             </div>
                         </div>
