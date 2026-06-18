@@ -135,8 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
           </div>
           {!collapsed && (
             <div className="whitespace-nowrap transition-opacity duration-300">
-              <span className={`font-bold text-xl tracking-tight block leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>LexPrime</span>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Advocacia</span>
+              <span className={`font-bold text-xl tracking-tight block leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Advocacia</span>
             </div>
           )}
         </div>

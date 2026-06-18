@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
         manifest: {
-          name: 'LexPrime',
-          short_name: 'LexPrime',
+          name: 'Advocacia',
+          short_name: 'Advocacia',
           description: 'Gestão Jurídica - Advocacia',
           theme_color: '#0f172a',
           background_color: '#0f172a',

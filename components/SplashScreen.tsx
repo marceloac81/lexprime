@@ -43,11 +43,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             {/* Text Reveal */}
             <div className="mt-6 text-center overflow-hidden">
                 <h1 className={`text-4xl font-bold text-slate-900 dark:text-white tracking-tight transition-all duration-1000 transform ${stage >= 2 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                    LexPrime
-                </h1>
-                <p className={`mt-2 text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-[0.2em] transition-all duration-1000 delay-200 transform ${stage >= 2 ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'}`}>
                     Advocacia
-                </p>
+                </h1>
             </div>
 
             {/* Loading Bar / Footer */}

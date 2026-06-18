@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Scale } from 'lucide-react';
 import { useStore } from '../context/Store';
 
-const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+const characters = '⚖§¶†‡ΔΨΩΞΦΓΘΛΣ⌬⏃⏆⏉⏊ᛰᛵ᚛᚜⸎⸏⸐⸑⸒⸕⸖⸗⸘⸙⸚⸛⸜⸞⸟⸠⸡⸢⸣⸤⸥⸦⸧⸪⸫⸬⸭';
 
 const DecodeText = ({ text, start = false, className = "" }: { text: string, start: boolean, className?: string }) => {
   const [displayed, setDisplayed] = useState(text.split('').map(() => ''));
@@ -84,11 +84,51 @@ export const Login: React.FC = () => {
     }
   }, [stage]);
 
+  // Tactical lock beep effect
+  useEffect(() => {
+    if (stage === 5) {
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        
+        // First high frequency short lock tone
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(1350, ctx.currentTime);
+        gain1.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.12);
+        
+        // Second confirmed higher beep
+        setTimeout(() => {
+          if (ctx.state === 'closed') return;
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(1550, ctx.currentTime);
+          gain2.gain.setValueAtTime(0.06, ctx.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start();
+          osc2.stop(ctx.currentTime + 0.15);
+        }, 90);
+      } catch (e) {
+        console.error('Tactical beep audio failed:', e);
+      }
+    }
+  }, [stage]);
+
   return (
     <div className="min-h-screen bg-[#16202A] flex flex-col items-center justify-center overflow-hidden relative font-sans text-white selection:bg-[#00a884]/30">
-      
+
       {/* Background Grid HUD Pattern */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
@@ -109,7 +149,7 @@ export const Login: React.FC = () => {
       <div className="absolute top-10 left-1/2 -translate-x-1/2 text-center font-mono text-[10px] uppercase tracking-[2px] text-white/40 hidden sm:block">
         SECURE CONNECTION ESTABLISHED // ENCRYPTION AES-256
       </div>
-      
+
       <div className="absolute left-10 top-1/2 font-mono text-[10px] uppercase tracking-[2px] text-white/40 whitespace-nowrap hidden sm:block" style={{ transform: 'translateY(-50%) rotate(-90deg)' }}>
         LATENCY: 14MS // USER_ID: LP_77291
       </div>
@@ -148,7 +188,7 @@ export const Login: React.FC = () => {
       </AnimatePresence>
 
       {/* Main Content Container */}
-      <motion.div 
+      <motion.div
         className="relative z-10 flex flex-col items-center justify-center w-full max-w-4xl p-8 min-h-[500px]"
         animate={{
           x: stage === 4 ? [-2, 2, -2, 2, 0] : 0,
@@ -156,11 +196,11 @@ export const Login: React.FC = () => {
         }}
         transition={{ duration: 0.2 }}
       >
-        
+
         {/* HUD Elements (Inner) */}
         <AnimatePresence>
           {stage >= 2 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="absolute inset-0 pointer-events-none text-white/40 font-mono text-[10px] tracking-widest hidden sm:block"
@@ -183,7 +223,7 @@ export const Login: React.FC = () => {
               <div className="absolute bottom-0 right-0 text-right flex flex-col gap-1">
                 <span>NODE: ALPHA-7</span>
               </div>
-              
+
               {/* Crosshairs */}
               <div className="absolute top-1/4 left-4 w-2 h-2 border-t border-l border-[#00a884]/50" />
               <div className="absolute top-1/4 right-4 w-2 h-2 border-t border-r border-[#00a884]/50" />
@@ -195,10 +235,10 @@ export const Login: React.FC = () => {
 
         {/* Central Animation Area */}
         <div className="relative flex flex-col items-center justify-center w-full">
-          
+
           {/* Icon Container */}
           <div className="relative w-24 h-24 mb-12 flex items-center justify-center">
-            
+
             {/* Stage 1: Dot */}
             <AnimatePresence>
               {stage === 1 && (
@@ -227,8 +267,8 @@ export const Login: React.FC = () => {
             {stage >= 3 && (
               <motion.div
                 initial={{ height: 2, width: '100%', opacity: 1, borderRadius: '0px' }}
-                animate={{ 
-                  height: '100%', 
+                animate={{
+                  height: '100%',
                   borderRadius: stage >= 4 ? '16px' : '0px',
                   backgroundColor: stage >= 4 ? 'rgba(37, 99, 235, 1)' : 'rgba(37, 99, 235, 0.1)'
                 }}
@@ -240,18 +280,18 @@ export const Login: React.FC = () => {
               >
                 {/* Glitch overlay */}
                 {stage === 4 && (
-                  <motion.div 
+                  <motion.div
                     animate={{ x: [-10, 10, -5, 5, 0], opacity: [0.8, 1, 0.5, 1, 0] }}
                     transition={{ duration: 0.4 }}
                     className="absolute inset-0 bg-white mix-blend-overlay"
                   />
                 )}
-                
+
                 {/* Icon */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.5, filter: 'blur(10px)' }}
-                  animate={{ 
-                    opacity: stage >= 4 ? 1 : 0, 
+                  animate={{
+                    opacity: stage >= 4 ? 1 : 0,
                     scale: stage >= 4 ? 1 : 0.5,
                     filter: stage >= 4 ? 'blur(0px)' : 'blur(10px)'
                   }}
@@ -275,13 +315,74 @@ export const Login: React.FC = () => {
 
           {/* Text Area */}
           <div className="text-center relative flex flex-col items-center w-full">
-            <motion.h1 
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes lensFlare {
+                0% {
+                  width: 0%;
+                  opacity: 0;
+                  transform: translate(-50%, -50%) scaleY(0.2);
+                }
+                12% {
+                  width: 130%;
+                  opacity: 1;
+                  transform: translate(-50%, -50%) scaleY(1.2);
+                }
+                25% {
+                  width: 150%;
+                  opacity: 0.95;
+                  transform: translate(-50%, -50%) scaleY(1.5);
+                }
+                100% {
+                  width: 170%;
+                  opacity: 0;
+                  transform: translate(-50%, -50%) scaleY(0);
+                  filter: blur(15px);
+                }
+              }
+            `}} />
+
+            {/* Anamorphic Lens Flare */}
+            {stage === 5 && (
+              <div 
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[6px] bg-gradient-to-r from-transparent via-cyan-100 via-white via-cyan-100 to-transparent z-20 pointer-events-none"
+                style={{
+                  boxShadow: '0 0 10px #22d3ee, 0 0 20px #0891b2, 0 0 40px rgba(255, 255, 255, 0.85)',
+                  animation: 'lensFlare 1.1s cubic-bezier(0.1, 0.8, 0.2, 1) forwards'
+                }}
+              />
+            )}
+
+            {/* Bounding HUD target box around the text */}
+            {stage >= 5 && (
+              <motion.div
+                initial={{ scale: 1.3, opacity: 0 }}
+                animate={{ scale: 1, opacity: [0, 1, 0.6, 1] }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+                className="absolute -inset-x-8 -inset-y-4 border border-[#00a884]/20 z-20 pointer-events-none"
+              >
+                {/* HUD Corners */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#00a884]" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#00a884]" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#00a884]" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#00a884]" />
+                
+                {/* HUD data labels */}
+                <div className="absolute left-4 -top-2 text-[8px] font-mono text-[#00a884] tracking-[2px] bg-[#16202A] px-1.5 select-none uppercase">
+                  CONFIRMING TARGET // SYS.OK
+                </div>
+                <div className="absolute right-4 -bottom-2 text-[8px] font-mono text-[#00a884] tracking-[2px] bg-[#16202A] px-1.5 select-none uppercase">
+                  SECURE LOCK // INITIATING
+                </div>
+              </motion.div>
+            )}
+
+            <motion.h1
               className="text-5xl sm:text-7xl md:text-[90px] font-extrabold tracking-tighter text-white mb-2 relative z-10 uppercase leading-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: stage >= 4 ? 1 : 0 }}
             >
               <DecodeText text="ADVOCACIA" start={stage >= 4} />
-              
+
               {/* Glitch artifact for text */}
               {stage === 4 && (
                 <motion.span
@@ -303,29 +404,20 @@ export const Login: React.FC = () => {
                 className="h-[3px] bg-[#00a884] mb-6 relative overflow-hidden shadow-[0_0_15px_#00a884]"
               >
                 {/* Scanning highlight on the line */}
-                <motion.div 
+                <motion.div
                   animate={{ x: ['-100%', '200%'] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                   className="absolute top-0 left-0 w-1/3 h-full bg-white/80 blur-[1px]"
                 />
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: stage >= 5 ? 1 : 0, y: stage >= 5 ? 0 : -5 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className="font-mono text-[12px] sm:text-[14px] tracking-[6px] sm:tracking-[8px] text-[#00a884] uppercase"
               >
-                LEXPRIME SYSTEM
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: stage >= 5 ? 1 : 0 }}
-                transition={{ duration: 0.4, delay: 0.4 }}
-                className="absolute -bottom-10 right-0 font-mono text-[9px] text-white/40"
-              >
-                BUILD REV 2024.0.8
+                SISTEMA JURÍDICO
               </motion.div>
             </div>
 
@@ -346,8 +438,8 @@ export const Login: React.FC = () => {
                   )}
                   <div className="flex flex-col gap-1.5 text-left">
                     <label className="font-mono text-[10px] text-[#00a884] uppercase tracking-[2px]">E-mail de Acesso</label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={email}
                       required
                       onChange={e => setEmail(e.target.value)}
@@ -357,8 +449,8 @@ export const Login: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-1.5 text-left">
                     <label className="font-mono text-[10px] text-[#00a884] uppercase tracking-[2px]">Senha de Autenticação</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={password}
                       required
                       onChange={e => setPassword(e.target.value)}
