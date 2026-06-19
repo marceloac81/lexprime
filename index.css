@@ -28,3 +28,26 @@ body {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #334155;
 }
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb {
+  background: #475569;
+  border: 2px solid #1e293b;
+}

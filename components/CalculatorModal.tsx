@@ -444,40 +444,71 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
 
                             {isAssigneeDropdownOpen && (
-                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 animate-scale-in custom-scrollbar">
-                                    {(teamMembers || [])
-                                        .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
-                                        .map(member => (
-                                            <div
-                                                key={member.id}
-                                                onClick={() => {
-                                                    setAssignedIds(prev =>
-                                                        prev.includes(member.id)
-                                                            ? prev.filter(id => id !== member.id)
-                                                            : [...prev, member.id]
-                                                    );
-                                                    setAssigneeSearch('');
-                                                }}
-                                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-9 h-9 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} flex items-center justify-center text-xs font-bold border border-opacity-20 shadow-sm overflow-hidden`}>
-                                                        {member.photo ? (
-                                                            <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
-                                                        ) : (
-                                                            getInitials(member.name, member.initials)
-                                                        )}
+                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-72 overflow-hidden z-50 animate-scale-in flex flex-col">
+                                    <div className="px-3 py-2 bg-slate-50 dark:bg-dark-900/50 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center shrink-0">
+                                        <span>Selecione os responsáveis</span>
+                                        <span className="animate-pulse flex items-center gap-1 text-primary-600 dark:text-primary-400">↓ Role para ver mais</span>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto max-h-[220px] scrollbar-visible">
+                                        {(teamMembers || [])
+                                            .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
+                                            .sort((a, b) => {
+                                                const getMemberPriority = (name: string): number => {
+                                                    const norm = name.toLowerCase();
+                                                    if (norm.includes('abrahao') || norm.includes('abrahão') || norm.includes('cassini')) return 1;
+                                                    if (norm.includes('damaris') || norm.includes('dâmaris')) return 2;
+                                                    if (norm.includes('luiz geraldo') || norm.includes('liz geraldo') || norm.includes('motta')) return 3;
+                                                    if (norm.includes('monteiro')) return 4;
+                                                    if (norm.includes('rose') || norm.includes('maria rose')) return 5;
+                                                    return 100;
+                                                };
+                                                return getMemberPriority(a.name) - getMemberPriority(b.name);
+                                            })
+                                            .map(member => (
+                                                <div
+                                                    key={member.id}
+                                                    onClick={() => {
+                                                        setAssignedIds(prev =>
+                                                            prev.includes(member.id)
+                                                                ? prev.filter(id => id !== member.id)
+                                                                : [...prev, member.id]
+                                                        );
+                                                        setAssigneeSearch('');
+                                                    }}
+                                                    className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-9 h-9 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} flex items-center justify-center text-xs font-bold border border-opacity-20 shadow-sm overflow-hidden`}>
+                                                            {member.photo ? (
+                                                                <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                            ) : (
+                                                                getInitials(member.name, member.initials)
+                                                            )}
+                                                        </div>
+                                                        <span className={`text-sm ${assignedIds.includes(member.id) ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                            {member.name}
+                                                        </span>
                                                     </div>
-                                                    <span className={`text-sm ${assignedIds.includes(member.id) ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                        {member.name}
-                                                    </span>
+                                                    {assignedIds.includes(member.id) && <Check size={16} className="text-primary-500" />}
                                                 </div>
-                                                {assignedIds.includes(member.id) && <Check size={16} className="text-primary-500" />}
-                                            </div>
-                                        ))}
-                                    {teamMembers.filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch))).length === 0 && (
-                                        <div className="p-4 text-center text-sm text-slate-400 italic">Nenhum membro encontrado.</div>
-                                    )}
+                                            ))}
+                                        {teamMembers.filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch))).length === 0 && (
+                                            <div className="p-4 text-center text-sm text-slate-400 italic">Nenhum membro encontrado.</div>
+                                        )}
+                                    </div>
+                                    <div className="sticky bottom-0 bg-slate-50 dark:bg-dark-800 p-2 border-t border-slate-100 dark:border-slate-700 flex justify-end shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsAssigneeDropdownOpen(false);
+                                            }}
+                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-1"
+                                        >
+                                            <Check size={14} />
+                                            Concluir
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
