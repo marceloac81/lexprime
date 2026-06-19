@@ -894,6 +894,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }).eq('id', updated.id);
 
       if (error) throw error;
+
+      // Update linked cases in Supabase and local state
+      try {
+        await supabase.from('cases').update({ client_name: updated.name }).eq('client_id', updated.id);
+        setCases(prev => prev.map(c => c.clientId === updated.id ? { ...c, clientName: updated.name } : c));
+      } catch (caseErr) {
+        console.error('Error updating client name on cases:', caseErr);
+      }
+
       setClients(prev => prev.map(c => c.id === updated.id ? updated : c));
       addNotification('Contato atualizado!', 'success');
     } catch (err: any) {
