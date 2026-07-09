@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, FileText, Copy, User } from './Icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, FileText, Copy, User, ChevronDown } from './Icons';
 import { Client, TeamMember, Case } from '../types';
 
 interface PowerOfAttorneyModalProps {
@@ -18,6 +18,26 @@ export const PowerOfAttorneyModal: React.FC<PowerOfAttorneyModalProps> = ({ isOp
     const [ufLocation, setUfLocation] = useState<string>('RJ');
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [generatedText, setGeneratedText] = useState('');
+
+    // Case Search State
+    const [isCaseDropdownOpen, setIsCaseDropdownOpen] = useState(false);
+    const [caseSearch, setCaseSearch] = useState('');
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsCaseDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const filteredCases = cases.filter(c => 
+        (c.number && c.number.toLowerCase().includes(caseSearch.toLowerCase())) || 
+        (c.title && c.title.toLowerCase().includes(caseSearch.toLowerCase()))
+    );
 
     // Powers State
     const [powers, setPowers] = useState({
@@ -260,8 +280,8 @@ export const PowerOfAttorneyModal: React.FC<PowerOfAttorneyModalProps> = ({ isOp
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white dark:bg-dark-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white dark:bg-dark-800 w-full h-full max-w-none rounded-2xl shadow-2xl flex flex-col">
 
                 {/* Header */}
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-dark-900/50 rounded-t-2xl">
@@ -301,16 +321,58 @@ export const PowerOfAttorneyModal: React.FC<PowerOfAttorneyModalProps> = ({ isOp
                             {/* 2. Case Linking */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Vincular a Processo (Opcional)</label>
-                                <select
-                                    className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-dark-800 text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                                    value={selectedCaseId}
-                                    onChange={e => setSelectedCaseId(e.target.value)}
-                                >
-                                    <option value="">Geral (Sem processo específico)</option>
-                                    {cases.map(c => (
-                                        <option key={c.id} value={c.id}>{c.number} - {c.title}</option>
-                                    ))}
-                                </select>
+                                <div className="relative" ref={dropdownRef}>
+                                    <div 
+                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-dark-800 text-sm cursor-pointer flex justify-between items-center outline-none focus-within:ring-2 focus-within:ring-primary-500"
+                                        onClick={() => setIsCaseDropdownOpen(!isCaseDropdownOpen)}
+                                    >
+                                        <span className="truncate pr-2 text-slate-700 dark:text-slate-200">
+                                            {selectedCaseId 
+                                                ? (() => {
+                                                    const c = cases.find(x => x.id === selectedCaseId);
+                                                    return c ? `${c.number} - ${c.title}` : 'Geral (Sem processo específico)';
+                                                  })()
+                                                : 'Geral (Sem processo específico)'}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 text-slate-500 flex-shrink-0 transition-transform ${isCaseDropdownOpen ? 'rotate-180' : ''}`} />
+                                    </div>
+                                    
+                                    {isCaseDropdownOpen && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl flex flex-col overflow-hidden">
+                                            <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-dark-900/50">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full p-2 text-sm bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded outline-none focus:border-primary-500 text-slate-800 dark:text-slate-200"
+                                                    placeholder="Pesquisar número ou cliente..."
+                                                    value={caseSearch}
+                                                    onChange={e => setCaseSearch(e.target.value)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+                                                <div 
+                                                    className={`p-2 text-sm rounded cursor-pointer transition-colors ${!selectedCaseId ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+                                                    onClick={() => { setSelectedCaseId(''); setIsCaseDropdownOpen(false); setCaseSearch(''); }}
+                                                >
+                                                    Geral (Sem processo específico)
+                                                </div>
+                                                {filteredCases.map(c => (
+                                                    <div 
+                                                        key={c.id} 
+                                                        className={`p-2 text-sm rounded cursor-pointer transition-colors ${selectedCaseId === c.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+                                                        onClick={() => { setSelectedCaseId(c.id); setIsCaseDropdownOpen(false); setCaseSearch(''); }}
+                                                    >
+                                                        {c.number} - {c.title}
+                                                    </div>
+                                                ))}
+                                                {filteredCases.length === 0 && (
+                                                    <div className="p-2 text-sm text-slate-500 dark:text-slate-400 text-center italic">Nenhum processo encontrado</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* 3. Powers */}
@@ -382,25 +444,25 @@ export const PowerOfAttorneyModal: React.FC<PowerOfAttorneyModalProps> = ({ isOp
                     </div>
 
                     {/* Preview Area */}
-                    <div className="flex-1 p-6 flex flex-col bg-slate-200 dark:bg-black/20">
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Visualização em Tempo Real</label>
+                    <div className="flex-1 p-6 flex flex-col bg-slate-200 dark:bg-black/20 overflow-hidden">
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="block text-xs font-bold text-slate-500 uppercase">Visualização em Tempo Real</label>
+                            <button
+                                onClick={copyToClipboard}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-bold shadow hover:shadow-md transform active:scale-95 transition-all text-sm"
+                            >
+                                <Copy size={18} /> Copiar para Área de Transferência
+                            </button>
+                        </div>
                         <div className="flex-1 bg-white dark:bg-dark-800 shadow-sm rounded-lg border border-slate-300 dark:border-slate-700 relative overflow-hidden flex flex-col">
                             <textarea
-                                className="flex-1 w-full p-8 resize-none outline-none font-serif text-slate-800 dark:text-slate-200 leading-relaxed text-justify overflow-y-auto custom-scrollbar bg-transparent text-lg"
+                                className="flex-1 w-full p-8 resize-none outline-none font-serif text-slate-800 dark:text-slate-200 leading-relaxed text-justify overflow-y-auto bg-transparent text-lg"
                                 value={generatedText}
                                 onChange={e => setGeneratedText(e.target.value)}
                                 spellCheck={false}
                             />
                         </div>
-                        <div className="mt-4 flex gap-3 justify-end items-center">
-                            <span className="text-xs text-slate-500 italic mr-auto">Edite o texto diretamente se necessário.</span>
-                            <button
-                                onClick={copyToClipboard}
-                                className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-bold shadow-lg hover:shadow-xl transform active:scale-95 transition-all text-sm"
-                            >
-                                <Copy size={18} /> Copiar para Área de Transferência
-                            </button>
-                        </div>
+                        <span className="text-xs text-slate-500 italic mt-3 text-center">Edite o texto diretamente acima se necessário.</span>
                     </div>
 
                 </div>
