@@ -240,7 +240,7 @@ export const FeeContractModal: React.FC<FeeContractModalProps> = ({ isOpen, onCl
     const copyToClipboard = () => navigator.clipboard.writeText(generatedText);
 
     return (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 md:left-64 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
             <div className="bg-white dark:bg-dark-800 w-full h-full max-w-none rounded-2xl shadow-2xl flex flex-col">
 
                 {/* Header */}

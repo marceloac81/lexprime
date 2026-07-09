@@ -646,7 +646,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
                                     : 'bg-slate-50 dark:bg-dark-800 border-slate-200 dark:border-dark-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'}`}
                             >
                                 {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(state => (
-                                    <option key={state} value={state}>{state}</option>
+                                    <option key={state} value={state} className={theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white dark:bg-dark-800 text-slate-900 dark:text-slate-100'}>{state}</option>
                                 ))}
                             </select>
                         </div>
@@ -1133,9 +1133,9 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
         <div className="publications-print-view">
                 {/* Detail Modal (Eye) */}
                 {detailItem && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailItem(null)}>
+                    <div className="fixed inset-0 md:left-64 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailItem(null)}>
                         <div
-                            className={`relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl shadow-2xl border overflow-hidden animate-scale-in ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white border-slate-200'}`}
+                            className={`relative w-full h-full max-w-none flex flex-col rounded-2xl shadow-2xl border overflow-hidden animate-scale-in ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white border-slate-200'}`}
                             onClick={e => e.stopPropagation()}
                         >
                             {/* Modal Header */}
@@ -1168,7 +1168,7 @@ export const Publications: React.FC<PublicationsProps> = ({ setPage }) => {
 
                             {/* Meta Info */}
                             {(detailItem.destinatarios?.length > 0 || detailItem.destinatarioadvogados?.length > 0 || detailItem.nomeOrgao || detailItem.nomeClasse) && (
-                                <div className={`px-6 py-3 border-b shrink-0 grid grid-cols-2 gap-x-6 gap-y-2 ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/30' : 'border-slate-100 bg-slate-50/50'}`}>
+                                <div className={`px-6 py-3 border-b shrink-0 grid grid-cols-2 gap-x-6 gap-y-2 max-h-48 overflow-y-auto custom-scrollbar ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/30' : 'border-slate-100 bg-slate-50/50'}`}>
                                     {detailItem.nomeOrgao && (
                                         <div>
                                             <p className={`text-[9px] font-bold uppercase tracking-widest ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>Órgão</p>
