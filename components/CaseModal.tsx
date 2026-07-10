@@ -8,7 +8,7 @@ import {
 } from '../components/Icons';
 import { CaseStatus, Case } from '../types';
 import { maskCurrency, parseCurrency } from '../utils/currencyUtils';
-import { normalizeText } from '../utils/textUtils';
+import { normalizeText, isSuspiciouslyAllCaps } from '../utils/textUtils';
 import { formatCNJ } from '../utils/cnjUtils';
 import { fetchProcessData } from '../services/datajudService';
 import { DataJudResponse, ProcessSource } from '../types/datajud';
@@ -657,6 +657,12 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                                 onFocus={() => setShowClientDropdown(true)}
                                                 className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white transition-all focus:ring-2 focus:ring-primary-500"
                                             />
+                                            {isSuspiciouslyAllCaps(newCase.clientName || '') && (
+                                                <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 z-10 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm">
+                                                    <AlertCircle size={12} />
+                                                    Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                                </div>
+                                            )}
                                             {showClientDropdown && (
                                                 <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[60] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
                                                     {clients
@@ -711,6 +717,12 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                             onChange={e => setNewCase({ ...newCase, opposingParty: e.target.value })}
                                             className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
                                         />
+                                        {isSuspiciouslyAllCaps(newCase.opposingParty || '') && (
+                                            <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                                <AlertCircle size={12} />
+                                                Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </section>

@@ -6,7 +6,7 @@ import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Ch
 import { TempestividadeModal } from './TempestividadeModal';
 import { CpcReferenceCatalog } from './CpcReferenceCatalog';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
-import { normalizeText, getInitials } from '../utils/textUtils';
+import { normalizeText, getInitials, isSuspiciouslyAllCaps } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
 
 interface CalculatorModalProps {
@@ -333,6 +333,12 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     onChange={e => setCustomerName(e.target.value)}
                                     disabled={!!selectedCaseId}
                                 />
+                                {!selectedCaseId && isSuspiciouslyAllCaps(customerName || '') && (
+                                    <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 z-10 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                        <AlertCircle size={12} />
+                                        Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -517,6 +523,12 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Atividade / Nome do Prazo <span className="text-rose-500">*</span></label>
                             <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
                                 placeholder="Ex: Contestação, Recurso..." value={title} onChange={e => setTitle(e.target.value)} />
+                            {isSuspiciouslyAllCaps(title || '') && (
+                                <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                    <AlertCircle size={12} />
+                                    Dica: Evite usar apenas CAIXA ALTA, exceto se estritamente necessário.
+                                </div>
+                            )}
                         </div>
 
                         <div className="h-px bg-slate-100 dark:bg-slate-700 my-4"></div>

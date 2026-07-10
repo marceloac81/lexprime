@@ -42,3 +42,18 @@ export const getInitials = (name: string, override?: string): string => {
 
     return initials.join('').toUpperCase().substring(0, 3);
 };
+
+/**
+ * Checks if a string is entirely uppercase and is likely not just an acronym.
+ * Useful to warn users about typing in ALL CAPS.
+ */
+export const isSuspiciouslyAllCaps = (text: string): boolean => {
+    if (!text || text.length < 5) return false;
+    // Check if it has at least some letters
+    const hasLetters = /[a-zA-ZáàãâéèêíïóôõöúçñÁÀÃÂÉÈÊÍÏÓÔÕÖÚÇÑ]/.test(text);
+    if (!hasLetters) return false;
+    
+    // Check if there are no lowercase letters at all
+    const hasLowercase = /[a-záàãâéèêíïóôõöúçñ]/.test(text);
+    return !hasLowercase;
+};
