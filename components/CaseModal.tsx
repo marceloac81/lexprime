@@ -8,7 +8,7 @@ import {
 } from '../components/Icons';
 import { CaseStatus, Case } from '../types';
 import { maskCurrency, parseCurrency } from '../utils/currencyUtils';
-import { normalizeText, isSuspiciouslyAllCaps } from '../utils/textUtils';
+import { normalizeText, isSuspiciouslyAllCaps, toTitleCase } from '../utils/textUtils';
 import { formatCNJ } from '../utils/cnjUtils';
 import { fetchProcessData } from '../services/datajudService';
 import { DataJudResponse, ProcessSource } from '../types/datajud';
@@ -658,9 +658,16 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                                 className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white transition-all focus:ring-2 focus:ring-primary-500"
                                             />
                                             {isSuspiciouslyAllCaps(newCase.clientName || '') && (
-                                                <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 z-10 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm">
-                                                    <AlertCircle size={12} />
-                                                    Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                                <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 z-10 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm">
+                                                    <AlertCircle size={12} className="shrink-0" />
+                                                    <span>Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.</span>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={(e) => { e.preventDefault(); setNewCase({ ...newCase, clientName: toTitleCase(newCase.clientName || '') }); }}
+                                                        className="ml-auto flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-bold transition-colors border border-amber-200 dark:border-amber-700/50"
+                                                    >
+                                                        <RotateCcw size={10} /> Corrigir
+                                                    </button>
                                                 </div>
                                             )}
                                             {showClientDropdown && (
@@ -718,9 +725,16 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                             className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
                                         />
                                         {isSuspiciouslyAllCaps(newCase.opposingParty || '') && (
-                                            <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
-                                                <AlertCircle size={12} />
-                                                Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                            <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                                <AlertCircle size={12} className="shrink-0" />
+                                                <span>Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.</span>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={(e) => { e.preventDefault(); setNewCase({ ...newCase, opposingParty: toTitleCase(newCase.opposingParty || '') }); }}
+                                                    className="ml-2 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-bold transition-colors border border-amber-200 dark:border-amber-700/50"
+                                                >
+                                                    <RotateCcw size={10} /> Corrigir
+                                                </button>
                                             </div>
                                         )}
                                     </div>

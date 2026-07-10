@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
-import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen, ChevronDown } from './Icons';
+import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen, ChevronDown, RotateCcw } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
 import { CpcReferenceCatalog } from './CpcReferenceCatalog';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
-import { normalizeText, getInitials, isSuspiciouslyAllCaps } from '../utils/textUtils';
+import { normalizeText, getInitials, isSuspiciouslyAllCaps, toTitleCase } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
 
 interface CalculatorModalProps {
@@ -334,9 +334,16 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     disabled={!!selectedCaseId}
                                 />
                                 {!selectedCaseId && isSuspiciouslyAllCaps(customerName || '') && (
-                                    <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 z-10 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
-                                        <AlertCircle size={12} />
-                                        Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.
+                                    <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 z-10 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                        <AlertCircle size={12} className="shrink-0" />
+                                        <span>Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.</span>
+                                        <button 
+                                            type="button" 
+                                            onClick={(e) => { e.preventDefault(); setCustomerName(toTitleCase(customerName || '')); }}
+                                            className="ml-2 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-bold transition-colors border border-amber-200 dark:border-amber-700/50"
+                                        >
+                                            <RotateCcw size={10} /> Corrigir
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -524,9 +531,16 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
                                 placeholder="Ex: Contestação, Recurso..." value={title} onChange={e => setTitle(e.target.value)} />
                             {isSuspiciouslyAllCaps(title || '') && (
-                                <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 p-1.5 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
-                                    <AlertCircle size={12} />
-                                    Dica: Evite usar apenas CAIXA ALTA, exceto se estritamente necessário.
+                                <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                    <AlertCircle size={12} className="shrink-0" />
+                                    <span>Dica: Evite usar apenas CAIXA ALTA, exceto se estritamente necessário.</span>
+                                    <button 
+                                        type="button" 
+                                        onClick={(e) => { e.preventDefault(); setTitle(toTitleCase(title || '')); }}
+                                        className="ml-2 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-bold transition-colors border border-amber-200 dark:border-amber-700/50"
+                                    >
+                                        <RotateCcw size={10} /> Corrigir
+                                    </button>
                                 </div>
                             )}
                         </div>

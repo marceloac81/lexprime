@@ -57,3 +57,21 @@ export const isSuspiciouslyAllCaps = (text: string): boolean => {
     const hasLowercase = /[a-záàãâéèêíïóôõöúçñ]/.test(text);
     return !hasLowercase;
 };
+
+/**
+ * Converts a string to Title Case, keeping common prepositions in lowercase.
+ * Example: "ROGÉRIO DE OLIVEIRA" -> "Rogério de Oliveira"
+ */
+export const toTitleCase = (text: string): string => {
+    if (!text) return '';
+    
+    const prepositions = ['de', 'da', 'do', 'das', 'dos', 'e', 'em'];
+    
+    return text.toLowerCase().split(' ').map((word, index) => {
+        if (word.length === 0) return word;
+        if (index > 0 && prepositions.includes(word)) {
+            return word;
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+};
