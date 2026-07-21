@@ -598,16 +598,22 @@ export const Deadlines: React.FC = () => {
                                             const displayCustomer = relatedCase?.clientName || d.customerName || 'Sem Cliente';
                                             const displayCourt = relatedCase?.court || d.court || '-';
                                             const displayCity = relatedCase ? `${relatedCase.city}-${relatedCase.uf}` : d.city && d.uf ? `${d.city}-${d.uf}` : '-';
+                                            const isItemDelayed = isPast && status === 'Pending';
 
                                             return (
                                                 <tr
                                                     key={d.id}
                                                     onDoubleClick={() => handleEditClick(d)}
-                                                    className={`${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
+                                                    className={`relative transform ${getRowStyle(dateStr)} border-b transition-colors cursor-pointer group ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                                     style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
                                                     title="Clique duplo para editar"
                                                 >
                                                     <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
+                                                        {isItemDelayed && (
+                                                            <svg className="absolute inset-0 w-full h-full pointer-events-none animate-snake-border z-10" preserveAspectRatio="none">
+                                                                <rect width="100%" height="100%" fill="none" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="3" pathLength="100" />
+                                                            </svg>
+                                                        )}
                                                         {(d.startTime || '09:00').substring(0, 5)}
                                                     </td>
                                                     <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
@@ -708,11 +714,18 @@ export const Deadlines: React.FC = () => {
                                                         </div>
                                                     </td>
                                                     <td className="py-2 px-4 text-center status-col" onClick={(e) => e.stopPropagation()}>
-                                                        <StatusDropdown
-                                                            id={d.id}
-                                                            currentStatus={status}
-                                                            onUpdate={(id, s) => updateDeadlineStatus(id, s)}
-                                                        />
+                                                        <div className={`relative inline-block ${isItemDelayed ? 'animate-button-absorb' : ''}`}>
+                                                            {isItemDelayed && (
+                                                                <svg className="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none animate-snake-button z-20" preserveAspectRatio="none">
+                                                                    <rect width="100%" height="100%" rx="8" fill="none" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="2.5" pathLength="100" />
+                                                                </svg>
+                                                            )}
+                                                            <StatusDropdown
+                                                                id={d.id}
+                                                                currentStatus={status}
+                                                                onUpdate={(id, s) => updateDeadlineStatus(id, s)}
+                                                            />
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )
