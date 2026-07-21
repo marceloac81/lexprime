@@ -703,16 +703,23 @@ export const CaseModal: React.FC<CaseModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setNewCase({ ...newCase, clientPosition: 'Ativo' })}
-                                                className={`flex-1 py-2 rounded text-sm font-medium transition-all ${newCase.clientPosition === 'Ativo' ? 'bg-white dark:bg-dark-700 shadow text-green-600' : 'text-slate-400'}`}
+                                                className={`flex-1 py-2 rounded text-xs md:text-sm font-medium transition-all ${newCase.clientPosition === 'Ativo' ? 'bg-white dark:bg-dark-700 shadow text-green-600' : 'text-slate-400'}`}
                                             >
                                                 Ativo
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setNewCase({ ...newCase, clientPosition: 'Passivo' })}
-                                                className={`flex-1 py-2 rounded text-sm font-medium transition-all ${newCase.clientPosition === 'Passivo' ? 'bg-white dark:bg-dark-700 shadow text-rose-600' : 'text-slate-400'}`}
+                                                className={`flex-1 py-2 rounded text-xs md:text-sm font-medium transition-all ${newCase.clientPosition === 'Passivo' ? 'bg-white dark:bg-dark-700 shadow text-rose-600' : 'text-slate-400'}`}
                                             >
                                                 Passivo
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewCase({ ...newCase, clientPosition: 'Terceiro Interessado' })}
+                                                className={`flex-1 py-2 rounded text-xs md:text-sm font-medium transition-all ${newCase.clientPosition === 'Terceiro Interessado' ? 'bg-white dark:bg-dark-700 shadow text-blue-600' : 'text-slate-400'}`}
+                                            >
+                                                Terceiro Int.
                                             </button>
                                         </div>
                                     </div>

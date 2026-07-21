@@ -398,7 +398,7 @@ export const Cases: React.FC = () => {
                                         <td className="p-4">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
+                                                    <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : c.clientPosition === 'Passivo' ? 'bg-rose-500' : 'bg-blue-500'}`} />
                                                     <span className={`text-sm font-medium truncate max-w-[150px] ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.clientName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -491,7 +491,7 @@ export const Cases: React.FC = () => {
                                 {/* Parties */}
                                 <div className="mb-3 space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className={`w-1.5 h-1.5 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : 'bg-rose-500'}`} />
+                                        <span className={`w-1.5 h-1.5 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : c.clientPosition === 'Passivo' ? 'bg-rose-500' : 'bg-blue-500'}`} />
                                         <span className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-800 dark:text-slate-200'}`}>{c.clientName}</span>
                                     </div>
                                     <div className="flex items-center gap-2 pl-3.5">
@@ -855,7 +855,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">
-                                            Cliente ({c.clientPosition === 'Ativo' ? 'Autor / Requerente' : 'Réu / Requerido'})
+                                            Cliente ({c.clientPosition === 'Ativo' ? 'Autor / Requerente' : c.clientPosition === 'Passivo' ? 'Réu / Requerido' : 'Terceiro Interessado'})
                                         </span>
                                         <p className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">{c.clientName}</p>
                                     </div>
@@ -867,7 +867,7 @@ const CaseDetailModal: React.FC<{ c: Case, onClose: () => void, deadlines: Deadl
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <span className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block mb-0.5">
-                                            Parte Contrária ({c.clientPosition === 'Ativo' ? 'Réu / Requerido' : 'Autor / Requerente'})
+                                            Parte Contrária ({c.clientPosition === 'Ativo' ? 'Réu / Requerido' : c.clientPosition === 'Passivo' ? 'Autor / Requerente' : 'Terceiro Interessado'})
                                         </span>
                                         <p className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">{c.opposingParty}</p>
                                     </div>

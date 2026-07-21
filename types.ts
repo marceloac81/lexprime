@@ -111,7 +111,7 @@ export interface Case {
   // Parties
   clientId?: string;
   clientName: string;      // Required
-  clientPosition: 'Ativo' | 'Passivo'; // Required
+  clientPosition: 'Ativo' | 'Passivo' | 'Terceiro Interessado'; // Required
   opposingParty: string;   // Required
 
   // Location
