@@ -212,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
               ${collapsed ? 'w-10 h-10 p-0' : 'flex-1'}
               ${theme === 'light' 
                 ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-600 scale-[1.02]' 
-                : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
+                : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-white/5'}`}
             title="Tema Claro"
           >
             <Sun size={collapsed ? 20 : 14} className={theme === 'light' ? 'animate-pulse-subtle' : ''} />
@@ -225,7 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
               ${collapsed ? 'w-10 h-10 p-0' : 'flex-1'}
               ${theme === 'hybrid' 
                 ? 'bg-[#00a884] shadow-[0_2px_12px_rgba(0,168,132,0.3)] text-white scale-[1.02]' 
-                : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-white/5'}`}
+                : 'text-slate-500 hover:text-slate-700 hover:bg-white/80'}`}
             title="Tema Escuro"
           >
             <Moon size={collapsed ? 20 : 14} className={theme === 'hybrid' ? 'animate-float-subtle' : ''} />

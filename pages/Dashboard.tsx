@@ -536,51 +536,67 @@ export const Dashboard: React.FC = () => {
                     const clientName = associatedCase ? associatedCase.clientName : (deadline.customerName || 'Avulso');
                     const processNumber = associatedCase ? associatedCase.number : '';
 
-                    return (
-                      <div
-                        key={deadline.id}
-                        onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                        className={`flex items-start gap-3 p-4 rounded-lg transition-colors cursor-pointer hover:shadow-sm group border ${
-                          isToday
-                            ? (theme === 'hybrid' 
-                                ? 'bg-amber-50 border-amber-200' 
-                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800')
-                            : (theme === 'hybrid'
-                                ? 'bg-[#354751] border-[#00a884]/30 hover:border-[#00a884]/50'
-                                : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30')
-                        }`}
-                      >
-                        <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : (theme === 'hybrid' && !isToday ? 'bg-[#00a884]' : 'bg-amber-500')}`} />
+                    const renderContent = (isActive: boolean) => (
+                      <>
+                        <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : (theme === 'hybrid' && !isActive ? 'bg-[#00a884]' : 'bg-amber-500')}`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
                             <p className={`text-sm font-bold truncate pr-2 transition-colors ${
-                              theme === 'hybrid' && !isToday
+                              theme === 'hybrid' && !isActive
                                 ? 'text-[#e9edef] group-hover:text-[#00a884]' 
-                                : (theme === 'hybrid' && isToday ? 'text-slate-900 group-hover:text-amber-600' : 'text-slate-900 dark:text-white group-hover:text-primary-500')
+                                : (theme === 'hybrid' && isActive ? 'text-slate-900 group-hover:text-amber-600' : 'text-slate-900 dark:text-white group-hover:text-primary-500')
                             }`} title={deadline.title}>
                               {deadline.title}
                             </p>
                           </div>
-                          <p className={`text-xs font-semibold mt-1 line-clamp-2 ${theme === 'hybrid' && !isToday ? 'text-[#d1d7db]' : (theme === 'hybrid' && isToday ? 'text-slate-600' : 'text-slate-600 dark:text-slate-400')}`} title={clientName}>
+                          <p className={`text-xs font-semibold mt-1 line-clamp-2 ${theme === 'hybrid' && !isActive ? 'text-[#d1d7db]' : (theme === 'hybrid' && isActive ? 'text-slate-600' : 'text-slate-600 dark:text-slate-400')}`} title={clientName}>
                             {clientName}
                           </p>
                           {processNumber && (
-                            <p className={`text-[11px] mt-0.5 truncate ${theme === 'hybrid' && !isToday ? 'text-[#aebac1]' : (theme === 'hybrid' && isToday ? 'text-slate-500' : 'text-slate-400')}`}>
+                            <p className={`text-[11px] mt-0.5 truncate ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>
                               Nº {processNumber}
                             </p>
                           )}
                         </div>
                         <div className="text-right flex flex-col items-end min-w-[42px] flex-shrink-0 ml-1">
                           <div className="flex items-center gap-1.5 mb-1">
-                            {isToday && (
+                            {isActive && (
                               <span className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm bg-amber-500 text-white shadow-amber-500/20">
                                 Hoje
                               </span>
                             )}
-                            <p className={`text-xs font-bold ${theme === 'hybrid' && !isToday ? 'text-[#e9edef]' : (theme === 'hybrid' && isToday ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
+                            <p className={`text-xs font-bold ${theme === 'hybrid' && !isActive ? 'text-[#e9edef]' : (theme === 'hybrid' && isActive ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
                           </div>
-                          <p className={`text-[10px] font-medium ${theme === 'hybrid' && !isToday ? 'text-[#aebac1]' : (theme === 'hybrid' && isToday ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
+                          <p className={`text-[10px] font-medium ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
                         </div>
+                      </>
+                    );
+
+                    return (
+                      <div
+                        key={deadline.id}
+                        onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
+                        className="relative rounded-lg cursor-pointer group"
+                      >
+                        {/* Base Layer */}
+                        <div className={`flex items-start gap-3 p-4 rounded-lg transition-colors border ${
+                          theme === 'hybrid'
+                            ? 'bg-[#354751] border-[#00a884]/30 group-hover:border-[#00a884]/50'
+                            : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 group-hover:border-primary-500/30'
+                        }`}>
+                          {renderContent(false)}
+                        </div>
+
+                        {/* Highlight Layer (Animated LTR) */}
+                        {isToday && (
+                          <div className={`absolute inset-0 flex items-start gap-3 p-4 rounded-lg border animate-paint-ltr pointer-events-none ${
+                            theme === 'hybrid'
+                                ? 'bg-amber-50 border-amber-200' 
+                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                          }`}>
+                            {renderContent(true)}
+                          </div>
+                        )}
                       </div>
                     );
                   })

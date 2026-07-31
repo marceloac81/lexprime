@@ -126,3 +126,17 @@ body {
 .animate-button-absorb {
   animation: buttonAbsorb 7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+@keyframes paint-ltr {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-paint-ltr {
+  animation: paint-ltr 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0.5s; /* slight delay so the user sees the normal card first */
+}
