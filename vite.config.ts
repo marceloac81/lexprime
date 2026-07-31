@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/api\/datajud\//, '/api_publica_')
         },
         '/api/conjur-rss': {
-          target: 'https://news.google.com',
+          target: 'https://news.google.com/rss/search',
           changeOrigin: true,
-          rewrite: () => '/rss/search?q=site:conjur.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419'
+          rewrite: (path) => path.replace(/^\/api\/conjur-rss/, '')
         }
       }
     },

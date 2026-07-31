@@ -54,7 +54,7 @@ const LegalNewsCard = () => {
   React.useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch('/api/conjur-rss');
+        const response = await fetch('/api/conjur-rss?q=site:conjur.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419');
         
         if (!response.ok) {
           console.error("RSS fetch failed:", response.status, response.statusText);
