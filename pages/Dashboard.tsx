@@ -559,15 +559,13 @@ export const Dashboard: React.FC = () => {
                           )}
                         </div>
                         <div className="text-right flex flex-col items-end min-w-[42px] flex-shrink-0 ml-1">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            {isActive && (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm bg-amber-500 text-white shadow-amber-500/20">
-                                Hoje
-                              </span>
-                            )}
-                            <p className={`text-xs font-bold ${theme === 'hybrid' && !isActive ? 'text-[#e9edef]' : (theme === 'hybrid' && isActive ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
-                          </div>
-                          <p className={`text-[10px] font-medium ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
+                          {isToday && (
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm mb-1 ${isActive ? 'bg-amber-500 text-white shadow-amber-500/20' : 'opacity-0'}`}>
+                              Hoje
+                            </span>
+                          )}
+                          <p className={`text-xs font-bold ${theme === 'hybrid' && !isActive ? 'text-[#e9edef]' : (theme === 'hybrid' && isActive ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
+                          <p className={`text-[10px] font-medium mt-0.5 ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
                         </div>
                       </>
                     );
