@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const rssUrl = 'https://www.conjur.com.br/rss.xml';
+        const rssUrl = 'https://news.google.com/rss/search?q=site:conjur.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419';
         console.log("Fetching RSS from:", rssUrl);
 
         const response = await fetch(rssUrl, {
@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
 
             if (titleRaw && linkRaw) {
                 // Clean CDATA and whitespace
-                const cleanTitle = titleRaw.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
+                let cleanTitle = titleRaw.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
+                cleanTitle = cleanTitle.replace(/ - Consultor Jurídico$/, '');
                 const cleanLink = linkRaw.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
 
                 let formattedTime = '';
