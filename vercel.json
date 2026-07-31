@@ -5,6 +5,10 @@
             "destination": "https://api-publica.datajud.cnj.jus.br/api_publica_:suffix/_search"
         },
         {
+            "source": "/api/conjur-rss",
+            "destination": "https://news.google.com/rss/search?q=site:conjur.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

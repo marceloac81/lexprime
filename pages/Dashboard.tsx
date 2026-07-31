@@ -54,18 +54,57 @@ const LegalNewsCard = () => {
   React.useEffect(() => {
     const fetchNews = async () => {
       try {
-        console.log("Invoking get-legal-news function...");
-        const { data, error } = await supabase.functions.invoke('get-legal-news');
-
-        if (error) {
-          console.error('Supabase function error:', error);
+        const response = await fetch('/api/conjur-rss');
+        
+        if (!response.ok) {
+          console.error("RSS fetch failed:", response.status, response.statusText);
           return;
         }
 
-        console.log("Function response data:", data);
-        if (Array.isArray(data)) {
-          setNews(data);
+        const xmlText = await response.text();
+        
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        const items = [];
+        let match;
+        let count = 0;
+
+        while ((match = itemRegex.exec(xmlText)) !== null && count < 6) {
+            const itemContent = match[1];
+
+            const titleRaw = itemContent.match(/<title>(.*?)<\/title>/)?.[1] || "";
+            const linkRaw = itemContent.match(/<link>(.*?)<\/link>/)?.[1] || "";
+            const pubDateRaw = itemContent.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || "";
+
+            if (titleRaw && linkRaw) {
+                // Clean CDATA and whitespace
+                let cleanTitle = titleRaw.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
+                cleanTitle = cleanTitle.replace(/ - Consultor Jurídico$/, '');
+                const cleanLink = linkRaw.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
+
+                let formattedTime = '';
+                if (pubDateRaw) {
+                    try {
+                        const dateObj = new Date(pubDateRaw);
+                        if (!isNaN(dateObj.getTime())) {
+                            formattedTime = dateObj.toLocaleTimeString('pt-BR', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                            });
+                        }
+                    } catch (e) { }
+                }
+
+                items.push({
+                    title: cleanTitle,
+                    link: cleanLink,
+                    time: formattedTime || "--:--"
+                });
+                count++;
+            }
         }
+        
+        setNews(items);
       } catch (error) {
         console.error('Error fetching news:', error);
       } finally {

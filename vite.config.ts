@@ -14,6 +14,11 @@ export default defineConfig(({ mode }) => {
           target: 'https://api-publica.datajud.cnj.jus.br',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/datajud\//, '/api_publica_')
+        },
+        '/api/conjur-rss': {
+          target: 'https://news.google.com',
+          changeOrigin: true,
+          rewrite: () => '/rss/search?q=site:conjur.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419'
         }
       }
     },
