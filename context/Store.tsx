@@ -91,7 +91,7 @@ const INITIAL_CASES: Case[] = [
     court: '2ª Vara Cível',
     uf: 'RJ',
     city: 'Resende',
-    area: 'Civil',
+    area: 'Cível',
     folderNumber: 'CIV-2024-001',
     status: CaseStatus.Active,
     value: 150000,

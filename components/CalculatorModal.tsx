@@ -103,6 +103,22 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const [showTempestividade, setShowTempestividade] = useState(false);
     const [showCpcCatalog, setShowCpcCatalog] = useState(false);
 
+    // Custom suspensions
+    const [customSuspensions, setCustomSuspensions] = useState<{date: string, description: string}[]>([]);
+    const [suspensionDate, setSuspensionDate] = useState('');
+    const [suspensionDesc, setSuspensionDesc] = useState('');
+
+    const mergedHolidays = React.useMemo(() => {
+        return [
+            ...holidays,
+            ...customSuspensions.map(s => ({
+                id: `custom-${s.date}`,
+                date: s.date,
+                name: s.description || 'Suspensão Específica'
+            }))
+        ];
+    }, [holidays, customSuspensions]);
+
     // Dropdown container ref for click-outside detection
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -175,9 +191,9 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
     // Auto-calculate effect
     useEffect(() => {
-        const calc = calculateDeadline(startDate, days, type, holidays);
+        const calc = calculateDeadline(startDate, days, type, mergedHolidays);
         setResult(calc);
-    }, [startDate, days, type, holidays]);
+    }, [startDate, days, type, mergedHolidays]);
 
     // Auto-fill info when case selected
     useEffect(() => {
@@ -588,6 +604,44 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
                         </div>
 
+                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-4"></div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Dias não úteis específicos (Suspensão Local/Feriado Municipal)</label>
+                            <div className="flex gap-2 mb-2">
+                                <input type="date" className="w-[130px] p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm shrink-0"
+                                    value={suspensionDate} onChange={e => setSuspensionDate(e.target.value)} />
+                                <input type="text" placeholder="Ex: Feriado..." className="flex-1 min-w-0 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm"
+                                    value={suspensionDesc} onChange={e => setSuspensionDesc(e.target.value)} />
+                                <button type="button" 
+                                    title="Adicionar Feriado/Suspensão"
+                                    onClick={() => { 
+                                        if(suspensionDate) { 
+                                            setCustomSuspensions(prev => [...prev, {date: suspensionDate, description: suspensionDesc}]); 
+                                            setSuspensionDate(''); 
+                                            setSuspensionDesc(''); 
+                                        } 
+                                    }} 
+                                    className="p-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white rounded-lg transition-colors flex items-center justify-center shrink-0 aspect-square"
+                                >
+                                    <X className="rotate-45" size={20}/>
+                                </button>
+                            </div>
+                            {customSuspensions.length > 0 && (
+                                <div className="space-y-2 mt-3 bg-slate-50 dark:bg-dark-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    {customSuspensions.map((s, idx) => (
+                                        <div key={idx} className="flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-rose-500">{formatDate(s.date)}</span> 
+                                                <span className="text-slate-500 dark:text-slate-400">{s.description || 'Suspensão Específica'}</span>
+                                            </div>
+                                            <button type="button" onClick={() => setCustomSuspensions(prev => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-rose-500 transition-colors p-1 rounded hover:bg-rose-50"><X size={14} /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         {initialData && (
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
@@ -720,7 +774,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                     days={days}
                     countType={type}
                     deadlineDate={result.date.toISOString().split('T')[0]}
-                    holidays={holidays}
+                    holidays={mergedHolidays}
                     title={title}
                 />
             )}

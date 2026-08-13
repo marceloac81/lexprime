@@ -21,7 +21,7 @@ const test = () => {
         court: 'Vara 1',
         uf: 'RJ',
         city: 'Rio',
-        area: 'Civil',
+        area: 'Cível',
         value: 1000,
         status: 'Ativo',
         tags: ['tag1', 'tag2'],

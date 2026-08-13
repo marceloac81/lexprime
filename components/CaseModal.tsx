@@ -85,7 +85,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
     const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const DEFAULT_AREAS = [
-        'Civil', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
+        'Cível', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
         'Administrativo', 'Sucessões', 'Empresarial', 'Ambiental'
     ];
 
@@ -200,7 +200,7 @@ export const CaseModal: React.FC<CaseModalProps> = ({
         if (dataJudResult.classe?.nome) {
             // Mapear classes para Áreas
             const classe = dataJudResult.classe.nome.toLowerCase();
-            if (classe.includes('cível') || classe.includes('alimentos') || classe.includes('família')) updates.area = 'Civil';
+            if (classe.includes('cível') || classe.includes('alimentos') || classe.includes('família')) updates.area = 'Cível';
             else if (classe.includes('trabalho') || classe.includes('trabalhista')) updates.area = 'Trabalhista';
             else if (classe.includes('criminal') || classe.includes('penal')) updates.area = 'Criminal';
             else if (classe.includes('tributário') || classe.includes('fiscal')) updates.area = 'Tributário';

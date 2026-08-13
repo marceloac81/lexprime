@@ -81,7 +81,7 @@ export const Cases: React.FC = () => {
 
     // List of common legal areas
     const DEFAULT_AREAS = [
-        'Civil', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
+        'Cível', 'Trabalhista', 'Criminal', 'Tributário', 'Família', 'Previdenciário',
         'Administrativo', 'Sucessões', 'Empresarial', 'Ambiental'
     ];
 
