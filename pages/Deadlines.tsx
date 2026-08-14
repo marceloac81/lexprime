@@ -132,7 +132,7 @@ export const Deadlines: React.FC = () => {
         if (filterStartDate && filterEndDate) {
             // Filter by selected range
             if (d.dueDate < filterStartDate || d.dueDate > filterEndDate) return false;
-            
+
             // Audit view: if the range includes past dates, WE DO NOT HIDE completed/canceled.
             const includesPastDates = filterStartDate < todayStr;
             if (!includesPastDates) {
@@ -435,10 +435,10 @@ export const Deadlines: React.FC = () => {
                                 </button>
                             )}
                         </div>
-                        
+
                         {/* Date Filter Component */}
                         <div className="relative shrink-0 w-full md:w-[260px]">
-                            <DateRangePicker 
+                            <DateRangePicker
                                 startDate={filterStartDate}
                                 endDate={filterEndDate}
                                 onChange={(start, end) => { setFilterStartDate(start); setFilterEndDate(end); }}
@@ -625,7 +625,7 @@ export const Deadlines: React.FC = () => {
                                                             {relatedCase?.number && (
                                                                 <button
                                                                     onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-desktop')}
-                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-80 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-80 hover:opacity-100 hover:text-slate-700'}`}
                                                                     title="Copiar número"
                                                                 >
                                                                     {copiedId === d.id + '-desktop' ? (
@@ -818,7 +818,7 @@ export const Deadlines: React.FC = () => {
                                                                 <p className={`text-xs font-bold text-slate-700 dark:text-slate-300 ${textStyle}`}>{relatedCase.number}</p>
                                                                 <button
                                                                     onClick={(e) => handleCopy(e, relatedCase.number, d.id + '-mobile')}
-                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
+                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === d.id + '-mobile' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-80 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-80 hover:opacity-100 hover:text-slate-700'}`}
                                                                     title="Copiar número"
                                                                 >
                                                                     {copiedId === d.id + '-mobile' ? (

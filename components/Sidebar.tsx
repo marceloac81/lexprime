@@ -120,9 +120,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out
         md:relative md:translate-x-0 no-print
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        ${collapsed ? 'w-20' : 'w-64'}
+        ${collapsed ? 'w-20' : 'w-52'}
     `}>
-      <div className={`p-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} mb-2 relative`}>
+      <div className={`p-4 md:p-5 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} mb-2 relative`}>
         <div className="flex items-center gap-3 overflow-hidden">
           <div className={`
                 w-10 h-10 flex-shrink-0 bg-gradient-to-br from-primary-600 to-primary-800 
@@ -175,12 +175,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         )}
       </nav>
 
-      <div className={`p-4 border-t ${theme === 'hybrid' ? 'border-[#202c33]' : 'border-slate-200 dark:border-slate-800'} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-        <div className={`rounded-xl p-3 flex items-center gap-3 border ${collapsed ? 'justify-center p-2' : ''} ${theme === 'hybrid'
+      <div className={`p-3 border-t ${theme === 'hybrid' ? 'border-[#202c33]' : 'border-slate-200 dark:border-slate-800'} space-y-3 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+        <div className={`rounded-xl p-2 flex items-center gap-2 border ${collapsed ? 'justify-center' : ''} ${theme === 'hybrid'
           ? 'bg-[#202c33] border-[#202c33]'
           : 'bg-slate-50 dark:bg-dark-800 border-slate-100 dark:border-slate-700'
           }`}>
-          <div className={`w-10 h-10 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
+          <div className={`w-9 h-9 flex-shrink-0 rounded-full ${getAvatarColorStyles(currentUser?.avatarColor || 'blue')} border border-opacity-30 flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden`}>
             {currentUser?.photo ? (
               <img src={currentUser.photo} className="w-full h-full object-cover" alt={currentUser.name} />
             ) : (
@@ -188,14 +188,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
             )}
           </div>
           {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className={`text-xs font-bold break-words leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{currentUser?.name}</p>
-              <p className={`text-xs truncate ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`}>{currentUser?.role}</p>
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <p className={`text-xs font-bold truncate ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`} title={currentUser?.name}>
+                {currentUser?.name}
+              </p>
+              <p className={`text-[10px] truncate mt-0.5 ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-500'}`} title={currentUser?.role}>
+                {currentUser?.role}
+              </p>
             </div>
           )}
           {!collapsed && (
-            <button onClick={logout} className={`p-1.5 rounded-lg transition-colors shadow-sm ${theme === 'hybrid' ? 'text-[#8696a0] hover:text-rose-500 hover:bg-[#111b21]' : 'text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-dark-700'}`}>
-              <LogOut size={18} />
+            <button onClick={logout} title="Sair" className={`p-1.5 flex-shrink-0 rounded-lg transition-colors shadow-sm ${theme === 'hybrid' ? 'text-[#8696a0] hover:text-rose-500 hover:bg-[#111b21]' : 'text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-dark-700'}`}>
+              <LogOut size={16} />
             </button>
           )}
         </div>
