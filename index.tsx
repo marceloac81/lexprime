@@ -5,9 +5,10 @@ import { registerSW } from 'virtual:pwa-register';
 
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
-  registerSW({
+  const updateSW = registerSW({
     onNeedRefresh() {
-      console.log('New content available, please refresh.');
+      console.log('New content available, auto refreshing...');
+      updateSW(true);
     },
     onOfflineReady() {
       console.log('App is ready to work offline.');
