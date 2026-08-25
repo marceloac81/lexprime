@@ -218,6 +218,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
         if (days < 0) validationErrors.push("Quantidade de dias não pode ser negativa.");
         if (!selectedCaseId && !customerName) validationErrors.push("Para prazos avulsos, informe o Nome do Cliente/Interessado.");
         if (!selectedCaseId && (!court || !city || !uf)) validationErrors.push("Para prazos avulsos, informe os dados de localização (Vara, Cidade, UF).");
+        if (assignedIds.length === 0) validationErrors.push("Campo 'Responsáveis' é obrigatório.");
 
         if (validationErrors.length > 0) {
             setErrors(validationErrors);
@@ -427,7 +428,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
                         {/* Multi-assignee Combobox */}
                         <div className="relative" ref={assigneeDropdownRef}>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsáveis</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsáveis <span className="text-rose-500">*</span></label>
                             <div
                                 className="w-full flex flex-wrap gap-2 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none transition-all focus-within:ring-2 focus-within:ring-primary-500 min-h-[50px] cursor-text"
                                 onClick={() => setIsAssigneeDropdownOpen(true)}
