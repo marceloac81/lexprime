@@ -5,6 +5,7 @@ import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Client } from '../types';
 import { normalizeText } from '../utils/textUtils';
+import { Pagination } from '../components/Pagination';
 import { PowerOfAttorneyModal } from '../components/PowerOfAttorneyModal';
 import { FeeContractModal } from '../components/FeeContractModal';
 
@@ -123,7 +124,8 @@ export const Clients: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [typeFilter, setTypeFilter] = useState<'all' | 'Pessoa Física' | 'Pessoa Jurídica' | 'Espólio'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: keyof Client; direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
-    const [displayLimit, setDisplayLimit] = useState(50);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
@@ -134,8 +136,8 @@ export const Clients: React.FC = () => {
     };
 
     useEffect(() => {
-        setDisplayLimit(50);
-    }, [searchTerm, typeFilter]);
+        setCurrentPage(1);
+    }, [searchTerm, typeFilter, pageSize]);
 
     // States for Modals
     const [showFormModal, setShowFormModal] = useState(false);
@@ -200,7 +202,7 @@ export const Clients: React.FC = () => {
         return 0;
     });
 
-    const visibleClients = sortedClients.slice(0, displayLimit);
+    const visibleClients = sortedClients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const validateForm = (): boolean => {
         const errors: string[] = [];
@@ -914,6 +916,16 @@ export const Clients: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={sortedClients.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                    itemLabel="contatos"
+                    theme={theme}
+                />
 
                 {/* Form Modal (New/Edit) - Updated with Tabs/Sections */}
                 {showFormModal && (

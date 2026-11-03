@@ -4,6 +4,7 @@ import { useStore } from '../context/Store';
 import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer, Copy, Check } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
 import { normalizeText } from '../utils/textUtils';
+import { Pagination } from '../components/Pagination';
 import { CalculatorModal } from '../components/CalculatorModal';
 import { CaseModal } from '../components/CaseModal';
 import { formatCurrency, maskCurrency, parseCurrency } from '../utils/currencyUtils';
@@ -45,11 +46,12 @@ export const Cases: React.FC = () => {
     const [selectedCase, setSelectedCase] = useState<Case | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Case | 'clientName'; direction: 'asc' | 'desc' } | null>(null);
-    const [displayLimit, setDisplayLimit] = useState(50);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
 
     useEffect(() => {
-        setDisplayLimit(50);
-    }, [searchTerm, statusFilter]);
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, pageSize]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
@@ -114,7 +116,7 @@ export const Cases: React.FC = () => {
         return 0;
     });
 
-    const visibleCases = filteredCases.slice(0, displayLimit);
+    const visibleCases = filteredCases.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const handleSort = (key: keyof Case | 'clientName') => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -356,7 +358,7 @@ export const Cases: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'hybrid' ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700'}`}>
-                                {filteredCases.map((c, index) => (
+                                {visibleCases.map((c, index) => (
                                     <tr
                                         key={c.id}
                                         onDoubleClick={() => setSelectedCase(c)}
@@ -445,7 +447,7 @@ export const Cases: React.FC = () => {
 
                     {/* MOBILE CARDS VIEW (Hidden on Desktop) */}
                     <div className="md:hidden flex flex-col gap-4 overflow-y-auto pb-20 custom-scrollbar">
-                        {filteredCases.map((c, index) => (
+                        {visibleCases.map((c, index) => (
                             <div
                                 key={c.id}
                                 onDoubleClick={() => setSelectedCase(c)}
@@ -523,6 +525,16 @@ export const Cases: React.FC = () => {
                         ))}
                     </div>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredCases.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                    itemLabel="processos"
+                    theme={theme}
+                />
 
                 {/* Detail Modal */}
                 {selectedCase && (
