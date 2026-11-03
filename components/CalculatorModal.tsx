@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { calculateDeadline, formatDate } from '../utils/dateUtils';
 import { Deadline, Case, Holiday } from '../types';
-import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen, ChevronDown, RotateCcw } from './Icons';
+import { Clock, Edit, AlertCircle, Search, X, User, MapPin, Trash2, FileText, Check, CalendarIcon, BookOpen, ChevronDown, RotateCcw, Plus } from './Icons';
 import { TempestividadeModal } from './TempestividadeModal';
 import { CpcReferenceCatalog } from './CpcReferenceCatalog';
 import { sanitizeCNJ, formatCNJ } from '../utils/cnjUtils';
@@ -22,6 +21,32 @@ interface CalculatorModalProps {
     teamMembers: import('../types').TeamMember[];
 }
 
+const COMMON_ACTIVITIES: { label: string; days?: number }[] = [
+    { label: 'Contestação', days: 15 },
+    { label: 'Réplica à Contestação', days: 15 },
+    { label: 'Manifestação', days: 5 },
+    { label: 'Manifestação sobre Laudo / Documentos', days: 15 },
+    { label: 'Embargos de Declaração', days: 5 },
+    { label: 'Recurso de Apelação', days: 15 },
+    { label: 'Recurso Inominado', days: 10 },
+    { label: 'Contrarrazões de Apelação', days: 15 },
+    { label: 'Contrarrazões de Recurso Inominado', days: 10 },
+    { label: 'Agravo de Instrumento', days: 15 },
+    { label: 'Recurso Ordinário', days: 8 },
+    { label: 'Contrarrazões de Recurso Ordinário', days: 8 },
+    { label: 'Recurso Especial / Extraordinário', days: 15 },
+    { label: 'Emenda à Inicial', days: 15 },
+    { label: 'Especificação de Provas', days: 5 },
+    { label: 'Alegações Finais / Memoriais', days: 15 },
+    { label: 'Cumprimento de Sentença', days: 15 },
+    { label: 'Impugnação ao Cumprimento de Sentença', days: 15 },
+    { label: 'Apresentação de Rol de Testemunhas', days: 15 },
+    { label: 'Recolhimento de Custas / Preparo', days: 5 },
+    { label: 'Juntada de Documentos / Procuração', days: 5 },
+];
+
+const QUICK_DAYS = [5, 8, 10, 15];
+
 const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
     const month = date.getUTCMonth();
     const year = date.getUTCFullYear();
@@ -38,16 +63,16 @@ const MiniCalendar: React.FC<{ date: Date }> = ({ date }) => {
     for (let i = 1; i <= daysInMonth; i++) days.push(i);
 
     return (
-        <div className="bg-white dark:bg-dark-900 ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl p-3 shadow-lg w-[145px] shrink-0 animate-fade-in">
-            <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 text-center">
+        <div className="bg-white dark:bg-dark-900 ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl p-2.5 shadow-md w-[135px] shrink-0 animate-fade-in">
+            <div className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2 text-center">
                 {monthNames[month]} {year}
             </div>
-            <div className="grid grid-cols-7 gap-1.5 text-[8px] font-bold text-slate-400 mb-2 text-center">
+            <div className="grid grid-cols-7 gap-1 text-[8px] font-bold text-slate-400 mb-1 text-center">
                 {weekDays.map((d, i) => <div key={i}>{d}</div>)}
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1">
                 {days.map((d, i) => (
-                    <div key={i} className={`h-4.5 flex items-center justify-center text-[9px] font-medium rounded-sm
+                    <div key={i} className={`h-4 flex items-center justify-center text-[9px] font-medium rounded-sm
                         ${d === day
                             ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-500/30'
                             : 'text-slate-500 dark:text-slate-400'}
@@ -68,6 +93,9 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const [type, setType] = useState<'business' | 'calendar'>(initialData?.countType || 'business');
 
     const [title, setTitle] = useState(initialData?.title || '');
+    const [isActivityDropdownOpen, setIsActivityDropdownOpen] = useState(false);
+    const activityDropdownRef = React.useRef<HTMLDivElement>(null);
+
     const [status, setStatus] = useState<'Pending' | 'Done' | 'Canceled'>(initialData?.status || 'Pending');
     const [assignedIds, setAssignedIds] = useState<string[]>(() => {
         if (Array.isArray(initialData?.assignedIds)) return initialData.assignedIds;
@@ -107,6 +135,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     const [customSuspensions, setCustomSuspensions] = useState<{date: string, description: string}[]>([]);
     const [suspensionDate, setSuspensionDate] = useState('');
     const [suspensionDesc, setSuspensionDesc] = useState('');
+    const [showSuspensionForm, setShowSuspensionForm] = useState(false);
 
     const mergedHolidays = React.useMemo(() => {
         return [
@@ -131,6 +160,9 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
             if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
                 setIsAssigneeDropdownOpen(false);
             }
+            if (activityDropdownRef.current && !activityDropdownRef.current.contains(event.target as Node)) {
+                setIsActivityDropdownOpen(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
@@ -154,6 +186,26 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
             normalizeText(c.title).includes(normalizedTerm) ||
             normalizeText(c.clientName).includes(normalizedTerm)
         );
+    });
+
+    const filteredMembers = (teamMembers || [])
+        .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
+        .sort((a, b) => {
+            const getMemberPriority = (name: string): number => {
+                const norm = name.toLowerCase();
+                if (norm.includes('abrahao') || norm.includes('abrahão') || norm.includes('cassini')) return 1;
+                if (norm.includes('damaris') || norm.includes('dâmaris')) return 2;
+                if (norm.includes('luiz geraldo') || norm.includes('liz geraldo') || norm.includes('motta')) return 3;
+                if (norm.includes('monteiro')) return 4;
+                if (norm.includes('rose') || norm.includes('maria rose')) return 5;
+                return 100;
+            };
+            return getMemberPriority(a.name) - getMemberPriority(b.name);
+        });
+
+    const filteredActivities = COMMON_ACTIVITIES.filter(a => {
+        if (!title.trim()) return true;
+        return normalizeText(a.label).includes(normalizeText(title));
     });
 
     // Auto-fill effect when search matches exactly one case (sanitized)
@@ -256,22 +308,22 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in text-slate-900 dark:text-slate-100">
-            <div className="bg-white dark:bg-dark-800 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[98vh] h-full ring-1 ring-slate-200 dark:ring-slate-700">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-3 md:p-4 animate-fade-in text-slate-900 dark:text-slate-100">
+            <div className="bg-white dark:bg-dark-800 w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[96vh] ring-1 ring-slate-200 dark:ring-slate-700">
                 {/* Form */}
-                <div className="p-6 md:p-8 w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            {initialData?.id ? <Edit className="text-primary-500" /> : <Clock className="text-primary-500" />}
+                <div className="p-4 md:p-5 w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 overflow-y-auto custom-scrollbar">
+                    <div className="flex justify-between items-center mb-3">
+                        <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            {initialData?.id ? <Edit className="text-primary-500" size={20} /> : <Clock className="text-primary-500" size={20} />}
                             {initialData?.id ? 'Editar Prazo' : 'Novo Prazo'}
                         </h2>
                         {result && (
                             <button
                                 onClick={() => setShowTempestividade(true)}
-                                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all flex items-center gap-2 text-[10px] md:text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95"
+                                className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all flex items-center gap-1.5 text-[10px] md:text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95"
                                 title="Gerar Tópico de Tempestividade"
                             >
-                                <FileText size={16} />
+                                <FileText size={14} />
                                 <span className="hidden sm:inline">Gerar Tempestividade</span>
                                 <span className="sm:hidden">Gerar</span>
                             </button>
@@ -279,19 +331,19 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                     </div>
 
                     {errors.length > 0 && (
-                        <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg">
-                            {errors.map((e, i) => <p key={i} className="text-sm text-rose-600 dark:text-rose-400 font-medium flex items-center gap-2"><AlertCircle size={14} /> {e}</p>)}
+                        <div className="mb-3 p-2.5 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg space-y-1">
+                            {errors.map((e, i) => <p key={i} className="text-xs text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1.5"><AlertCircle size={13} /> {e}</p>)}
                         </div>
                     )}
 
-                    <div className="space-y-5">
+                    <div className="space-y-2.5">
                         {/* Custom Case Search Autocomplete */}
                         <div className="relative">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vincular Processo</label>
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Vincular Processo</label>
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
-                                    className={`w-full pl-10 pr-10 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500 font-mono text-sm ${initialData?.caseId ? 'cursor-not-allowed bg-slate-100 dark:bg-dark-900/50' : ''}`}
+                                    className={`w-full pl-9 pr-9 py-2 px-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500 font-mono text-sm ${initialData?.caseId ? 'cursor-not-allowed bg-slate-100 dark:bg-dark-900/50' : ''}`}
                                     placeholder="Buscar por número ou cliente..."
                                     value={caseSearch}
                                     onChange={e => {
@@ -305,7 +357,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 />
                                 {selectedCaseId && !initialData?.caseId && (
                                     <button onClick={handleClearCase} className="absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 hover:text-rose-600">
-                                        <X size={16} />
+                                        <X size={15} />
                                     </button>
                                 )}
                                 {!selectedCaseId && caseSearch && (
@@ -314,19 +366,19 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
 
                             {isCaseDropdownOpen && !selectedCaseId && (
-                                <div ref={dropdownRef} className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 custom-scrollbar">
+                                <div ref={dropdownRef} className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-56 overflow-y-auto z-50 custom-scrollbar">
                                     {filteredCases.map(c => (
                                         <div
                                             key={c.id}
                                             onClick={() => handleSelectCase(c)}
-                                            className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0"
+                                            className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0"
                                         >
                                             <div className="font-bold text-slate-900 dark:text-white font-mono text-xs">{c.number}</div>
                                             <div className="text-xs text-slate-500 truncate">{c.clientName}</div>
                                         </div>
                                     ))}
                                     {filteredCases.length === 0 && (
-                                        <div className="p-3 text-center text-xs text-slate-400">Nenhum processo encontrado.</div>
+                                        <div className="p-2.5 text-center text-xs text-slate-400">Nenhum processo encontrado.</div>
                                     )}
                                 </div>
                             )}
@@ -334,13 +386,13 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
                         {/* Manual Customer Name Input (Conditionally ReadOnly) */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                                 Nome do Cliente / Interessado {selectedCaseId ? <span className="text-slate-400 font-normal">(Via Processo)</span> : <span className="text-rose-500">*</span>}
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
-                                    className={`w-full pl-10 p-3 rounded-lg border outline-none transition-colors
+                                    className={`w-full pl-9 py-2 px-3 text-sm rounded-lg border outline-none transition-colors
                                         ${selectedCaseId
                                             ? 'bg-slate-100 dark:bg-dark-900/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                                             : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500'
@@ -351,7 +403,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     disabled={!!selectedCaseId}
                                 />
                                 {!selectedCaseId && isSuspiciouslyAllCaps(customerName || '') && (
-                                    <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 z-10 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                    <div className="absolute top-full left-0 mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 z-10 bg-amber-50 dark:bg-amber-900/20 py-1 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
                                         <AlertCircle size={12} className="shrink-0" />
                                         <span>Dica: Evite usar apenas CAIXA ALTA, exceto para Pessoas Jurídicas.</span>
                                         <button 
@@ -367,15 +419,15 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                         </div>
 
                         {/* Location Fields (Row) */}
-                        <div className="grid grid-cols-12 gap-3">
+                        <div className="grid grid-cols-12 gap-2.5">
                             <div className="col-span-12">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                                     Local / Vara {selectedCaseId ? <span className="text-slate-400 font-normal">(Via Processo)</span> : <span className="text-rose-500">*</span>}
                                 </label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                     <input
-                                        className={`w-full pl-10 p-3 rounded-lg border outline-none transition-colors
+                                        className={`w-full pl-9 py-2 px-3 text-sm rounded-lg border outline-none transition-colors
                                             ${selectedCaseId
                                                 ? 'bg-slate-100 dark:bg-dark-900/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                                                 : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500'
@@ -388,11 +440,11 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 </div>
                             </div>
                             <div className="col-span-8">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                                     Cidade {selectedCaseId ? <span className="text-slate-400 font-normal">(Via Processo)</span> : <span className="text-rose-500">*</span>}
                                 </label>
                                 <input
-                                    className={`w-full p-3 rounded-lg border outline-none transition-colors
+                                    className={`w-full py-2 px-3 text-sm rounded-lg border outline-none transition-colors
                                         ${selectedCaseId
                                             ? 'bg-slate-100 dark:bg-dark-900/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                                             : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500'
@@ -404,18 +456,18 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 />
                             </div>
                             <div className="col-span-4">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
                                     UF {selectedCaseId ? <span className="text-slate-400 font-normal">(*)</span> : <span className="text-rose-500">*</span>}
                                 </label>
                                 {selectedCaseId ? (
                                     <input
-                                        className="w-full p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-dark-900/50 text-slate-500 dark:text-slate-400 cursor-not-allowed outline-none"
+                                        className="w-full py-2 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-dark-900/50 text-slate-500 dark:text-slate-400 cursor-not-allowed outline-none"
                                         value={uf}
                                         disabled
                                     />
                                 ) : (
                                     <select
-                                        className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                        className="w-full py-2 px-3 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
                                         value={uf}
                                         onChange={e => setUf(e.target.value)}
                                     >
@@ -428,9 +480,9 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
 
                         {/* Multi-assignee Combobox */}
                         <div className="relative" ref={assigneeDropdownRef}>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsáveis <span className="text-rose-500">*</span></label>
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Responsáveis <span className="text-rose-500">*</span></label>
                             <div
-                                className="w-full flex flex-wrap gap-2 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none transition-all focus-within:ring-2 focus-within:ring-primary-500 min-h-[50px] cursor-text"
+                                className="w-full flex flex-wrap items-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none transition-all focus-within:ring-2 focus-within:ring-primary-500 min-h-[38px] cursor-text"
                                 onClick={() => setIsAssigneeDropdownOpen(true)}
                             >
                                 {(assignedIds || []).map(id => {
@@ -439,8 +491,8 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     const avatarStyle = getAvatarColorStyles(member.avatarColor || 'blue');
                                     const firstName = member.name.trim().split(' ')[0];
                                     return (
-                                        <span key={id} className={`flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-slate-100 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold animate-scale-in shadow-sm`}>
-                                            <div className={`w-6 h-6 rounded-full ${avatarStyle} flex items-center justify-center text-[8px] font-bold border border-opacity-20 overflow-hidden`}>
+                                        <span key={id} className={`flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold animate-scale-in shadow-sm`}>
+                                            <div className={`w-5 h-5 rounded-full ${avatarStyle} flex items-center justify-center text-[8px] font-bold border border-opacity-20 overflow-hidden`}>
                                                 {member.photo ? (
                                                     <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
                                                 ) : (
@@ -453,7 +505,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                                     e.stopPropagation();
                                                     setAssignedIds(prev => prev.filter(mid => mid !== id));
                                                 }}
-                                                className="ml-1 hover:text-red-500 transition-colors"
+                                                className="ml-0.5 hover:text-red-500 transition-colors"
                                             >
                                                 <X size={12} />
                                             </button>
@@ -470,72 +522,60 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                     }}
                                     onFocus={() => setIsAssigneeDropdownOpen(true)}
                                 />
-                                <ChevronDown className={`shrink-0 text-slate-400 transition-transform ${isAssigneeDropdownOpen ? 'rotate-180' : ''}`} size={18} />
+                                <ChevronDown className={`shrink-0 text-slate-400 transition-transform ${isAssigneeDropdownOpen ? 'rotate-180' : ''}`} size={16} />
                             </div>
 
                             {isAssigneeDropdownOpen && (
-                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-72 overflow-hidden z-50 animate-scale-in flex flex-col">
-                                    <div className="px-3 py-2 bg-slate-50 dark:bg-dark-900/50 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center shrink-0">
+                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden z-50 animate-scale-in flex flex-col">
+                                    <div className="px-2.5 py-1 bg-slate-50 dark:bg-dark-900/50 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center shrink-0">
                                         <span>Selecione os responsáveis</span>
-                                        <span className="animate-pulse flex items-center gap-1 text-primary-600 dark:text-primary-400">↓ Role para ver mais</span>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto max-h-[220px] scrollbar-visible">
-                                        {(teamMembers || [])
-                                            .filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch)))
-                                            .sort((a, b) => {
-                                                const getMemberPriority = (name: string): number => {
-                                                    const norm = name.toLowerCase();
-                                                    if (norm.includes('abrahao') || norm.includes('abrahão') || norm.includes('cassini')) return 1;
-                                                    if (norm.includes('damaris') || norm.includes('dâmaris')) return 2;
-                                                    if (norm.includes('luiz geraldo') || norm.includes('liz geraldo') || norm.includes('motta')) return 3;
-                                                    if (norm.includes('monteiro')) return 4;
-                                                    if (norm.includes('rose') || norm.includes('maria rose')) return 5;
-                                                    return 100;
-                                                };
-                                                return getMemberPriority(a.name) - getMemberPriority(b.name);
-                                            })
-                                            .map(member => (
-                                                <div
-                                                    key={member.id}
-                                                    onClick={() => {
-                                                        setAssignedIds(prev =>
-                                                            prev.includes(member.id)
-                                                                ? prev.filter(id => id !== member.id)
-                                                                : [...prev, member.id]
-                                                        );
-                                                        setAssigneeSearch('');
-                                                    }}
-                                                    className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-9 h-9 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} flex items-center justify-center text-xs font-bold border border-opacity-20 shadow-sm overflow-hidden`}>
-                                                            {member.photo ? (
-                                                                <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
-                                                            ) : (
-                                                                getInitials(member.name, member.initials)
-                                                            )}
-                                                        </div>
-                                                        <span className={`text-sm ${assignedIds.includes(member.id) ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                            {member.name}
-                                                        </span>
-                                                    </div>
-                                                    {assignedIds.includes(member.id) && <Check size={16} className="text-primary-500" />}
-                                                </div>
-                                            ))}
-                                        {teamMembers.filter(t => t.active && normalizeText(t.name).includes(normalizeText(assigneeSearch))).length === 0 && (
-                                            <div className="p-4 text-center text-sm text-slate-400 italic">Nenhum membro encontrado.</div>
+                                        {filteredMembers.length > 5 && (
+                                            <span className="animate-pulse flex items-center gap-1 text-primary-600 dark:text-primary-400">↓ Role para ver mais</span>
                                         )}
                                     </div>
-                                    <div className="sticky bottom-0 bg-slate-50 dark:bg-dark-800 p-2 border-t border-slate-100 dark:border-slate-700 flex justify-end shrink-0">
+                                    <div className="overflow-y-auto max-h-[195px] custom-scrollbar">
+                                        {filteredMembers.map(member => (
+                                            <div
+                                                key={member.id}
+                                                onClick={() => {
+                                                    setAssignedIds(prev =>
+                                                        prev.includes(member.id)
+                                                            ? prev.filter(id => id !== member.id)
+                                                            : [...prev, member.id]
+                                                    );
+                                                    setAssigneeSearch('');
+                                                }}
+                                                className="py-1.5 px-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-6 h-6 rounded-full ${getAvatarColorStyles(member.avatarColor || 'blue')} flex items-center justify-center text-[9px] font-bold border border-opacity-20 shadow-sm overflow-hidden shrink-0`}>
+                                                        {member.photo ? (
+                                                            <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
+                                                        ) : (
+                                                            getInitials(member.name, member.initials)
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-xs md:text-sm leading-tight ${assignedIds.includes(member.id) ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                        {member.name}
+                                                    </span>
+                                                </div>
+                                                {assignedIds.includes(member.id) && <Check size={14} className="text-primary-500 shrink-0" />}
+                                            </div>
+                                        ))}
+                                        {filteredMembers.length === 0 && (
+                                            <div className="p-2.5 text-center text-xs text-slate-400 italic">Nenhum membro encontrado.</div>
+                                        )}
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-dark-800 px-2 py-1 border-t border-slate-100 dark:border-slate-700 flex justify-end shrink-0">
                                         <button
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setIsAssigneeDropdownOpen(false);
                                             }}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-1"
+                                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1"
                                         >
-                                            <Check size={14} />
+                                            <Check size={12} />
                                             Concluir
                                         </button>
                                     </div>
@@ -543,12 +583,70 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             )}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Atividade / Nome do Prazo <span className="text-rose-500">*</span></label>
-                            <input className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
-                                placeholder="Ex: Contestação, Recurso..." value={title} onChange={e => setTitle(e.target.value)} />
+                        {/* Activity / Deadline Name with Quick Autocomplete */}
+                        <div className="relative" ref={activityDropdownRef}>
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Atividade / Nome do Prazo <span className="text-rose-500">*</span></label>
+                            <div className="relative">
+                                <input
+                                    className="w-full py-2 pl-3 pr-8 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                    placeholder="Digite ou selecione (Ex: Contestação, Recurso...)"
+                                    value={title}
+                                    onFocus={() => setIsActivityDropdownOpen(true)}
+                                    onChange={e => {
+                                        setTitle(e.target.value);
+                                        setIsActivityDropdownOpen(true);
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Escape') setIsActivityDropdownOpen(false);
+                                    }}
+                                />
+                                {title ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setTitle(''); setIsActivityDropdownOpen(true); }}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        title="Limpar atividade"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                ) : (
+                                    <ChevronDown
+                                        size={15}
+                                        onClick={() => setIsActivityDropdownOpen(prev => !prev)}
+                                        className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer transition-transform ${isActivityDropdownOpen ? 'rotate-180' : ''}`}
+                                    />
+                                )}
+                            </div>
+
+                            {isActivityDropdownOpen && filteredActivities.length > 0 && !(filteredActivities.length === 1 && normalizeText(filteredActivities[0].label) === normalizeText(title)) && (
+                                <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto z-50 custom-scrollbar animate-scale-in">
+                                    <div className="px-2.5 py-1 bg-slate-50 dark:bg-dark-900/50 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center">
+                                        <span>Sugestões rápidas</span>
+                                        <span className="font-normal normal-case italic">ou digite livremente</span>
+                                    </div>
+                                    {filteredActivities.map((item, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => {
+                                                setTitle(item.label);
+                                                if (item.days !== undefined) setDays(item.days);
+                                                setIsActivityDropdownOpen(false);
+                                            }}
+                                            className="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between text-xs md:text-sm text-slate-700 dark:text-slate-200"
+                                        >
+                                            <span className="truncate pr-2">{item.label}</span>
+                                            {item.days !== undefined && (
+                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
+                                                    {item.days}d
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             {isSuspiciouslyAllCaps(title || '') && (
-                                <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 py-1.5 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
+                                <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 py-1 px-2 rounded border border-amber-200 dark:border-amber-800/50 shadow-sm w-fit">
                                     <AlertCircle size={12} className="shrink-0" />
                                     <span>Dica: Evite usar apenas CAIXA ALTA, exceto se estritamente necessário.</span>
                                     <button 
@@ -562,42 +660,65 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             )}
                         </div>
 
-                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-4"></div>
+                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-1.5"></div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2.5">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data Inicial</label>
-                                <input type="date" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Data Inicial</label>
+                                <input type="date" className="w-full py-2 px-3 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={startDate} onChange={e => setStartDate(e.target.value)} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hora</label>
-                                <input type="time" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Hora</label>
+                                <input type="time" className="w-full py-2 px-3 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={startTime} onChange={e => setStartTime(e.target.value)} />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Dias</label>
+                        <div className="grid grid-cols-12 gap-2.5">
+                            <div className="col-span-7">
+                                <div className="flex items-center justify-between gap-1 mb-0.5">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Dias</label>
                                     <button
                                         type="button"
                                         onClick={() => setShowCpcCatalog(true)}
-                                        className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800/50 transition-all active:scale-95"
+                                        className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800/50 transition-all active:scale-95"
                                         title="Consultar tabela de prazos do CPC/2015"
                                     >
-                                        <BookOpen size={12} />
-                                        <span className="hidden sm:inline">Consultar CPC</span>
-                                        <span className="sm:hidden">CPC</span>
+                                        <BookOpen size={11} />
+                                        <span>Consultar CPC</span>
                                     </button>
                                 </div>
-                                <input type="number" min="0" className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
-                                    value={days} onChange={e => setDays(Number(e.target.value))} />
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        className="w-16 sm:w-20 py-2 px-2.5 text-sm font-semibold rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white focus:ring-2 focus:ring-primary-500"
+                                        value={days}
+                                        onChange={e => setDays(Number(e.target.value))}
+                                    />
+                                    <div className="flex items-center gap-1 flex-1">
+                                        {QUICK_DAYS.map(d => (
+                                            <button
+                                                key={d}
+                                                type="button"
+                                                onClick={() => setDays(d)}
+                                                className={`flex-1 py-2 px-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 ${
+                                                    days === d
+                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20'
+                                                        : 'bg-slate-50 dark:bg-dark-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                }`}
+                                                title={`Definir prazo de ${d} dias`}
+                                            >
+                                                {d}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contagem</label>
-                                <select className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                            <div className="col-span-5">
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Contagem</label>
+                                <select className="w-full py-2 px-2.5 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={type} onChange={e => setType(e.target.value as any)}>
                                     <option value="business">Dias Úteis (CPC)</option>
                                     <option value="calendar">Dias Corridos</option>
@@ -605,48 +726,73 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                             </div>
                         </div>
 
-                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-4"></div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Dias não úteis específicos (Suspensão Local/Feriado Municipal)</label>
-                            <div className="flex gap-2 mb-2">
-                                <input type="date" className="w-[130px] p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm shrink-0"
-                                    value={suspensionDate} onChange={e => setSuspensionDate(e.target.value)} />
-                                <input type="text" placeholder="Ex: Feriado..." className="flex-1 min-w-0 p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-sm"
-                                    value={suspensionDesc} onChange={e => setSuspensionDesc(e.target.value)} />
-                                <button type="button" 
-                                    title="Adicionar Feriado/Suspensão"
-                                    onClick={() => { 
-                                        if(suspensionDate) { 
-                                            setCustomSuspensions(prev => [...prev, {date: suspensionDate, description: suspensionDesc}]); 
-                                            setSuspensionDate(''); 
-                                            setSuspensionDesc(''); 
-                                        } 
-                                    }} 
-                                    className="p-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white rounded-lg transition-colors flex items-center justify-center shrink-0 aspect-square"
+                        <div className="pt-1">
+                            {!showSuspensionForm && customSuspensions.length === 0 ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSuspensionForm(true)}
+                                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-dark-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 transition-colors"
                                 >
-                                    <X className="rotate-45" size={20}/>
+                                    <Plus size={14} className="text-primary-500" />
+                                    Adicionar suspensão local / feriado municipal
                                 </button>
-                            </div>
-                            {customSuspensions.length > 0 && (
-                                <div className="space-y-2 mt-3 bg-slate-50 dark:bg-dark-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
-                                    {customSuspensions.map((s, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-rose-500">{formatDate(s.date)}</span> 
-                                                <span className="text-slate-500 dark:text-slate-400">{s.description || 'Suspensão Específica'}</span>
-                                            </div>
-                                            <button type="button" onClick={() => setCustomSuspensions(prev => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-rose-500 transition-colors p-1 rounded hover:bg-rose-50"><X size={14} /></button>
+                            ) : (
+                                <div className="p-2.5 rounded-lg bg-slate-50/70 dark:bg-dark-900/40 border border-slate-200/80 dark:border-slate-700/80 animate-fade-in">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                            Suspensão Local / Feriado Municipal
+                                        </label>
+                                        {customSuspensions.length === 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowSuspensionForm(false)}
+                                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                                                title="Recolher"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input type="date" className="w-[125px] py-1.5 px-2 rounded-lg bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-xs shrink-0"
+                                            value={suspensionDate} onChange={e => setSuspensionDate(e.target.value)} />
+                                        <input type="text" placeholder="Ex: Feriado municipal..." className="flex-1 min-w-0 py-1.5 px-2.5 rounded-lg bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white text-xs"
+                                            value={suspensionDesc} onChange={e => setSuspensionDesc(e.target.value)} />
+                                        <button type="button" 
+                                            title="Adicionar Feriado/Suspensão"
+                                            onClick={() => { 
+                                                if(suspensionDate) { 
+                                                    setCustomSuspensions(prev => [...prev, {date: suspensionDate, description: suspensionDesc}]); 
+                                                    setSuspensionDate(''); 
+                                                    setSuspensionDesc(''); 
+                                                } 
+                                            }} 
+                                            className="p-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white rounded-lg transition-colors flex items-center justify-center shrink-0 aspect-square"
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+                                    {customSuspensions.length > 0 && (
+                                        <div className="space-y-1 mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                            {customSuspensions.map((s, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-rose-500">{formatDate(s.date)}</span> 
+                                                        <span className="text-slate-600 dark:text-slate-400">{s.description || 'Suspensão Específica'}</span>
+                                                    </div>
+                                                    <button type="button" onClick={() => setCustomSuspensions(prev => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-rose-500 transition-colors p-0.5 rounded hover:bg-rose-50"><X size={13} /></button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         {initialData && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
-                                <select className="w-full p-3 rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Status</label>
+                                <select className="w-full py-2 px-3 text-sm rounded-lg bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 outline-none dark:text-white"
                                     value={status} onChange={e => setStatus(e.target.value as any)}>
                                     <option value="Pending">Pendente</option>
                                     <option value="Done">Concluído</option>
@@ -658,13 +804,13 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                 </div>
 
                 {/* Results - SIMULATION LIST REFACTOR */}
-                <div className="p-6 md:p-8 w-full md:w-1/2 bg-slate-50 dark:bg-dark-900/50 flex flex-col max-h-full overflow-hidden">
+                <div className="p-4 md:p-5 w-full md:w-1/2 bg-slate-50 dark:bg-dark-900/50 flex flex-col max-h-full overflow-hidden">
                     {result ? (
                         <div className="flex flex-col h-full animate-slide-in overflow-hidden">
-                            <div className="mb-8 flex justify-between items-start gap-4">
+                            <div className="mb-3 flex justify-between items-start gap-4">
                                 <div className="flex-1">
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vencimento Final</h3>
-                                    <div className="flex items-center gap-5 bg-white dark:bg-dark-800 p-5 rounded-2xl ring-1 ring-blue-100 dark:ring-blue-900/30 shadow-xl shadow-blue-500/5">
+                                    <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Vencimento Final</h3>
+                                    <div className="flex items-center gap-4 bg-white dark:bg-dark-800 p-3.5 rounded-2xl ring-1 ring-blue-100 dark:ring-blue-900/30 shadow-lg shadow-blue-500/5">
                                         <MiniCalendar date={result.date} />
                                         <div>
                                             <p className="text-2xl md:text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight leading-none mb-1">
@@ -679,23 +825,23 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto px-2 py-1 space-y-1.5 custom-scrollbar">
                                 {result.simulation.map((step, idx) => (
-                                    <div key={idx} className="flex items-center gap-4 group animate-fade-in" style={{ animationDelay: `${idx * 20}ms` }}>
+                                    <div key={idx} className="flex items-center gap-3 group animate-fade-in" style={{ animationDelay: `${idx * 20}ms` }}>
                                         <div className="shrink-0">
                                             {step.isCounted ? (
-                                                <div className="w-7 h-7 bg-green-500 text-white rounded flex items-center justify-center text-sm font-bold shadow-md shadow-green-500/20">
+                                                <div className="w-6 h-6 bg-green-500 text-white rounded flex items-center justify-center text-xs font-bold shadow-sm shadow-green-500/20">
                                                     {step.count}
                                                 </div>
                                             ) : (
-                                                <div className="w-7 h-7 bg-rose-500 text-white rounded flex items-center justify-center shadow-md shadow-rose-500/20">
-                                                    <X size={16} strokeWidth={3} />
+                                                <div className="w-6 h-6 bg-rose-500 text-white rounded flex items-center justify-center shadow-sm shadow-rose-500/20">
+                                                    <X size={14} strokeWidth={3} />
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex-1 pb-2 border-b border-slate-100 dark:border-slate-800 group-last:border-0">
+                                        <div className="flex-1 pb-1 border-b border-slate-100 dark:border-slate-800 group-last:border-0">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                                <span className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-300">
                                                     {step.date}
                                                 </span>
                                                 <span className={`text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded ${step.isCounted
@@ -710,14 +856,14 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 ))}
 
                                 {/* Legend */}
-                                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 space-y-2 pb-4">
-                                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Legenda</h4>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 bg-green-500 rounded shadow-sm shrink-0"></div>
+                                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-1.5 pb-2">
+                                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Legenda</h4>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-3.5 h-3.5 bg-green-500 rounded shadow-sm shrink-0"></div>
                                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Dia considerado na simulação.</span>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 bg-rose-500 rounded shadow-sm shrink-0"></div>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-3.5 h-3.5 bg-rose-500 rounded shadow-sm shrink-0"></div>
                                         <div className="flex flex-col">
                                             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-none">Dia desconsiderado na simulação.</span>
                                             <span className="text-[9px] text-slate-400 italic">Por suspensão, prorrogação, dia inicial, não útil ou feriado.</span>
@@ -726,7 +872,7 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 mt-auto shrink-0">
+                            <div className="flex gap-3 mt-2 pt-2 shrink-0">
                                 {initialData && onDelete && (currentUser?.isAdmin || initialData.createdBy === currentUser?.id) && (
                                     <button
                                         onClick={() => {
@@ -735,14 +881,14 @@ export const CalculatorModal: React.FC<CalculatorModalProps> = ({ onClose, cases
                                                 onClose();
                                             }
                                         }}
-                                        className="px-4 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                                        className="px-3.5 py-2.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
                                         title="Excluir Prazo"
                                     >
-                                        <Trash2 size={20} />
+                                        <Trash2 size={18} />
                                     </button>
                                 )}
-                                <button onClick={onClose} className="flex-1 py-3 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 dark:hover:text-white font-medium transition-colors">Cancelar</button>
-                                <button onClick={handleSave} className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg shadow-green-500/20">
+                                <button onClick={onClose} className="flex-1 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 dark:hover:text-white font-medium transition-colors">Cancelar</button>
+                                <button onClick={handleSave} className="flex-1 py-2.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg shadow-green-500/20">
                                     {initialData ? 'Salvar Alterações' : 'Criar Prazo'}
                                 </button>
                             </div>
