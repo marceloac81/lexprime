@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
-import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign, ExternalLink, Building2, ScrollText, Cpu, CheckCircle2 } from '../components/Icons';
+import { Search, Plus, Mail, Phone, FileText, X, Edit, Briefcase, CalendarIcon, List, LayoutGrid, MessageCircle, ChevronRight, Filter, MapPin, Tag, User, Globe, Trash2, Shield, DollarSign, ExternalLink, Building2, ScrollText, Cpu, CheckCircle2, Copy, Check } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Client } from '../types';
 import { normalizeText } from '../utils/textUtils';
@@ -123,6 +123,19 @@ export const Clients: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [typeFilter, setTypeFilter] = useState<'all' | 'Pessoa Física' | 'Pessoa Jurídica' | 'Espólio'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: keyof Client; direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
+    const [displayLimit, setDisplayLimit] = useState(50);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    useEffect(() => {
+        setDisplayLimit(50);
+    }, [searchTerm, typeFilter]);
 
     // States for Modals
     const [showFormModal, setShowFormModal] = useState(false);
@@ -173,6 +186,7 @@ export const Clients: React.FC = () => {
         return matchesSearch && matchesType;
     });
 
+    // Sliced for pagination below
     const sortedClients = [...filteredClients].sort((a, b) => {
         const aValue = a[sortConfig.key]?.toString().toLowerCase() || '';
         const bValue = b[sortConfig.key]?.toString().toLowerCase() || '';
@@ -185,6 +199,8 @@ export const Clients: React.FC = () => {
         }
         return 0;
     });
+
+    const visibleClients = sortedClients.slice(0, displayLimit);
 
     const validateForm = (): boolean => {
         const errors: string[] = [];
@@ -698,14 +714,13 @@ export const Clients: React.FC = () => {
 
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-20 custom-scrollbar">
-                        {sortedClients.map((client, index) => (
+                        {visibleClients.map((client, index) => (
                             <div key={client.id}
-                                className={`p-6 rounded-xl border shadow-sm hover:shadow-md transition-all group relative animate-stagger-fade-in opacity-0 ${
+                                className={`p-6 rounded-xl border shadow-sm hover:shadow-md transition-all group relative ${
                                     theme === 'hybrid' 
                                         ? 'bg-[#2a3942] border-[#354751]' 
                                         : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
                                 }`}
-                                style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
@@ -794,8 +809,7 @@ export const Clients: React.FC = () => {
                             <table className="w-full text-left border-collapse min-w-[600px]">
                                 <thead>
                                     <tr className={`border-b ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/50' : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50'}`}>
-                                        <th
-                                            className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${
+                                        <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${
                                                 theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'
                                             }`}
                                             onClick={() => handleSort('name')}
@@ -809,23 +823,22 @@ export const Clients: React.FC = () => {
                                                 )}
                                             </div>
                                         </th>
-                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Contatos</th>
-                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Grupo</th>
-                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Tipo</th>
-                                        <th className={`p-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
+                                        <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Contatos</th>
+                                        <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Grupo</th>
+                                        <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Tipo</th>
+                                        <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className={`divide-y ${theme === 'hybrid' ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700'}`}>
-                                    {sortedClients.map((client, index) => (
+                                    {visibleClients.map((client, index) => (
                                         <tr key={client.id}
-                                            className={`transition-colors cursor-pointer group animate-stagger-fade-in opacity-0 ${
+                                            className={`transition-colors cursor-pointer group ${
                                                 theme === 'hybrid' ? 'hover:bg-[#354751]' : 'hover:bg-slate-50 dark:hover:bg-slate-700'
                                             }`}
-                                            style={{ animationDelay: `${index * 30}ms` }}
                                             onDoubleClick={() => handleOpenDetails(client)}
                                             title="Clique duplo para ver detalhes"
                                         >
-                                            <td className="p-4">
+                                            <td className="py-2.5 px-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                                                         theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -834,11 +847,24 @@ export const Clients: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{client.name}</div>
-                                                        <div className={`text-xs font-mono ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{client.document}</div>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <span className={`text-xs font-mono ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{client.document}</span>
+                                                            {client.document && (
+                                                                <button
+                                                                    onClick={(e) => handleCopy(e, client.document, client.id + '-table-doc')}
+                                                                    className={`shrink-0 flex items-center justify-center p-0.5 rounded transition-all ${
+                                                                        copiedId === client.id + '-table-doc' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'
+                                                                    }`}
+                                                                    title={copiedId === client.id + '-table-doc' ? "Copiado!" : "Copiar documento"}
+                                                                >
+                                                                    {copiedId === client.id + '-table-doc' ? <Check size={11} strokeWidth={3} /> : <Copy size={11} />}
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-4">
+                                            <td className="py-2.5 px-4">
                                                 <div className={`text-sm flex flex-col gap-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-300'}`}>
                                                     <div className="flex items-center gap-2">
                                                         <Mail size={14} className={theme === 'hybrid' ? 'text-[#aebac1]/50' : 'text-slate-400'} />
@@ -860,7 +886,7 @@ export const Clients: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-4">
+                                            <td className="py-2.5 px-4">
                                                 {client.group ? (
                                                     <span className={`text-xs font-medium px-2 py-1 rounded ${
                                                         theme === 'hybrid' ? 'bg-[#202c33] text-[#aebac1]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -869,7 +895,7 @@ export const Clients: React.FC = () => {
                                                     </span>
                                                 ) : '-'}
                                             </td>
-                                            <td className="p-4">
+                                            <td className="py-2.5 px-4">
                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded 
                                         ${client.type === 'Pessoa Física' ? (theme === 'hybrid' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300') : ''}
                                         ${client.type === 'Pessoa Jurídica' ? (theme === 'hybrid' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300') : ''}
@@ -878,7 +904,7 @@ export const Clients: React.FC = () => {
                                                     {client.type === 'Pessoa Física' ? 'PF' : client.type === 'Pessoa Jurídica' ? 'PJ' : 'ESP'}
                                                 </span>
                                             </td>
-                                            <td className="p-4">
+                                            <td className="py-2.5 px-4">
                                                 <ChevronRight size={20} className={`${theme === 'hybrid' ? 'text-[#354751] group-hover:text-[#00a884]' : 'text-slate-300 group-hover:text-primary-500'} transition-colors`} />
                                             </td>
                                         </tr>

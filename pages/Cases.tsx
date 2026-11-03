@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/Store';
 import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer, Copy, Check } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
@@ -45,6 +45,11 @@ export const Cases: React.FC = () => {
     const [selectedCase, setSelectedCase] = useState<Case | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Case | 'clientName'; direction: 'asc' | 'desc' } | null>(null);
+    const [displayLimit, setDisplayLimit] = useState(50);
+
+    useEffect(() => {
+        setDisplayLimit(50);
+    }, [searchTerm, statusFilter]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
@@ -108,6 +113,8 @@ export const Cases: React.FC = () => {
         if (aValue > bValue) return direction === 'asc' ? 1 : -1;
         return 0;
     });
+
+    const visibleCases = filteredCases.slice(0, displayLimit);
 
     const handleSort = (key: keyof Case | 'clientName') => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -353,12 +360,11 @@ export const Cases: React.FC = () => {
                                     <tr
                                         key={c.id}
                                         onDoubleClick={() => setSelectedCase(c)}
-                                        className={`transition-all cursor-pointer group animate-stagger-slide-in opacity-0 ${
+                                        className={`transition-all cursor-pointer group ${
                                             theme === 'hybrid'
                                                 ? 'hover:bg-[#354751] hover:shadow-lg'
                                                 : 'hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-md'
                                         }`}
-                                        style={{ animationDelay: `${index * 40}ms` }}
                                         title="Clique duplo para ver detalhes"
                                     >
                                         <td className="p-4">
@@ -443,12 +449,11 @@ export const Cases: React.FC = () => {
                             <div
                                 key={c.id}
                                 onDoubleClick={() => setSelectedCase(c)}
-                                className={`p-5 rounded-xl border shadow-sm active:scale-[0.99] transition-all animate-stagger-slide-in opacity-0 ${
+                                className={`p-5 rounded-xl border shadow-sm active:scale-[0.99] transition-all ${
                                     theme === 'hybrid' 
                                         ? 'bg-[#2a3942] border-[#354751]' 
                                         : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
                                 }`}
-                                style={{ animationDelay: `${index * 50}ms` }}
                                 title="Clique duplo para ver detalhes"
                             >
                                 {/* Header: Number & Status */}

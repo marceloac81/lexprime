@@ -573,18 +573,15 @@ export const Deadlines: React.FC = () => {
                                                     <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
                                                     {isToday && <span className="bg-slate-900 text-amber-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">HOJE</span>}
                                                     {isDelayed && (
-                                                        <div className="relative group inline-block">
-                                                            <span className="cursor-help bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">
-                                                                ATRASADO
-                                                            </span>
-                                                            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center z-50 w-64 pointer-events-none">
-                                                                <div className="w-2.5 h-2.5 shrink-0 bg-slate-900 dark:bg-slate-800 border-l border-b border-slate-700/50 dark:border-slate-600/50 transform rotate-45 -mr-1.5 z-10"></div>
-                                                                <div className="bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl border border-slate-700/50 dark:border-slate-600/50 leading-normal font-normal">
-                                                                    Este dia possui prazos pendentes atrasados. Reagende, cumpra ou cancele a atividade.
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    <div className="inline-flex items-center gap-2">
+                                                        <span className="bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm">
+                                                            ATRASADO
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                                                            Reagende, cumpra ou cancele a atividade.
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -609,11 +606,7 @@ export const Deadlines: React.FC = () => {
                                                     title="Clique duplo para editar"
                                                 >
                                                     <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
-                                                        {isItemDelayed && (
-                                                            <svg className="absolute inset-0 w-full h-full pointer-events-none animate-snake-border z-10" preserveAspectRatio="none">
-                                                                <rect width="100%" height="100%" fill="none" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="3" pathLength="100" />
-                                                            </svg>
-                                                        )}
+                                                        
                                                         {(d.startTime || '09:00').substring(0, 5)}
                                                     </td>
                                                     <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
@@ -714,18 +707,11 @@ export const Deadlines: React.FC = () => {
                                                         </div>
                                                     </td>
                                                     <td className="py-2 px-4 text-center status-col" onClick={(e) => e.stopPropagation()}>
-                                                        <div className={`relative inline-block ${isItemDelayed ? 'animate-button-absorb' : ''}`}>
-                                                            {isItemDelayed && (
-                                                                <svg className="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none animate-snake-button z-20" preserveAspectRatio="none">
-                                                                    <rect width="100%" height="100%" rx="8" fill="none" className="stroke-orange-500 dark:stroke-orange-400" strokeWidth="2.5" pathLength="100" />
-                                                                </svg>
-                                                            )}
-                                                            <StatusDropdown
+                                                        <StatusDropdown
                                                                 id={d.id}
                                                                 currentStatus={status}
                                                                 onUpdate={(id, s) => updateDeadlineStatus(id, s)}
                                                             />
-                                                        </div>
                                                     </td>
                                                 </tr>
                                             )
@@ -772,18 +758,15 @@ export const Deadlines: React.FC = () => {
                                     <div className={`font-bold ${isToday ? 'text-lg' : ''}`}>{formattedDate} <span className="text-sm font-normal opacity-80 capitalize ml-1">{weekday}</span></div>
                                     {isToday && <span className="bg-slate-900 text-amber-400 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse">HOJE</span>}
                                     {isDelayed && (
-                                        <div className="relative group inline-block">
-                                            <span className="bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-xs px-2 py-0.5 rounded font-bold uppercase animate-pulse cursor-help">
-                                                ATRASADO
-                                            </span>
-                                            <div className="absolute right-0 top-full mt-2 hidden group-hover:flex flex-col items-end z-50 w-60 pointer-events-none">
-                                                <div className="w-2.5 h-2.5 shrink-0 bg-slate-900 dark:bg-slate-800 border-t border-l border-slate-700/50 dark:border-slate-600/50 transform rotate-45 -mb-1.5 mr-4 z-10"></div>
-                                                <div className="bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl border border-slate-700/50 dark:border-slate-600/50 leading-normal font-normal text-right">
-                                                    Este dia possui prazos pendentes atrasados. Reagende, cumpra ou cancele a atividade.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5">
+                                        <span className="bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-400 dark:border dark:border-rose-500/30 text-xs px-2 py-0.5 rounded font-bold uppercase">
+                                            ATRASADO
+                                        </span>
+                                        <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                                            Reagende, cumpra ou cancele a atividade.
+                                        </span>
+                                    </div>
+                                )}
                                 </div>
 
                                 <div className="space-y-3">
