@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Case, Client, Deadline, CaseStatus, User, Appointment, Holiday, TeamMember, ActivityLog } from '../types';
 import { DEFAULT_HOLIDAYS } from '../utils/dateUtils';
 import { supabase } from '../utils/supabaseClient';
+import { compressAvatarDataUrl } from '../utils/imageUtils';
 
 interface StoreContextType {
   cases: Case[];
@@ -504,6 +505,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             addressZip: t.address_zip,
             avatarColor: t.avatar_color,
           })));
+
+          // Auto-compress oversized Base64 avatars already stored in Supabase
+          tData.forEach((t: any) => {
+            if (typeof t.photo_url === 'string' && t.photo_url.startsWith('data:image/') && t.photo_url.length > 100000) {
+              compressAvatarDataUrl(t.photo_url)
+                .then(async (compressed) => {
+                  if (compressed && compressed.length < t.photo_url.length) {
+                    setTeamMembers(prev => prev.map(m => m.id === t.id ? { ...m, photo: compressed } : m));
+                    await supabase.from('team_members').update({ photo_url: compressed }).eq('id', t.id);
+                  }
+                })
+                .catch(err => console.warn('Failed to auto-compress oversized avatar:', err));
+            }
+          });
         }
 
         if (dData && (dData.length > 0 || deadlines.length === 0)) {

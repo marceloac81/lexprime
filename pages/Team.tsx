@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TeamMember } from '../types';
 import { normalizeText, getInitials } from '../utils/textUtils';
 import { AVATAR_COLORS, getAvatarColorStyles } from '../utils/styleUtils';
+import { compressAvatarDataUrl } from '../utils/imageUtils';
 
 // Mask helpers
 const maskPhone = (value: string) => {
@@ -173,42 +174,17 @@ export const Team: React.FC = () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onloadend = () => {
-            const rawDataUrl = reader.result as string;
-            const img = new Image();
-            img.onload = () => {
-                const MAX_SIZE = 256;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_SIZE) {
-                        height = Math.round((height * MAX_SIZE) / width);
-                        width = MAX_SIZE;
-                    }
-                } else {
-                    if (height > MAX_SIZE) {
-                        width = Math.round((width * MAX_SIZE) / height);
-                        height = MAX_SIZE;
-                    }
+        reader.onloadend = async () => {
+            try {
+                const compressed = await compressAvatarDataUrl(reader.result as string);
+                if (compressed.length > 160000) {
+                    addNotification('A imagem é muito grande mesmo após compressão. Escolha uma foto menor.', 'warning');
+                    return;
                 }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-                    setFormData(prev => ({ ...prev, photo: compressedDataUrl }));
-                } else {
-                    setFormData(prev => ({ ...prev, photo: rawDataUrl }));
-                }
-            };
-            img.onerror = () => {
-                setFormData(prev => ({ ...prev, photo: rawDataUrl }));
-            };
-            img.src = rawDataUrl;
+                setFormData(prev => ({ ...prev, photo: compressed }));
+            } catch {
+                addNotification('Não foi possível processar a imagem selecionada.', 'warning');
+            }
         };
         reader.readAsDataURL(file);
     };
