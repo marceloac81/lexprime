@@ -6,34 +6,42 @@ import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Label, LabelList } from 'recharts';
 import { CaseStatus } from '../types';
 
-const StatCard = ({ title, value, icon: Icon, trend, color, subtext }: any) => {
+const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBorder, subtext, onClick }: any) => {
   const { theme } = useStore();
+  const trendClasses =
+    trendTone === 'danger'
+      ? (theme === 'hybrid' ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400')
+      : trend?.startsWith('+')
+        ? (theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400')
+        : (theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef]' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400');
+
   return (
-    <div className={`p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 group ${
-      theme === 'hybrid' 
-        ? 'bg-[#2a3942] border-[#354751]' 
-        : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
-    }`}>
-      <div className="flex justify-between items-start">
+    <div
+      onClick={onClick}
+      className={`p-4 rounded-xl shadow-sm border border-l-4 ${accentBorder || 'border-l-blue-500'} hover:shadow-md transition-all duration-200 group ${
+        onClick ? 'cursor-pointer' : ''
+      } ${
+        theme === 'hybrid'
+          ? 'bg-[#2a3942] border-y-[#354751] border-r-[#354751] hover:border-y-[#425866] hover:border-r-[#425866]'
+          : 'bg-white dark:bg-dark-800 border-y-slate-200 border-r-slate-200 dark:border-y-slate-700 dark:border-r-slate-700'
+      }`}
+    >
+      <div className="flex justify-between items-start gap-2">
         <div>
-          <p className={`text-sm font-medium mb-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>{title}</p>
-          <h3 className={`text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
+          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>{title}</p>
+          <h3 className={`text-2xl md:text-3xl font-bold tracking-tight tabular-nums ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
         </div>
-        <div className={`p-3 rounded-xl ${color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
-          <Icon size={24} className={theme === 'hybrid' && color.includes('bg-slate') ? 'text-[#aebac1]' : color.replace('bg-', 'text-')} />
+        <div className={`p-2.5 rounded-xl ${color} bg-opacity-10 group-hover:scale-105 transition-transform`}>
+          <Icon size={20} className={theme === 'hybrid' && color.includes('bg-slate') ? 'text-[#aebac1]' : color.replace('bg-', 'text-')} />
         </div>
       </div>
-      <div className="mt-4 flex items-center text-xs font-medium">
+      <div className="mt-3 flex items-center text-xs font-medium">
         {trend && (
-          <span className={`px-2 py-1 rounded-full ${
-            trend.startsWith('+') 
-              ? (theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400')
-              : (theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef]' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400')
-          } mr-2`}>
+          <span className={`px-2 py-0.5 rounded-full ${trendClasses} mr-2`}>
             {trend}
           </span>
         )}
-        <span className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}>{subtext}</span>
+        <span className={`truncate ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>{subtext}</span>
       </div>
     </div>
   );
@@ -115,17 +123,17 @@ const LegalNewsCard = () => {
   }, []);
 
   return (
-    <div className={`rounded-xl shadow-sm border p-6 flex flex-col overflow-hidden ${
+    <div className={`rounded-xl shadow-sm border p-4 md:p-5 flex flex-col overflow-hidden ${
       theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
     }`}>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className={`text-lg font-bold flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
-          <Newspaper size={20} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'} /> Notícias Jurídicas
+      <div className="flex justify-between items-center mb-3.5">
+        <h3 className={`text-base font-bold flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+          <Newspaper size={18} className={theme === 'hybrid' ? 'text-[#00a884]' : 'text-primary-500'} /> Notícias Jurídicas
         </h3>
         <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${theme === 'hybrid' ? 'bg-[#111b21] text-[#aebac1]' : 'bg-slate-100 dark:bg-dark-900 text-slate-400'}`}>ConJur RSS</span>
       </div>
 
-      <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1">
+      <div className="space-y-1.5 overflow-y-auto custom-scrollbar pr-1">
         {loading ? (
           <div className="flex items-center justify-center h-full gap-2 text-slate-400">
             <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${theme === 'hybrid' ? 'border-[#00a884]' : 'border-primary-500'}`}></div>
@@ -167,19 +175,29 @@ const LegalNewsCard = () => {
   );
 };
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setPage }) => {
   const { theme, isDarkMode, currentUser, setPendingAction, cases, clients, deadlines, appointments } = useStore();
 
   // --- Metrics Calculation ---
   const activeCases = cases.filter(c => c.status === CaseStatus.Active).length;
   const archivedCases = cases.filter(c => c.status === CaseStatus.Archived).length;
+  const totalCasesCount = activeCases + archivedCases;
 
-  const pendingDeadlines = deadlines.filter(d => !d.isDone && d.status !== 'Canceled').length;
-  const urgentDeadlines = deadlines.filter(d => !d.isDone && d.status !== 'Canceled' && d.priority === 'High').length;
+  const openDeadlines = deadlines.filter(d => !d.isDone && d.status !== 'Canceled');
+  const pendingDeadlines = openDeadlines.length;
+  const urgentDeadlines = openDeadlines.filter(d => d.priority === 'High').length;
 
   const today = new Date().toLocaleDateString('en-CA'); // Local YYYY-MM-DD
+  const nextWeekDate = new Date();
+  nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+  const nextWeek = nextWeekDate.toLocaleDateString('en-CA');
+
+  const overdueDeadlinesCount = openDeadlines.filter(d => d.dueDate < today).length;
+  const todayDeadlinesCount = openDeadlines.filter(d => d.dueDate === today).length;
+  const weekDeadlinesCount = openDeadlines.filter(d => d.dueDate > today && d.dueDate <= nextWeek).length;
+
   const todayItems = [
-    ...deadlines.filter(d => d.dueDate === today && !d.isDone && d.status !== 'Canceled'),
+    ...openDeadlines.filter(d => d.dueDate === today),
     ...appointments.filter(a => a.date.startsWith(today))
   ].length;
   const totalClients = clients.length;
@@ -190,7 +208,7 @@ export const Dashboard: React.FC = () => {
     { name: 'Arquivados', value: archivedCases, color: '#94a3b8' }, // Slate
   ];
 
-  // --- Chart 2: Cases by Area (New Suggestion) ---
+  // --- Chart 2: Cases by Area (All areas) ---
   const areaCounts = cases.reduce((acc, curr) => {
     const area = curr.area || 'Outros';
     const currentCount = acc[area] || 0;
@@ -198,12 +216,45 @@ export const Dashboard: React.FC = () => {
     return acc;
   }, {} as Record<string, number>);
 
+  const totalAreasCases = cases.length || 1;
   const areaData = Object.entries(areaCounts)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a: any, b: any) => b.value - a.value) // Sort by highest count
-    .slice(0, 5); // Take top 5 areas
+    .map(([name, value]) => ({
+      name,
+      value: Number(value),
+      label: `${value} (${Math.round((Number(value) / totalAreasCases) * 100)}%)`,
+    }))
+    .sort((a, b) => b.value - a.value);
 
-  const AREA_COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+  const AREA_COLORS = [
+    '#3b82f6',
+    '#10b981',
+    '#8b5cf6',
+    '#f59e0b',
+    '#ec4899',
+    '#06b6d4',
+    '#6366f1',
+    '#14b8a6',
+    '#f97316',
+    '#64748b',
+  ];
+
+  const tooltipContentStyle = theme === 'hybrid'
+    ? {
+        backgroundColor: '#111b21',
+        borderRadius: '8px',
+        border: '1px solid #354751',
+        color: '#e9edef',
+        fontSize: '12px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+      }
+    : {
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+        color: '#0f172a',
+        fontSize: '12px',
+        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.1)'
+      };
 
   // --- Upcoming Deadlines Logic ---
   const upcomingDeadlines = deadlines
@@ -237,50 +288,55 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-4 md:px-8 pt-6 flex-1 flex flex-col">
+      <div className="p-4 md:px-7 pt-4 pb-10 flex-1 flex flex-col">
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <button onClick={() => setPendingAction('newCase')} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-between group transition-all transform hover:scale-[1.02]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+          <button onClick={() => setPendingAction('newCase')} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl shadow-md shadow-blue-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg"><Briefcase size={20} /></div>
-              <span className="font-bold">Novo Processo</span>
+              <div className="p-1.5 bg-white/20 rounded-lg"><Briefcase size={18} /></div>
+              <span className="font-bold text-sm">Novo Processo</span>
             </div>
-            <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform opacity-80" />
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
           </button>
-          <button onClick={() => setPendingAction('newClient')} className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white p-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-between group transition-all transform hover:scale-[1.02]">
+          <button onClick={() => setPendingAction('newClient')} className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl shadow-md shadow-emerald-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg"><Users size={20} /></div>
-              <span className="font-bold">Novo Contato</span>
+              <div className="p-1.5 bg-white/20 rounded-lg"><Users size={18} /></div>
+              <span className="font-bold text-sm">Novo Contato</span>
             </div>
-            <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform opacity-80" />
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
           </button>
-          <button onClick={() => setPendingAction('newDeadline')} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white p-4 rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-between group transition-all transform hover:scale-[1.02]">
+          <button onClick={() => setPendingAction('newDeadline')} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-3 px-4 rounded-xl shadow-md shadow-amber-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg"><Clock size={20} /></div>
-              <span className="font-bold">Novo Prazo</span>
+              <div className="p-1.5 bg-white/20 rounded-lg"><Clock size={18} /></div>
+              <span className="font-bold text-sm">Novo Prazo</span>
             </div>
-            <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform opacity-80" />
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
           </button>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard
             title="Processos Ativos"
             value={activeCases}
             icon={Briefcase}
             trend="Carteira"
             color="bg-blue-500 text-blue-600"
+            accentBorder="border-l-blue-500"
             subtext="Em andamento"
+            onClick={() => setPage?.('cases')}
           />
           <StatCard
             title="Prazos Pendentes"
             value={pendingDeadlines}
             icon={AlertCircle}
-            trend={urgentDeadlines > 0 ? `${urgentDeadlines} Urgentes` : 'Em dia'}
-            color="bg-amber-500 text-amber-600"
-            subtext="Próximos dias"
+            trend={overdueDeadlinesCount > 0 ? `${overdueDeadlinesCount} Atrasados` : (urgentDeadlines > 0 ? `${urgentDeadlines} Urgentes` : 'Em dia')}
+            trendTone={overdueDeadlinesCount > 0 ? 'danger' : undefined}
+            color={overdueDeadlinesCount > 0 ? 'bg-rose-500 text-rose-600' : 'bg-amber-500 text-amber-600'}
+            accentBorder={overdueDeadlinesCount > 0 ? 'border-l-rose-500' : 'border-l-amber-500'}
+            subtext={todayDeadlinesCount > 0 ? `${todayDeadlinesCount} vencem hoje` : 'Próximos dias'}
+            onClick={() => setPage?.('deadlines')}
           />
           <StatCard
             title="Calendário Hoje"
@@ -288,44 +344,47 @@ export const Dashboard: React.FC = () => {
             icon={CalendarIcon}
             trend={todayItems > 0 ? 'Ocupado' : 'Livre'}
             color="bg-purple-500 text-purple-600"
+            accentBorder="border-l-purple-500"
             subtext="Compromissos e Prazos"
+            onClick={() => setPage?.('calendario')}
           />
-          {/* Replaced Fees with Clients Metric */}
           <StatCard
             title="Total de Contatos"
             value={totalClients}
             icon={Users}
             trend="Base"
             color="bg-emerald-500 text-emerald-600"
+            accentBorder="border-l-emerald-500"
             subtext="Clientes e partes"
+            onClick={() => setPage?.('clients')}
           />
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
           {/* Center Column (Charts & Activity) */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-5">
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Chart 1: Status Distribution */}
-              <div className={`rounded-xl shadow-sm border p-6 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
-                <div className="flex justify-between items-center mb-6">
+              <div className={`rounded-xl shadow-sm border p-4 md:p-5 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+                <div className="flex justify-between items-center mb-3">
                   <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
-                    <PieChartIcon size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Status
+                    <PieChartIcon size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Status dos Processos
                   </h3>
                 </div>
-                <div className="h-48 w-full">
+                <div className="h-52 w-full my-auto">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={statusData}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
+                        cy="48%"
+                        innerRadius={52}
+                        outerRadius={72}
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
@@ -346,7 +405,7 @@ export const Dashboard: React.FC = () => {
                                   className={`font-bold ${theme === 'hybrid' ? 'fill-[#e9edef]' : 'fill-slate-900 dark:fill-white'}`}
                                   style={{ fontSize: '26px' }}
                                 >
-                                  {activeCases + archivedCases}
+                                  {totalCasesCount}
                                 </text>
                                 <text
                                   x={cx}
@@ -364,73 +423,75 @@ export const Dashboard: React.FC = () => {
                         />
                       </Pie>
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1e293b',
-                          borderRadius: '8px',
-                          border: '1px solid #334155',
-                          color: '#fff',
-                          fontSize: '12px',
-                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                        contentStyle={tooltipContentStyle}
+                        itemStyle={{ color: theme === 'hybrid' ? '#e9edef' : '#0f172a' }}
+                        formatter={(value: any, name: any) => {
+                          const pct = totalCasesCount > 0 ? Math.round((Number(value) / totalCasesCount) * 100) : 0;
+                          return [`${value} (${pct}%)`, name];
                         }}
-                        itemStyle={{ color: '#fff' }}
-                        labelStyle={{ color: '#94a3b8' }}
                       />
                       <Legend
                         verticalAlign="bottom"
-                        height={36}
+                        height={32}
                         iconType="circle"
-                        formatter={(value) => <span className={`text-[11px] font-medium ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>{value}</span>}
+                        formatter={(value: string) => {
+                          const item = statusData.find(d => d.name === value);
+                          const val = item ? item.value : 0;
+                          const pct = totalCasesCount > 0 ? Math.round((val / totalCasesCount) * 100) : 0;
+                          return (
+                            <span className={`text-[11px] font-semibold ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-400'}`}>
+                              {value} ({val} • {pct}%)
+                            </span>
+                          );
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Chart 2: Areas Distribution (Horizontal Bar Chart) */}
-              <div className={`rounded-xl shadow-sm border p-6 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
-                <div className="flex justify-between items-center mb-6">
+              {/* Chart 2: Areas Distribution (All Areas Horizontal Bar Chart) */}
+              <div className={`rounded-xl shadow-sm border p-4 md:p-5 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+                <div className="flex justify-between items-center mb-3">
                   <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
-                    <BarChart3 size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Áreas
+                    <BarChart3 size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Áreas ({areaData.length})
                   </h3>
                 </div>
-                <div className="h-48 w-full">
+                <div className="w-full" style={{ height: Math.max(208, areaData.length * 25) }}>
                   {areaData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={areaData}
                         layout="vertical"
-                        margin={{ top: 0, right: 30, left: 40, bottom: 0 }}
+                        margin={{ top: 2, right: 58, left: 0, bottom: 2 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" opacity={0.1} />
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" opacity={0.12} />
                         <XAxis type="number" hide />
                         <YAxis
                           dataKey="name"
                           type="category"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
-                          width={80}
+                          tick={{ fill: theme === 'hybrid' ? '#d1d7db' : '#64748b', fontSize: 11, fontWeight: 600 }}
+                          width={94}
                           interval={0}
                         />
                         <Tooltip
-                          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            borderRadius: '8px',
-                            border: '1px solid #334155',
-                            color: '#fff',
-                            fontSize: '12px',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                          }}
-                          itemStyle={{ color: '#fff' }}
+                          cursor={{ fill: theme === 'hybrid' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)' }}
+                          contentStyle={tooltipContentStyle}
+                          itemStyle={{ color: theme === 'hybrid' ? '#e9edef' : '#0f172a' }}
                           labelStyle={{ display: 'none' }}
-                          formatter={(value: any, name: any, props: any) => [`${value}`, `${props.payload.name}`]}
+                          formatter={(value: any, _name: any, props: any) => [props.payload.label, props.payload.name]}
                         />
-                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                          {areaData.map((entry, index) => (
+                        <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={15}>
+                          {areaData.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={AREA_COLORS[index % AREA_COLORS.length]} />
                           ))}
-                          <LabelList dataKey="value" position="right" style={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }} />
+                          <LabelList
+                            dataKey="label"
+                            position="right"
+                            style={{ fill: theme === 'hybrid' ? '#aebac1' : '#64748b', fontSize: 10, fontWeight: 700 }}
+                          />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -445,9 +506,20 @@ export const Dashboard: React.FC = () => {
             <LegalNewsCard />
 
             {/* Recent Activity (Real Data) */}
-            <div className={`rounded-xl shadow-sm border p-6 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
-              <h3 className={`text-lg font-bold mb-6 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Últimas Movimentações</h3>
-              <div className="space-y-6">
+            <div className={`rounded-xl shadow-sm border p-4 md:p-5 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+              <div className="flex justify-between items-center mb-3.5">
+                <h3 className={`text-base font-bold ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Últimas Movimentações</h3>
+                {setPage && (
+                  <button
+                    type="button"
+                    onClick={() => setPage('cases')}
+                    className={`text-xs font-semibold inline-flex items-center gap-1 transition-colors ${theme === 'hybrid' ? 'text-[#00a884] hover:text-[#25d366]' : 'text-blue-600 hover:text-blue-700'}`}
+                  >
+                    Ver todos <ChevronRight size={14} />
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2.5">
                 {recentCases.map(c => (
                   <div
                     key={c.id}
@@ -508,15 +580,46 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Right Sidebar Widgets */}
-          <div className="space-y-8">
+          <div className="space-y-5">
 
             {/* Upcoming Deadlines Widget */}
-            <div className={`rounded-xl shadow-sm border p-6 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-lg font-bold ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Prazos Próximos</h3>
-                <Clock size={18} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
+            <div className={`rounded-xl shadow-sm border p-4 md:p-5 ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className={`text-base font-bold flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+                  <Clock size={17} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Prazos Próximos
+                </h3>
+                {setPage && (
+                  <button
+                    type="button"
+                    onClick={() => setPage('deadlines')}
+                    className={`text-xs font-semibold inline-flex items-center gap-1 transition-colors ${theme === 'hybrid' ? 'text-[#00a884] hover:text-[#25d366]' : 'text-blue-600 hover:text-blue-700'}`}
+                  >
+                    Ver todos <ChevronRight size={14} />
+                  </button>
+                )}
               </div>
-              <div className="space-y-4">
+
+              {(overdueDeadlinesCount > 0 || todayDeadlinesCount > 0 || weekDeadlinesCount > 0) && (
+                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                  {overdueDeadlinesCount > 0 && (
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${theme === 'hybrid' ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700'}`}>
+                      {overdueDeadlinesCount} atrasado{overdueDeadlinesCount > 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {todayDeadlinesCount > 0 && (
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${theme === 'hybrid' ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+                      {todayDeadlinesCount} hoje
+                    </span>
+                  )}
+                  {weekDeadlinesCount > 0 && (
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-blue-100 text-blue-700'}`}>
+                      {weekDeadlinesCount} próx. 7 dias
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2.5">
                 {upcomingDeadlines.length === 0 ? (
                   <div className="text-center py-8">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
@@ -574,7 +677,7 @@ export const Dashboard: React.FC = () => {
                       <div
                         key={deadline.id}
                         onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                        className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer group border transition-colors ${
+                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer group border transition-colors ${
                           isToday
                             ? (theme === 'hybrid'
                                 ? 'bg-amber-50 border-amber-200'

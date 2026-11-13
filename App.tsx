@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard setPage={setCurrentPage} />;
       case 'cases': return <Cases />;
       case 'deadlines': return <Deadlines />;
       case 'calendario': return <Calendario />;
