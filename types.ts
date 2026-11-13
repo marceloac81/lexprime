@@ -270,3 +270,35 @@ export interface ActivityLog {
   recordId: string;
   details: any;
 }
+
+export interface Receipt {
+  id: string;
+  receiptNumber: string;
+  receiptDate: string;
+  city: string;
+  emitterName: string;
+  emitterOab?: string;
+  emitterDocument?: string;
+  payerName: string;
+  payerDocument?: string;
+  payerAddress?: string;
+  amount: number;
+  amountInWords: string;
+  isAccountability: boolean;
+  grossAmount?: number;
+  retainedFees?: number;
+  reimbursedCosts?: number;
+  netAmount?: number;
+  nature: string;
+  condition?: string;
+  caseNumber?: string;
+  court?: string;
+  description: string;
+  paymentMethod: string;
+  paymentDetails?: string;
+  notes?: string;
+  layoutMode: 'two-copy' | 'one-copy';
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}

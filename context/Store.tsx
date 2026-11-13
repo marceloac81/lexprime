@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Case, Client, Deadline, CaseStatus, User, Appointment, Holiday, TeamMember, ActivityLog } from '../types';
+import { Case, Client, Deadline, CaseStatus, User, Appointment, Holiday, TeamMember, ActivityLog, Receipt } from '../types';
 import { DEFAULT_HOLIDAYS } from '../utils/dateUtils';
 import { supabase } from '../utils/supabaseClient';
 import { compressAvatarDataUrl } from '../utils/imageUtils';
@@ -48,6 +48,11 @@ interface StoreContextType {
   setHolidays: React.Dispatch<React.SetStateAction<Holiday[]>>;
   importHolidays: (newHolidays: Holiday[]) => void; // New
   resetHolidays: () => void; // New
+
+  receipts: Receipt[];
+  addReceipt: (r: Receipt) => Promise<void>;
+  updateReceipt: (r: Receipt) => Promise<void>;
+  deleteReceipt: (id: string) => Promise<void>;
 
   currentUser: User | null;
   login: (email: string, password?: string) => Promise<void>;
@@ -382,6 +387,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [holidays, setHolidays] = useState<Holiday[]>(() => safeGetStorage('lexprime_holidays', DEFAULT_HOLIDAYS));
 
+  const [receipts, setReceipts] = useState<Receipt[]>(() => safeGetStorage('lexprime_receipts', []));
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<'light' | 'hybrid'>(() => {
     try {
@@ -421,6 +428,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [holidays]);
 
   useEffect(() => {
+    safeSetStorage('lexprime_receipts', receipts);
+  }, [receipts]);
+
+  useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
 
@@ -433,7 +444,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           { data: dData },
           { data: aData },
           { data: hData },
-          { data: lData }
+          { data: lData },
+          { data: rData }
         ] = await Promise.all([
           supabase.from('cases').select('*'),
           supabase.from('clients').select('*'),
@@ -441,8 +453,43 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           supabase.from('deadlines').select('*'),
           supabase.from('appointments').select('*'),
           supabase.from('holidays').select('*'),
-          supabase.from('activity_logs').select('*').order('created_at', { ascending: false })
+          supabase.from('activity_logs').select('*').order('created_at', { ascending: false }),
+          supabase.from('receipts').select('*').order('created_at', { ascending: false })
         ]);
+
+        if (rData) {
+          setReceipts(rData.map((r: any) => ({
+            id: r.id,
+            receiptNumber: r.receipt_number,
+            receiptDate: r.receipt_date,
+            city: r.city,
+            emitterName: r.emitter_name,
+            emitterOab: r.emitter_oab || '',
+            emitterDocument: r.emitter_document || '',
+            payerName: r.payer_name,
+            payerDocument: r.payer_document || '',
+            payerAddress: r.payer_address || '',
+            amount: Number(r.amount || 0),
+            amountInWords: r.amount_in_words,
+            isAccountability: Boolean(r.is_accountability),
+            grossAmount: r.gross_amount !== null && r.gross_amount !== undefined ? Number(r.gross_amount) : undefined,
+            retainedFees: r.retained_fees !== null && r.retained_fees !== undefined ? Number(r.retained_fees) : undefined,
+            reimbursedCosts: r.reimbursed_costs !== null && r.reimbursed_costs !== undefined ? Number(r.reimbursed_costs) : undefined,
+            netAmount: r.net_amount !== null && r.net_amount !== undefined ? Number(r.net_amount) : undefined,
+            nature: r.nature,
+            condition: r.condition || '',
+            caseNumber: r.case_number || '',
+            court: r.court || '',
+            description: r.description,
+            paymentMethod: r.payment_method,
+            paymentDetails: r.payment_details || '',
+            notes: r.notes || '',
+            layoutMode: (r.layout_mode === 'one-copy' ? 'one-copy' : 'two-copy'),
+            createdBy: r.created_by,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at,
+          })));
+        }
 
         if (lData) {
           setActivityLogs(lData.map((log: any) => ({
@@ -1646,6 +1693,70 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const mapReceiptToDb = (r: Receipt) => ({
+    id: r.id,
+    receipt_number: r.receiptNumber,
+    receipt_date: r.receiptDate,
+    city: r.city,
+    emitter_name: r.emitterName,
+    emitter_oab: r.emitterOab || null,
+    emitter_document: r.emitterDocument || null,
+    payer_name: r.payerName,
+    payer_document: r.payerDocument || null,
+    payer_address: r.payerAddress || null,
+    amount: r.amount,
+    amount_in_words: r.amountInWords,
+    is_accountability: r.isAccountability,
+    gross_amount: r.grossAmount ?? null,
+    retained_fees: r.retainedFees ?? null,
+    reimbursed_costs: r.reimbursedCosts ?? null,
+    net_amount: r.netAmount ?? null,
+    nature: r.nature,
+    condition: r.condition || null,
+    case_number: r.caseNumber || null,
+    court: r.court || null,
+    description: r.description,
+    payment_method: r.paymentMethod,
+    payment_details: r.paymentDetails || null,
+    notes: r.notes || null,
+    layout_mode: r.layoutMode,
+    created_by: currentUser?.id || r.createdBy || null,
+    updated_at: new Date().toISOString(),
+  });
+
+  const addReceipt = async (r: Receipt) => {
+    setReceipts(prev => [r, ...prev]);
+    const { error } = await supabase.from('receipts').insert(mapReceiptToDb(r));
+    if (error) {
+      console.error('Erro ao salvar recibo:', error);
+      addNotification('Recibo salvo localmente (falha ao sincronizar com nuvem).', 'warning');
+    } else {
+      addNotification(`Recibo ${r.receiptNumber} salvo com sucesso!`, 'success');
+    }
+  };
+
+  const updateReceipt = async (r: Receipt) => {
+    setReceipts(prev => prev.map(item => (item.id === r.id ? r : item)));
+    const { error } = await supabase.from('receipts').update(mapReceiptToDb(r)).eq('id', r.id);
+    if (error) {
+      console.error('Erro ao atualizar recibo:', error);
+      addNotification('Recibo atualizado localmente (falha ao sincronizar com nuvem).', 'warning');
+    } else {
+      addNotification(`Recibo ${r.receiptNumber} atualizado!`, 'success');
+    }
+  };
+
+  const deleteReceipt = async (id: string) => {
+    setReceipts(prev => prev.filter(item => item.id !== id));
+    const { error } = await supabase.from('receipts').delete().eq('id', id);
+    if (error) {
+      console.error('Erro ao excluir recibo:', error);
+      addNotification('Erro ao excluir recibo da nuvem.', 'warning');
+    } else {
+      addNotification('Recibo excluído.', 'info');
+    }
+  };
+
   return (
     <StoreContext.Provider value={{
       cases, setCases, addCase, updateCase, deleteCase, importCases, clearCases,
@@ -1654,6 +1765,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       deadlines, setDeadlines, addDeadline, updateDeadline, toggleDeadline, updateDeadlineStatus, deleteDeadline, importDeadlines, clearDeadlines,
       appointments, addAppointment, importAppointments,
       holidays, setHolidays, importHolidays, resetHolidays,
+      receipts, addReceipt, updateReceipt, deleteReceipt,
       currentUser, login, signUp, logout,
       theme,
       setTheme,

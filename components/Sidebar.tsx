@@ -5,6 +5,7 @@ import {
   Settings, LogOut, Moon, Sun, X, User, ChevronLeft, ChevronRight, FileText, Calculator,
   Check, ChevronUp
 } from './Icons';
+import { Receipt } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { getInitials } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
@@ -166,6 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setPage, isOpen, c
         <NavItem collapsed={collapsed} theme={theme} page="clients" icon={Users} label="Contatos" active={activePage === 'clients'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} theme={theme} page="publications" icon={FileText} label="Publicações" active={activePage === 'publications'} onClick={handleNavClick} />
         <NavItem collapsed={collapsed} theme={theme} page="calculations" icon={Calculator} label="Cálculos" active={activePage === 'calculations'} onClick={handleNavClick} />
+        <NavItem collapsed={collapsed} theme={theme} page="receipts" icon={Receipt} label="Recibos" active={activePage === 'receipts'} onClick={handleNavClick} />
 
         {collapsed && <div className={`my-4 h-px w-full ${theme === 'hybrid' ? 'bg-[#202c33]' : 'bg-slate-200 dark:bg-slate-800'}`} />}
 

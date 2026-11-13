@@ -16,6 +16,7 @@ const Settings = React.lazy(() => import('./pages/Settings').then(m => ({ defaul
 const Team = React.lazy(() => import('./pages/Team').then(m => ({ default: m.Team })));
 const Publications = React.lazy(() => import('./pages/Publications').then(m => ({ default: m.Publications })));
 const Calculations = React.lazy(() => import('./pages/Calculations'));
+const Receipts = React.lazy(() => import('./pages/Receipts').then(m => ({ default: m.Receipts })));
 
 const PageLoader: React.FC<{ theme?: string }> = ({ theme }) => (
   <div className="flex-1 h-full min-h-[240px] flex items-center justify-center p-8">
@@ -76,7 +77,8 @@ const AppContent: React.FC = () => {
       case 'team': return <Team />;
       case 'publications': return <Publications setPage={setCurrentPage} />;
       case 'calculations': return <Calculations />;
-      default: return <Dashboard />;
+      case 'receipts': return <Receipts />;
+      default: return <Dashboard setPage={setCurrentPage} />;
     }
   };
 
