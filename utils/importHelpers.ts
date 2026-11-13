@@ -561,6 +561,25 @@ export const generateAppointmentsCSV = (appointments: any[]): string => {
     return [headers.join(';'), ...rows.map(e => e.map(val => `"${val || ''}"`).join(';'))].join('\n');
 };
 
+export const generateReceiptsCSV = (receipts: any[]): string => {
+    const headers = [
+        'ID', 'NUMERO_RECIBO', 'DATA', 'CIDADE', 'EMITENTE', 'OAB_EMITENTE', 'CPF_CNPJ_EMITENTE',
+        'PAGADOR', 'CPF_CNPJ_PAGADOR', 'ENDERECO_PAGADOR', 'VALOR', 'VALOR_EXTENSO',
+        'MODO_PRESTACAO_CONTAS', 'VALOR_BRUTO', 'HONORARIOS_RETIDOS', 'REEMBOLSO_CUSTAS', 'VALOR_LIQUIDO',
+        'NATUREZA', 'CONDICAO', 'PROCESSO_NUM', 'JUIZO_VARA', 'DESCRICAO',
+        'FORMA_PAGAMENTO', 'DETALHES_PAGAMENTO', 'OBSERVACOES', 'LAYOUT', 'CRIADO_EM'
+    ];
+    const escapeCell = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+    const rows = receipts.map(r => [
+        r.id, r.receiptNumber, r.receiptDate, r.city, r.emitterName, r.emitterOab || '', r.emitterDocument || '',
+        r.payerName, r.payerDocument || '', r.payerAddress || '', r.amount ?? 0, r.amountInWords || '',
+        String(Boolean(r.isAccountability)), r.grossAmount ?? '', r.retainedFees ?? '', r.reimbursedCosts ?? '', r.netAmount ?? '',
+        r.nature || '', r.condition || '', r.caseNumber || '', r.court || '', r.description || '',
+        r.paymentMethod || '', r.paymentDetails || '', r.notes || '', r.layoutMode || 'two-copy', r.createdAt || ''
+    ]);
+    return [headers.join(';'), ...rows.map(row => row.map(escapeCell).join(';'))].join('\n');
+};
+
 export const downloadCSV = (content: string, filename: string) => {
     // Add BOM for Excel UTF-8 recognition
     const bom = '\uFEFF';

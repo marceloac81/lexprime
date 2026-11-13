@@ -1413,7 +1413,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
 
   const exportData = () => {
-    const allData = { cases, clients, teamMembers, deadlines, appointments, holidays, exportDate: new Date().toISOString() };
+    const allData = { cases, clients, teamMembers, deadlines, appointments, holidays, receipts, exportDate: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1682,6 +1682,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           updated_at: h.updatedAt
         }));
         const { error } = await supabase.from('holidays').upsert(payload, { onConflict: 'id' });
+        if (error) throw error;
+      }
+
+      // Receipts
+      if (receipts.length > 0) {
+        const payload = receipts.map(r => mapReceiptToDb(r));
+        const { error } = await supabase.from('receipts').upsert(payload, { onConflict: 'id' });
         if (error) throw error;
       }
 

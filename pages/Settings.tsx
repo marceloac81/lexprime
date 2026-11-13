@@ -3,7 +3,7 @@ import { useStore } from '../context/Store';
 import { Download, Moon, Sun, Trash2, User, UserCheck, Shield, Bell, ChevronRight, CheckCircle2, AlertCircle, Upload, CalendarIcon, RotateCcw, Clock, Search } from '../components/Icons';
 import { Holiday, Case, Client, Deadline, TeamMember } from '../types';
 import {
-    generateContactsCSV, generateCasesCSV, generateDeadlinesCSV, generateTeamCSV, generateHolidaysCSV, downloadCSV,
+    generateContactsCSV, generateCasesCSV, generateDeadlinesCSV, generateTeamCSV, generateHolidaysCSV, generateReceiptsCSV, downloadCSV,
     parseContactsCSV, parseCasesCSV, parseDeadlinesCSV, parseTeamCSV, parseHolidaysCSV
 } from '../utils/importHelpers';
 
@@ -11,7 +11,7 @@ export const Settings: React.FC = () => {
     const {
         theme, isDarkMode, toggleTheme, currentUser, resetHolidays,
         holidays, importHolidays, addNotification, clients, importClients, cases, importCases,
-        deadlines, importDeadlines, teamMembers, importTeamMembers,
+        deadlines, importDeadlines, teamMembers, importTeamMembers, receipts,
         syncData, isLoading, setIsLoading,
         activityLogs, fetchActivityLogs, clearActivityLogs
     } = useStore();
@@ -135,6 +135,10 @@ export const Settings: React.FC = () => {
             setTimeout(() => downloadCSV(generateHolidaysCSV(holidays), `feriados_${dateStr}.csv`), 2000);
         }
 
+        if (receipts.length > 0) {
+            setTimeout(() => downloadCSV(generateReceiptsCSV(receipts), `recibos_${dateStr}.csv`), 2500);
+        }
+
         addNotification("Backup iniciado! Os arquivos serão baixados sequencialmente.", 'success');
     };
 
@@ -232,6 +236,7 @@ export const Settings: React.FC = () => {
                                 { label: 'Prazos', count: deadlines.length, ref: deadlinesInputRef, exportFn: () => downloadCSV(generateDeadlinesCSV(deadlines, cases), 'prazos.csv') },
                                 { label: 'Equipe', count: teamMembers.length, ref: teamInputRef, exportFn: () => downloadCSV(generateTeamCSV(teamMembers), 'equipe.csv') },
                                 { label: 'Feriados', count: holidays.length, ref: holidayInputRef, exportFn: () => downloadCSV(generateHolidaysCSV(holidays), 'feriados.csv') },
+                                { label: 'Recibos', count: receipts.length, ref: null, exportFn: () => downloadCSV(generateReceiptsCSV(receipts), 'recibos.csv') },
                             ].map((item, idx) => (
                                 <div key={idx} className={`flex items-center justify-between p-4 ${classes.subPanel}`}>
                                     <div className="flex flex-col">
@@ -239,13 +244,15 @@ export const Settings: React.FC = () => {
                                         <span className={`text-xs ${classes.textSecondary}`}>{item.count} registros</span>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button
-                                            onClick={() => item.ref.current?.click()}
-                                            className={classes.iconButton}
-                                            title="Importar"
-                                        >
-                                            <Upload size={18} />
-                                        </button>
+                                        {item.ref && (
+                                            <button
+                                                onClick={() => item.ref?.current?.click()}
+                                                className={classes.iconButton}
+                                                title="Importar"
+                                            >
+                                                <Upload size={18} />
+                                            </button>
+                                        )}
                                         <button
                                             onClick={item.exportFn}
                                             className={classes.iconButtonNormal}
