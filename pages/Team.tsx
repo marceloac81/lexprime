@@ -170,13 +170,47 @@ export const Team: React.FC = () => {
 
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, photo: reader.result as string }));
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const rawDataUrl = reader.result as string;
+            const img = new Image();
+            img.onload = () => {
+                const MAX_SIZE = 256;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    setFormData(prev => ({ ...prev, photo: compressedDataUrl }));
+                } else {
+                    setFormData(prev => ({ ...prev, photo: rawDataUrl }));
+                }
             };
-            reader.readAsDataURL(file);
-        }
+            img.onerror = () => {
+                setFormData(prev => ({ ...prev, photo: rawDataUrl }));
+            };
+            img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = (e: React.FormEvent) => {

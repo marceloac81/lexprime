@@ -337,44 +337,56 @@ const INITIAL_TEAM: TeamMember[] = [
   },
 ];
 
+function safeGetStorage<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (err) {
+    console.warn(`Erro ao ler localStorage (${key}):`, err);
+    return fallback;
+  }
+}
+
+function safeSetStorage(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.warn(`Erro ao salvar localStorage (${key}):`, err);
+    if (key === 'lexprime_team' && Array.isArray(value)) {
+      try {
+        const lightTeam = value.map((m: any) =>
+          typeof m?.photo === 'string' && m.photo.length > 50000 ? { ...m, photo: undefined } : m
+        );
+        localStorage.setItem(key, JSON.stringify(lightTeam));
+      } catch {
+        // Ignora se o storage estiver cheio; os dados permanecem no Supabase
+      }
+    }
+  }
+}
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // State with lazy initialization for persistence
-  const [cases, setCases] = useState<Case[]>(() => {
-    const saved = localStorage.getItem('lexprime_cases');
-    return saved ? JSON.parse(saved) : INITIAL_CASES;
-  });
+  const [cases, setCases] = useState<Case[]>(() => safeGetStorage('lexprime_cases', INITIAL_CASES));
 
-  const [clients, setClients] = useState<Client[]>(() => {
-    const saved = localStorage.getItem('lexprime_clients');
-    return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
-  });
+  const [clients, setClients] = useState<Client[]>(() => safeGetStorage('lexprime_clients', INITIAL_CLIENTS));
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
-    const saved = localStorage.getItem('lexprime_team');
-    return saved ? JSON.parse(saved) : INITIAL_TEAM;
-  });
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => safeGetStorage('lexprime_team', INITIAL_TEAM));
 
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
 
-  const [deadlines, setDeadlines] = useState<Deadline[]>(() => {
-    const saved = localStorage.getItem('lexprime_deadlines');
-    return saved ? JSON.parse(saved) : INITIAL_DEADLINES;
-  });
+  const [deadlines, setDeadlines] = useState<Deadline[]>(() => safeGetStorage('lexprime_deadlines', INITIAL_DEADLINES));
 
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const saved = localStorage.getItem('lexprime_appointments');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [appointments, setAppointments] = useState<Appointment[]>(() => safeGetStorage('lexprime_appointments', []));
 
-  const [holidays, setHolidays] = useState<Holiday[]>(() => {
-    const saved = localStorage.getItem('lexprime_holidays');
-    return saved ? JSON.parse(saved) : DEFAULT_HOLIDAYS;
-  });
+  const [holidays, setHolidays] = useState<Holiday[]>(() => safeGetStorage('lexprime_holidays', DEFAULT_HOLIDAYS));
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<'light' | 'hybrid'>(() => {
-    const saved = localStorage.getItem('lexprime_theme');
-    if (saved === 'hybrid') return saved as any;
+    try {
+      const saved = localStorage.getItem('lexprime_theme');
+      if (saved === 'hybrid') return saved as any;
+    } catch {}
     return 'light';
   });
   const isDarkMode = false;
@@ -384,27 +396,27 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Persistence Effects
   useEffect(() => {
-    localStorage.setItem('lexprime_cases', JSON.stringify(cases));
+    safeSetStorage('lexprime_cases', cases);
   }, [cases]);
 
   useEffect(() => {
-    localStorage.setItem('lexprime_clients', JSON.stringify(clients));
+    safeSetStorage('lexprime_clients', clients);
   }, [clients]);
 
   useEffect(() => {
-    localStorage.setItem('lexprime_team', JSON.stringify(teamMembers));
+    safeSetStorage('lexprime_team', teamMembers);
   }, [teamMembers]);
 
   useEffect(() => {
-    localStorage.setItem('lexprime_deadlines', JSON.stringify(deadlines));
+    safeSetStorage('lexprime_deadlines', deadlines);
   }, [deadlines]);
 
   useEffect(() => {
-    localStorage.setItem('lexprime_appointments', JSON.stringify(appointments));
+    safeSetStorage('lexprime_appointments', appointments);
   }, [appointments]);
 
   useEffect(() => {
-    localStorage.setItem('lexprime_holidays', JSON.stringify(holidays));
+    safeSetStorage('lexprime_holidays', holidays);
   }, [holidays]);
 
   useEffect(() => {
