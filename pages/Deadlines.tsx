@@ -567,9 +567,9 @@ export const Deadlines: React.FC = () => {
                                             className={`${getDateStyle(dateStr)} border-b-[2.5px] border-t-[3px] border-t-slate-800 dark:border-t-slate-500 ${isDarkMode ? (isAltGroup ? 'dark:bg-dark-800/60' : 'dark:bg-dark-900') : ''}`}
                                             style={!isDarkMode ? { backgroundColor: getHeaderColor(dateStr) } : {}}
                                         >
-                                            <td colSpan={8} className="py-2 px-4">
+                                            <td colSpan={8} className="py-1.5 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className={`text-xl ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
+                                                    <span className={`text-base ${isToday ? 'font-extrabold' : 'font-bold'}`}>{formattedDate}</span>
                                                     <span className={`capitalize opacity-80 font-medium text-xs ${isToday ? 'text-black dark:text-white' : ''}`}>{weekday}</span>
                                                     {isToday && <span className="bg-slate-900 text-amber-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-sm animate-pulse">HOJE</span>}
                                                     {isDelayed && (
@@ -605,14 +605,14 @@ export const Deadlines: React.FC = () => {
                                                     style={!isDarkMode ? { backgroundColor: getDayColor(dateStr) } : {}}
                                                     title="Clique duplo para editar"
                                                 >
-                                                    <td className={`py-2 px-4 text-sm font-bold ${textStyle}`}>
+                                                    <td className={`py-1.5 px-4 text-sm font-bold ${textStyle}`}>
                                                         
                                                         {(d.startTime || '09:00').substring(0, 5)}
                                                     </td>
-                                                    <td className={`py-2 px-4 text-sm font-bold leading-snug ${textStyle}`}>
+                                                    <td className={`py-1.5 px-4 text-sm font-bold leading-snug ${textStyle}`}>
                                                         {d.title}
                                                     </td>
-                                                    <td className={`py-2 px-4 w-[265px] min-w-[265px] max-w-[265px] overflow-hidden ${textStyle}`} title={relatedCase?.number}>
+                                                    <td className={`py-1.5 px-4 w-[265px] min-w-[265px] max-w-[265px] overflow-hidden ${textStyle}`} title={relatedCase?.number}>
                                                         <div className="text-sm font-bold flex items-center gap-1.5 whitespace-nowrap">
                                                             <span>{relatedCase?.number || '-'}</span>
                                                             {relatedCase?.number && (
@@ -636,9 +636,9 @@ export const Deadlines: React.FC = () => {
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="py-2 px-4">
+                                                    <td className="py-1.5 px-4">
                                                         <div className="flex flex-col gap-0.5 max-w-[200px]">
-                                                            <div className={`inline-block px-2.5 py-1 rounded-lg border text-sm font-medium truncate ${isFinished
+                                                            <div className={`inline-block px-2.5 py-0.5 rounded-lg border text-sm font-medium truncate ${isFinished
                                                                 ? 'bg-slate-50/50 border-slate-200 text-slate-500 line-through dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500 opacity-80'
                                                                 : 'bg-white/80 border-slate-200 text-slate-700 shadow-sm dark:bg-dark-800/80 dark:border-slate-600 dark:text-slate-200'
                                                                 }`}>
@@ -652,13 +652,13 @@ export const Deadlines: React.FC = () => {
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className={`py-2 px-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
+                                                    <td className={`py-1.5 px-4 text-sm font-medium leading-tight max-w-[200px] ${textStyle}`} title={displayCourt}>
                                                         {displayCourt}
                                                     </td>
-                                                    <td className={`py-2 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
+                                                    <td className={`py-1.5 px-4 text-sm font-medium truncate max-w-[150px] ${textStyle}`}>
                                                         {displayCity}
                                                     </td>
-                                                    <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                    <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
                                                         <div className="avatar-container flex -space-x-2 justify-center items-center">
                                                             {(d.assignedIds || (d.assignedTo ? [d.assignedTo] : [])).length > 0 ? (() => {
                                                                 const ids = d.assignedIds || (d.assignedTo ? [d.assignedTo] : []);
@@ -706,7 +706,7 @@ export const Deadlines: React.FC = () => {
                                                             }).filter(Boolean).join(', ')}
                                                         </div>
                                                     </td>
-                                                    <td className="py-2 px-4 text-center status-col" onClick={(e) => e.stopPropagation()}>
+                                                    <td className="py-1.5 px-4 text-center status-col" onClick={(e) => e.stopPropagation()}>
                                                         <StatusDropdown
                                                                 id={d.id}
                                                                 currentStatus={status}
