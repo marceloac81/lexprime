@@ -569,7 +569,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Sync to local storage as backup
   useEffect(() => {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('lexprime_theme', theme);
+    safeSetStorage('lexprime_theme', theme);
   }, [theme]);
 
   // Auth Listener

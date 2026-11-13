@@ -574,27 +574,17 @@ export const Dashboard: React.FC = () => {
                       <div
                         key={deadline.id}
                         onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                        className="relative rounded-lg cursor-pointer group"
+                        className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer group border transition-colors ${
+                          isToday
+                            ? (theme === 'hybrid'
+                                ? 'bg-amber-50 border-amber-200'
+                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800')
+                            : (theme === 'hybrid'
+                                ? 'bg-[#354751] border-[#00a884]/30 hover:border-[#00a884]/50'
+                                : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30')
+                        }`}
                       >
-                        {/* Base Layer */}
-                        <div className={`flex items-start gap-3 p-4 rounded-lg transition-colors border ${
-                          theme === 'hybrid'
-                            ? 'bg-[#354751] border-[#00a884]/30 group-hover:border-[#00a884]/50'
-                            : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 group-hover:border-primary-500/30'
-                        }`}>
-                          {renderContent(false)}
-                        </div>
-
-                        {/* Highlight Layer (Animated LTR) */}
-                        {isToday && (
-                          <div className={`absolute inset-0 flex items-start gap-3 p-4 rounded-lg border animate-paint-ltr pointer-events-none ${
-                            theme === 'hybrid'
-                                ? 'bg-amber-50 border-amber-200' 
-                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-                          }`}>
-                            {renderContent(true)}
-                          </div>
-                        )}
+                        {renderContent(isToday)}
                       </div>
                     );
                   })

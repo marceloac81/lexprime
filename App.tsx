@@ -1,19 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { StoreProvider, useStore } from './context/Store';
 import { Login } from './pages/Login';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { SearchModal } from './components/SearchModal';
-import { Dashboard } from './pages/Dashboard';
-import { Cases } from './pages/Cases';
-import { Deadlines } from './pages/Deadlines';
-import { Calendario } from './pages/Calendario';
-import { Clients } from './pages/Clients';
-import { Settings } from './pages/Settings';
-import { Team } from './pages/Team';
-import { Publications } from './pages/Publications';
-import Calculations from './pages/Calculations';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+const Dashboard = React.lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const Cases = React.lazy(() => import('./pages/Cases').then(m => ({ default: m.Cases })));
+const Deadlines = React.lazy(() => import('./pages/Deadlines').then(m => ({ default: m.Deadlines })));
+const Calendario = React.lazy(() => import('./pages/Calendario').then(m => ({ default: m.Calendario })));
+const Clients = React.lazy(() => import('./pages/Clients').then(m => ({ default: m.Clients })));
+const Settings = React.lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const Team = React.lazy(() => import('./pages/Team').then(m => ({ default: m.Team })));
+const Publications = React.lazy(() => import('./pages/Publications').then(m => ({ default: m.Publications })));
+const Calculations = React.lazy(() => import('./pages/Calculations'));
+
+const PageLoader: React.FC<{ theme?: string }> = ({ theme }) => (
+  <div className="flex-1 h-full min-h-[240px] flex items-center justify-center p-8">
+    <div className="flex flex-col items-center gap-3">
+      <div className={`w-8 h-8 border-2 border-t-transparent rounded-full animate-spin ${theme === 'hybrid' ? 'border-[#00a884]' : 'border-blue-600'}`} />
+      <span className={`text-xs font-medium ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Carregando módulo...</span>
+    </div>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { currentUser, pendingAction, theme } = useStore();
@@ -99,7 +110,11 @@ const AppContent: React.FC = () => {
         />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {renderPage()}
+          <ErrorBoundary key={currentPage} fallbackTitle="Erro ao carregar esta página">
+            <Suspense fallback={<PageLoader theme={theme} />}>
+              {renderPage()}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </main>
     </div>

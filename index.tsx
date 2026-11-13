@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { registerSW } from 'virtual:pwa-register';
 
 // Register PWA service worker
@@ -24,6 +25,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary fallbackTitle="Erro crítico ao iniciar o sistema">
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );
