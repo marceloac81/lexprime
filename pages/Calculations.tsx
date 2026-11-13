@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calculator, RotateCcw, Printer, Info, Briefcase, Calendar, DollarSign, Percent, Plus } from 'lucide-react';
+import { Calculator, RotateCcw, Printer, Info, Briefcase, Calendar, DollarSign, Percent, Plus, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { getUfirValue, getDaysDiff360, calculateInterest } from '../utils/calculationUtils';
 
@@ -486,7 +486,54 @@ const Calculations: React.FC = () => {
 
             <div className="p-4 md:px-8 pt-6">
 
-                <div className="max-w-4xl mx-auto w-full px-0">
+                <div className="max-w-4xl mx-auto w-full px-0 space-y-5">
+
+                    {/* Aviso sobre mudança de metodologia do TJRJ */}
+                    <div
+                        role="alert"
+                        className={`print:hidden rounded-xl border border-l-4 p-4 md:p-5 shadow-sm transition-colors ${
+                            theme === 'hybrid'
+                                ? 'bg-amber-950/35 border-amber-700/50 border-l-amber-400 text-amber-100'
+                                : 'bg-amber-50 border-amber-200 border-l-amber-500 text-amber-950 dark:bg-amber-950/30 dark:border-amber-800/60 dark:border-l-amber-400 dark:text-amber-100'
+                        }`}
+                    >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3.5">
+                                <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${
+                                    theme === 'hybrid'
+                                        ? 'bg-amber-500/20 text-amber-300'
+                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+                                }`}>
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-sm font-bold tracking-tight">
+                                        Atenção: Mudança na metodologia de cálculo do TJRJ
+                                    </h3>
+                                    <p className={`text-xs md:text-sm leading-relaxed ${
+                                        theme === 'hybrid'
+                                            ? 'text-amber-100/90'
+                                            : 'text-amber-900/90 dark:text-amber-200/90'
+                                    }`}>
+                                        O TJRJ passou a aplicar um <strong>índice mensal</strong> na correção monetária em vez da UFIR-RJ anual. Esta calculadora ainda utiliza apenas a UFIR-RJ (atualização prevista para versão futura). Para maior precisão em cálculos oficiais, recomendamos utilizar diretamente a ferramenta do TJRJ.
+                                    </p>
+                                </div>
+                            </div>
+                            <a
+                                href="https://www3.tjrj.jus.br/correcaomonetariaweb/#/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                                    theme === 'hybrid'
+                                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                                        : 'bg-amber-600 hover:bg-amber-700 text-white'
+                                }`}
+                            >
+                                <span>Abrir Calculadora do TJRJ</span>
+                                <ExternalLink size={14} />
+                            </a>
+                        </div>
+                    </div>
 
                     {/* Form Container */}
                     <div className={classes.mainPanel}>
