@@ -889,8 +889,8 @@ export const Receipts: React.FC = () => {
               <h2 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2 ${isHybrid ? 'text-[#00a884]' : 'text-blue-700'}`}>
                 <User size={15} /> 3. Dados do Pagador (Cliente)
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2 relative">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div className="sm:col-span-8 relative">
                   <label className={labelCls}>Nome Completo / Razão Social *</label>
                   <input
                     type="text"
@@ -939,7 +939,7 @@ export const Receipts: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div>
+                <div className="sm:col-span-4">
                   <label className={labelCls}>CPF / CNPJ do Pagador</label>
                   <input
                     type="text"
@@ -949,7 +949,7 @@ export const Receipts: React.FC = () => {
                     placeholder="000.000.000-00 ou CNPJ"
                   />
                 </div>
-                <div>
+                <div className="sm:col-span-12">
                   <label className={labelCls}>Endereço (Opcional)</label>
                   <input
                     type="text"
