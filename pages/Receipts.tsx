@@ -76,6 +76,29 @@ const escapeHtml = (str: string): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+const formatOabLabel = (rawOab?: string): string => {
+  const clean = (rawOab || '').trim();
+  if (!clean) return '';
+  if (/^oab/i.test(clean)) return clean;
+  const ufMatch = clean.match(/^(.*?)\s*\/\s*([A-Za-z]{2})$/);
+  if (ufMatch) {
+    return `OAB/${ufMatch[2].toUpperCase()} nº ${ufMatch[1].trim()}`;
+  }
+  return `OAB/RJ nº ${clean}`;
+};
+
+const formatDescriptionConnector = (rawDesc: string): string => {
+  const desc = (rawDesc || '').trim();
+  if (!desc) return ', referente a ...';
+  if (/^(recebi|recebemos)\b/i.test(desc)) {
+    return `. ${desc}`;
+  }
+  if (/^referente\b/i.test(desc)) {
+    return `, ${desc.charAt(0).toLowerCase()}${desc.slice(1)}`;
+  }
+  return `, referente a ${desc}`;
+};
+
 const buildReceiptCopyHtml = (r: Receipt, copyLabel?: string): string => {
   const title = getReceiptTitleForNature(r.nature);
   const formattedVal = formatCurrencyBR(r.amount);
@@ -87,7 +110,7 @@ const buildReceiptCopyHtml = (r: Receipt, copyLabel?: string): string => {
 
   const accountabilityTable = r.isAccountability
     ? `
-      <table style="width:100%; border-collapse:collapse; margin:${isTwoCopy ? '7px 0' : '12px 0'}; font-size:${isTwoCopy ? '10px' : '11.5px'}; border:1px solid #cbd5e1;">
+      <table style="width:100%; border-collapse:collapse; margin:${isTwoCopy ? '7px 0' : '12px 0'}; font-size:${isTwoCopy ? '11.5px' : '13px'}; border:1px solid #cbd5e1;">
         <thead>
           <tr style="background:#f8fafc; border-bottom:1px solid #cbd5e1;">
             <th style="text-align:left; padding:4px 8px; color:#334155;">Discriminação da Prestação de Contas</th>
@@ -117,38 +140,38 @@ const buildReceiptCopyHtml = (r: Receipt, copyLabel?: string): string => {
     : '';
 
   const notesHtml = r.notes
-    ? `<div style="margin-top:${isTwoCopy ? '5px' : '10px'}; padding:5px 8px; background:#fffbeb; border-left:3px solid #d97706; font-size:${isTwoCopy ? '9.5px' : '11px'}; color:#451a03;"><strong>Observações:</strong> ${escapeHtml(r.notes)}</div>`
+    ? `<div style="margin-top:${isTwoCopy ? '6px' : '10px'}; padding:5px 8px; background:#fffbeb; border-left:3px solid #d97706; font-size:${isTwoCopy ? '11px' : '12.5px'}; color:#451a03;"><strong>Observações:</strong> ${escapeHtml(r.notes)}</div>`
     : '';
 
   return `
-    <div style="border:1.5px solid #1e293b; border-radius:6px; padding:${isTwoCopy ? '13px 18px' : '26px 30px'}; background:#ffffff; color:#0f172a; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; height:${isTwoCopy ? '126mm' : '268mm'};">
+    <div style="border:1.5px solid #1e293b; border-radius:6px; padding:${isTwoCopy ? '13px 18px' : '26px 30px'}; background:#ffffff; color:#0f172a; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; height:${isTwoCopy ? '127mm' : '274mm'};">
       <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #cbd5e1; padding-bottom:${isTwoCopy ? '7px' : '12px'}; margin-bottom:${isTwoCopy ? '8px' : '16px'};">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #cbd5e1; padding-bottom:${isTwoCopy ? '9px' : '14px'}; margin-bottom:${isTwoCopy ? '12px' : '18px'};">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:${isTwoCopy ? '32px' : '42px'}; height:${isTwoCopy ? '32px' : '42px'}; border-radius:8px; background:#0f172a; color:#fbbf24; display:flex; align-items:center; justify-content:center;">
-              <svg width="${isTwoCopy ? '18' : '24'}" height="${isTwoCopy ? '18' : '24'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="width:${isTwoCopy ? '34px' : '44px'}; height:${isTwoCopy ? '34px' : '44px'}; border-radius:8px; background:#0f172a; color:#fbbf24; display:flex; align-items:center; justify-content:center;">
+              <svg width="${isTwoCopy ? '19' : '25'}" height="${isTwoCopy ? '19' : '25'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
               </svg>
             </div>
             <div>
-              ${copyLabel ? `<div style="font-size:9px; font-weight:700; letter-spacing:0.12em; color:#64748b; text-transform:uppercase;">${escapeHtml(copyLabel)}</div>` : ''}
-              <div style="font-size:${isTwoCopy ? '13px' : '17px'}; font-weight:800; letter-spacing:0.04em; color:#0f172a;">${escapeHtml(title)}</div>
-              <div style="font-size:${isTwoCopy ? '10px' : '11.5px'}; color:#475569; font-weight:600;">Recibo nº ${escapeHtml(r.receiptNumber)}</div>
+              ${copyLabel ? `<div style="font-size:10px; font-weight:700; letter-spacing:0.12em; color:#64748b; text-transform:uppercase;">${escapeHtml(copyLabel)}</div>` : ''}
+              <div style="font-size:${isTwoCopy ? '15px' : '19px'}; font-weight:800; letter-spacing:0.04em; color:#0f172a;">${escapeHtml(title)}</div>
+              <div style="font-size:${isTwoCopy ? '11.5px' : '13px'}; color:#475569; font-weight:600;">Recibo nº ${escapeHtml(r.receiptNumber)}</div>
             </div>
           </div>
           <div style="border:1.5px solid #0f172a; background:#f8fafc; border-radius:6px; padding:${isTwoCopy ? '5px 12px' : '8px 16px'}; text-align:right;">
-            <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; color:#475569; text-transform:uppercase;">Valor</div>
-            <div style="font-size:${isTwoCopy ? '15px' : '20px'}; font-weight:800; color:#0f172a;">${escapeHtml(formattedVal)}</div>
+            <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:#475569; text-transform:uppercase;">Valor</div>
+            <div style="font-size:${isTwoCopy ? '17px' : '22px'}; font-weight:800; color:#0f172a;">${escapeHtml(formattedVal)}</div>
           </div>
         </div>
 
-        <p style="font-size:${isTwoCopy ? '11px' : '13.5px'}; line-height:${isTwoCopy ? '1.48' : '1.75'}; text-align:justify; margin:0 0 ${isTwoCopy ? '7px' : '14px'} 0; color:#1e293b;">
-          Recebi(emos) de <strong>${escapeHtml(r.payerName || '_________________________')}</strong>${payerDocPart}${payerAddrPart}, a importância de <strong>${escapeHtml(formattedVal)}</strong> (<strong>${escapeHtml(r.amountInWords || 'zero real')}</strong>), referente a ${escapeHtml(r.description)}
+        <p style="font-size:${isTwoCopy ? '13px' : '15px'}; line-height:${isTwoCopy ? '1.6' : '1.8'}; text-align:justify; margin:0 0 ${isTwoCopy ? '14px' : '18px'} 0; color:#1e293b;">
+          Recebi(emos) de <strong>${escapeHtml(r.payerName || '_________________________')}</strong>${payerDocPart}${payerAddrPart}, a importância de <strong>${escapeHtml(formattedVal)}</strong> (<strong>${escapeHtml(r.amountInWords || 'zero real')}</strong>)${escapeHtml(formatDescriptionConnector(r.description))}
         </p>
 
         ${accountabilityTable}
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:${isTwoCopy ? '4px 12px' : '8px 16px'}; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:${isTwoCopy ? '6px 10px' : '10px 14px'}; font-size:${isTwoCopy ? '10px' : '11.5px'}; color:#334155;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:${isTwoCopy ? '6px 14px' : '10px 18px'}; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:${isTwoCopy ? '8px 12px' : '12px 16px'}; font-size:${isTwoCopy ? '11.5px' : '13px'}; color:#334155;">
           <div><strong>Forma de Pagamento:</strong> ${escapeHtml(r.paymentMethod)}${r.paymentDetails ? ` (${escapeHtml(r.paymentDetails)})` : ''}</div>
           <div><strong>Condição / Parcela:</strong> ${escapeHtml(r.condition || 'Quitação Integral')}</div>
           ${r.caseNumber ? `<div><strong>Processo nº:</strong> ${escapeHtml(r.caseNumber)}</div>` : '<div><strong>Natureza:</strong> ' + escapeHtml(r.nature) + '</div>'}
@@ -159,12 +182,12 @@ const buildReceiptCopyHtml = (r: Receipt, copyLabel?: string): string => {
       </div>
 
       <div style="margin-top:${isTwoCopy ? '8px' : '20px'};">
-        <div style="text-align:right; font-size:${isTwoCopy ? '10.5px' : '12.5px'}; color:#334155; margin-bottom:${isTwoCopy ? '16px' : '34px'};">
+        <div style="text-align:right; font-size:${isTwoCopy ? '12px' : '14px'}; color:#334155; margin-bottom:${isTwoCopy ? '16px' : '34px'};">
           ${escapeHtml(r.city)}, ${escapeHtml(longDate)}.
         </div>
         <div style="width:68%; margin:0 auto; text-align:center; border-top:1px solid #334155; padding-top:4px;">
-          <div style="font-size:${isTwoCopy ? '11px' : '12.5px'}; font-weight:700; color:#0f172a;">${escapeHtml(r.emitterName)}</div>
-          <div style="font-size:${isTwoCopy ? '9.5px' : '11px'}; color:#475569;">
+          <div style="font-size:${isTwoCopy ? '12.5px' : '14px'}; font-weight:700; color:#0f172a;">${escapeHtml(r.emitterName)}</div>
+          <div style="font-size:${isTwoCopy ? '11px' : '12.5px'}; color:#475569;">
             ${r.emitterOab ? escapeHtml(r.emitterOab) : ''}${r.emitterOab && r.emitterDocument ? ' • ' : ''}${r.emitterDocument ? `CPF/CNPJ: ${escapeHtml(r.emitterDocument)}` : ''}
           </div>
         </div>
@@ -177,7 +200,7 @@ const printReceiptDocument = (r: Receipt) => {
   const isTwoCopy = r.layoutMode === 'two-copy';
   const bodyHtml = isTwoCopy
     ? `
-      <div style="display:flex; flex-direction:column; justify-content:space-between; height:274mm;">
+      <div style="display:flex; flex-direction:column; justify-content:space-between; height:276mm;">
         ${buildReceiptCopyHtml(r, '1ª VIA — CLIENTE')}
         <div style="display:flex; align-items:center; gap:8px; margin:2mm 0; color:#64748b; font-size:10px;">
           <span style="font-size:13px;">&#9986;</span>
@@ -213,7 +236,7 @@ const printReceiptDocument = (r: Receipt) => {
         <meta charset="UTF-8" />
         <title>Recibo ${escapeHtml(r.receiptNumber)}</title>
         <style>
-          @page { size: A4 portrait; margin: 10mm; }
+          @page { size: A4 portrait; margin: 0; }
           * { box-sizing: border-box; }
           html, body {
             margin: 0;
@@ -223,6 +246,9 @@ const printReceiptDocument = (r: Receipt) => {
             color: #0f172a;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+          }
+          body {
+            padding: 10mm;
           }
         </style>
       </head>
@@ -261,7 +287,7 @@ export const Receipts: React.FC = () => {
       list.push({
         id: matched?.id || def.id,
         name: matched?.name || def.name,
-        oab: matched?.oab ? `OAB/RJ nº ${matched.oab}` : def.oab,
+        oab: matched?.oab ? formatOabLabel(matched.oab) : def.oab,
         document: emitterDocCache[key] || matched?.cpf || def.document,
       });
     }
@@ -273,7 +299,7 @@ export const Receipts: React.FC = () => {
         list.push({
           id: m.id,
           name: m.name,
-          oab: m.oab ? `OAB/RJ nº ${m.oab}` : 'Advogado(a)',
+          oab: m.oab ? formatOabLabel(m.oab) : 'Advogado(a)',
           document: emitterDocCache[key] || m.cpf || '',
         });
       }
@@ -282,15 +308,20 @@ export const Receipts: React.FC = () => {
     return list;
   }, [teamMembers, emitterDocCache]);
 
+  const defaultEmitterProfile = useMemo(
+    () => emitterProfiles.find(p => normalizeText(p.name) === 'luiz geraldo motta') || emitterProfiles[0],
+    [emitterProfiles]
+  );
+
   const initialDate = getTodayLocal();
   const [receiptNumber, setReceiptNumber] = useState(() => getNextReceiptNumber(receipts, initialDate));
   const [receiptDate, setReceiptDate] = useState(initialDate);
   const [city, setCity] = useState('Resende - RJ');
 
-  const [selectedEmitterId, setSelectedEmitterId] = useState(emitterProfiles[0]?.id || '');
-  const [emitterName, setEmitterName] = useState(emitterProfiles[0]?.name || 'Marcelo Abrahão Cassini');
-  const [emitterOab, setEmitterOab] = useState(emitterProfiles[0]?.oab || 'OAB/RJ nº 157.095');
-  const [emitterDocument, setEmitterDocument] = useState(emitterProfiles[0]?.document || '');
+  const [selectedEmitterId, setSelectedEmitterId] = useState(defaultEmitterProfile?.id || '');
+  const [emitterName, setEmitterName] = useState(defaultEmitterProfile?.name || 'Luiz Geraldo Motta');
+  const [emitterOab, setEmitterOab] = useState(defaultEmitterProfile?.oab || 'OAB/RJ nº 5.173-D');
+  const [emitterDocument, setEmitterDocument] = useState(defaultEmitterProfile?.document || '');
 
   const [payerName, setPayerName] = useState('');
   const [payerDocument, setPayerDocument] = useState('');
@@ -382,11 +413,25 @@ export const Receipts: React.FC = () => {
     }
   };
 
+  const buildClientAddress = (c: (typeof clients)[number]): string => {
+    const streetPart = [c.street, c.addressNumber, c.complement].filter(Boolean).join(', ');
+    const cityState = c.city && c.state ? `${c.city}/${c.state}` : (c.city || c.state || '');
+    const regionPart = [c.neighborhood, cityState].filter(Boolean).join(' - ');
+    const full = [streetPart, regionPart, c.zip ? `CEP ${c.zip}` : ''].filter(Boolean).join(', ');
+    return full || c.address || '';
+  };
+
+  const applyClientData = (c: (typeof clients)[number]) => {
+    setPayerName(c.name);
+    setPayerDocument(c.document ? formatCpfCnpj(c.document) : '');
+    setPayerAddress(buildClientAddress(c));
+  };
+
   const filteredClients = useMemo(() => {
     if (!payerName.trim()) return [];
     const q = normalizeText(payerName);
     return clients
-      .filter(c => normalizeText(c.name).includes(q) || (c.cpfOrCnpj && c.cpfOrCnpj.includes(payerName)))
+      .filter(c => normalizeText(c.name).includes(q) || (c.document && c.document.includes(payerName)))
       .slice(0, 6);
   }, [clients, payerName]);
 
@@ -434,6 +479,12 @@ export const Receipts: React.FC = () => {
     setEditingId(null);
     setReceiptDate(today);
     setReceiptNumber(getNextReceiptNumber(receipts, today));
+    if (defaultEmitterProfile) {
+      setSelectedEmitterId(defaultEmitterProfile.id);
+      setEmitterName(defaultEmitterProfile.name);
+      setEmitterOab(defaultEmitterProfile.oab);
+      setEmitterDocument(defaultEmitterProfile.document);
+    }
     setPayerName('');
     setPayerDocument('');
     setPayerAddress('');
@@ -590,8 +641,8 @@ export const Receipts: React.FC = () => {
               </>
             ) : null}
             {r.payerAddress ? <>, residente/sediado(a) em {r.payerAddress}</> : null}, a importância de{' '}
-            <strong>{formatCurrencyBR(r.amount)}</strong> (<strong>{r.amountInWords || 'zero real'}</strong>), referente a{' '}
-            {r.description || '...'}
+            <strong>{formatCurrencyBR(r.amount)}</strong> (<strong>{r.amountInWords || 'zero real'}</strong>)
+            {formatDescriptionConnector(r.description)}
           </p>
 
           {r.isAccountability && (
@@ -847,8 +898,18 @@ export const Receipts: React.FC = () => {
                     onFocus={() => setShowClientSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowClientSuggestions(false), 180)}
                     onChange={e => {
-                      setPayerName(e.target.value);
+                      const val = e.target.value;
+                      setPayerName(val);
                       setShowClientSuggestions(true);
+                      const normalized = normalizeText(val);
+                      if (normalized) {
+                        const exact = clients.find(c => normalizeText(c.name) === normalized);
+                        if (exact) {
+                          if (exact.document) setPayerDocument(formatCpfCnpj(exact.document));
+                          const addr = buildClientAddress(exact);
+                          if (addr) setPayerAddress(addr);
+                        }
+                      }
                     }}
                     className={inputCls}
                     placeholder="Digite para buscar nos Contatos ou informe livremente..."
@@ -862,9 +923,7 @@ export const Receipts: React.FC = () => {
                           key={c.id}
                           type="button"
                           onMouseDown={() => {
-                            setPayerName(c.name);
-                            if (c.cpfOrCnpj) setPayerDocument(formatCpfCnpj(c.cpfOrCnpj));
-                            if (c.address) setPayerAddress(c.address);
+                            applyClientData(c);
                             setShowClientSuggestions(false);
                           }}
                           className={`w-full text-left px-3 py-2 text-xs flex justify-between items-center border-b last:border-b-0 ${
@@ -874,7 +933,7 @@ export const Receipts: React.FC = () => {
                           }`}
                         >
                           <span className="font-semibold truncate">{c.name}</span>
-                          <span className="text-[11px] opacity-70 ml-2 shrink-0">{c.cpfOrCnpj || c.type}</span>
+                          <span className="text-[11px] opacity-70 ml-2 shrink-0">{c.document ? formatCpfCnpj(c.document) : c.type}</span>
                         </button>
                       ))}
                     </div>
