@@ -3,8 +3,9 @@ import React from 'react';
 import { useStore } from '../context/Store';
 import { supabase } from '../utils/supabaseClient';
 import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3, Newspaper } from '../components/Icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Label, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { CaseStatus } from '../types';
+import { StatusDonut } from '../components/StatusDonut';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBorder, subtext, onClick }: any) => {
   const { theme } = useStore();
@@ -375,78 +376,27 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
                   <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
                     <PieChartIcon size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Status dos Processos
                   </h3>
+                  {totalCasesCount > 0 && (
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tabular-nums ${
+                      theme === 'hybrid' ? 'bg-[#00a884]/15 text-[#00a884]' : 'bg-blue-50 text-blue-700'
+                    }`}>
+                      {Math.round((activeCases / totalCasesCount) * 100)}% ativos
+                    </span>
+                  )}
                 </div>
-                <div className="h-52 w-full my-auto">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="48%"
-                        innerRadius={52}
-                        outerRadius={72}
-                        paddingAngle={5}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                        <Label
-                          content={({ viewBox }: any) => {
-                            const { cx, cy } = viewBox;
-                            return (
-                              <g>
-                                <text
-                                  x={cx}
-                                  y={cy - 10}
-                                  textAnchor="middle"
-                                  dominantBaseline="central"
-                                  className={`font-bold ${theme === 'hybrid' ? 'fill-[#e9edef]' : 'fill-slate-900 dark:fill-white'}`}
-                                  style={{ fontSize: '26px' }}
-                                >
-                                  {totalCasesCount}
-                                </text>
-                                <text
-                                  x={cx}
-                                  y={cy + 15}
-                                  textAnchor="middle"
-                                  dominantBaseline="central"
-                                  className={`font-semibold ${theme === 'hybrid' ? 'fill-[#aebac1]' : 'fill-slate-400'}`}
-                                  style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                                >
-                                  Total
-                                </text>
-                              </g>
-                            );
-                          }}
-                        />
-                      </Pie>
-                      <Tooltip
-                        contentStyle={tooltipContentStyle}
-                        itemStyle={{ color: theme === 'hybrid' ? '#e9edef' : '#0f172a' }}
-                        formatter={(value: any, name: any) => {
-                          const pct = totalCasesCount > 0 ? Math.round((Number(value) / totalCasesCount) * 100) : 0;
-                          return [`${value} (${pct}%)`, name];
-                        }}
-                      />
-                      <Legend
-                        verticalAlign="bottom"
-                        height={32}
-                        iconType="circle"
-                        formatter={(value: string) => {
-                          const item = statusData.find(d => d.name === value);
-                          const val = item ? item.value : 0;
-                          const pct = totalCasesCount > 0 ? Math.round((val / totalCasesCount) * 100) : 0;
-                          return (
-                            <span className={`text-[11px] font-semibold ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-400'}`}>
-                              {value} ({val} • {pct}%)
-                            </span>
-                          );
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="w-full flex-1 flex items-center justify-center">
+                  {totalCasesCount > 0 ? (
+                    <StatusDonut
+                      active={activeCases}
+                      archived={archivedCases}
+                      theme={theme}
+                      onNavigate={setPage ? () => setPage('cases') : undefined}
+                    />
+                  ) : (
+                    <div className={`h-52 flex items-center justify-center text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>
+                      Sem processos cadastrados
+                    </div>
+                  )}
                 </div>
               </div>
 
