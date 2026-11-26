@@ -3,9 +3,9 @@ import React from 'react';
 import { useStore } from '../context/Store';
 import { supabase } from '../utils/supabaseClient';
 import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3, Newspaper } from '../components/Icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { CaseStatus } from '../types';
 import { StatusDonut } from '../components/StatusDonut';
+import { AreaBars } from '../components/AreaBars';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBorder, subtext, onClick }: any) => {
   const { theme } = useStore();
@@ -19,7 +19,7 @@ const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBor
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl shadow-sm border border-l-4 ${accentBorder || 'border-l-blue-500'} hover:shadow-md transition-all duration-200 group ${
+      className={`px-4 py-3 rounded-xl shadow-sm border border-l-4 ${accentBorder || 'border-l-blue-500'} hover:shadow-md transition-all duration-200 group ${
         onClick ? 'cursor-pointer' : ''
       } ${
         theme === 'hybrid'
@@ -27,22 +27,24 @@ const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBor
           : 'bg-white dark:bg-dark-800 border-y-slate-200 border-r-slate-200 dark:border-y-slate-700 dark:border-r-slate-700'
       }`}
     >
-      <div className="flex justify-between items-start gap-2">
-        <div>
-          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>{title}</p>
-          <h3 className={`text-2xl md:text-3xl font-bold tracking-tight tabular-nums ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
-        </div>
-        <div className={`p-2.5 rounded-xl ${color} bg-opacity-10 group-hover:scale-105 transition-transform`}>
-          <Icon size={20} className={theme === 'hybrid' && color.includes('bg-slate') ? 'text-[#aebac1]' : color.replace('bg-', 'text-')} />
+      {/* Linha 1: título + ícone */}
+      <div className="flex justify-between items-center gap-2">
+        <p className={`text-xs font-semibold uppercase tracking-wider truncate ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>{title}</p>
+        <div className={`p-1.5 rounded-lg shrink-0 ${color} bg-opacity-10 group-hover:scale-105 transition-transform`}>
+          <Icon size={16} className={theme === 'hybrid' && color.includes('bg-slate') ? 'text-[#aebac1]' : color.replace('bg-', 'text-')} />
         </div>
       </div>
-      <div className="mt-3 flex items-center text-xs font-medium">
-        {trend && (
-          <span className={`px-2 py-0.5 rounded-full ${trendClasses} mr-2`}>
-            {trend}
-          </span>
-        )}
-        <span className={`truncate ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>{subtext}</span>
+      {/* Linha 2: valor + badge + subtexto */}
+      <div className="flex items-center gap-2.5 min-w-0 -mt-0.5">
+        <h3 className={`text-2xl md:text-[28px] leading-none font-bold tracking-tight tabular-nums shrink-0 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
+        <div className="flex items-center gap-1.5 min-w-0 text-xs font-medium">
+          {trend && (
+            <span className={`px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${trendClasses}`}>
+              {trend}
+            </span>
+          )}
+          <span className={`truncate ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`} title={subtext}>{subtext}</span>
+        </div>
       </div>
     </div>
   );
@@ -406,48 +408,24 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
                   <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
                     <BarChart3 size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Áreas ({areaData.length})
                   </h3>
-                </div>
-                <div className="w-full" style={{ height: Math.max(208, areaData.length * 25) }}>
-                  {areaData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={areaData}
-                        layout="vertical"
-                        margin={{ top: 2, right: 58, left: 0, bottom: 2 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" opacity={0.12} />
-                        <XAxis type="number" hide />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: theme === 'hybrid' ? '#d1d7db' : '#64748b', fontSize: 11, fontWeight: 600 }}
-                          width={94}
-                          interval={0}
-                        />
-                        <Tooltip
-                          cursor={{ fill: theme === 'hybrid' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)' }}
-                          contentStyle={tooltipContentStyle}
-                          itemStyle={{ color: theme === 'hybrid' ? '#e9edef' : '#0f172a' }}
-                          labelStyle={{ display: 'none' }}
-                          formatter={(value: any, _name: any, props: any) => [props.payload.label, props.payload.name]}
-                        />
-                        <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={15}>
-                          {areaData.map((_entry, index) => (
-                            <Cell key={`cell-${index}`} fill={AREA_COLORS[index % AREA_COLORS.length]} />
-                          ))}
-                          <LabelList
-                            dataKey="label"
-                            position="right"
-                            style={{ fill: theme === 'hybrid' ? '#aebac1' : '#64748b', fontSize: 10, fontWeight: 700 }}
-                          />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-slate-400 text-xs">Sem dados suficientes</div>
+                  {areaData.length > 0 && (
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tabular-nums truncate max-w-[55%] ${
+                        theme === 'hybrid' ? 'bg-[#00a884]/15 text-[#00a884]' : 'bg-blue-50 text-blue-700'
+                      }`}
+                      title={`Área líder: ${areaData[0].name}`}
+                    >
+                      Líder: {areaData[0].name} {Math.round((areaData[0].value / totalAreasCases) * 100)}%
+                    </span>
                   )}
+                </div>
+                <div className="w-full flex-1 flex items-center">
+                  <AreaBars
+                    areas={areaData.map((a, i) => ({ name: a.name, value: a.value, color: AREA_COLORS[i % AREA_COLORS.length] }))}
+                    total={cases.length}
+                    theme={theme}
+                    onNavigate={setPage ? () => setPage('cases') : undefined}
+                  />
                 </div>
               </div>
             </div>
