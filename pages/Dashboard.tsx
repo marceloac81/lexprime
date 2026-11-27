@@ -2,10 +2,12 @@
 import React from 'react';
 import { useStore } from '../context/Store';
 import { supabase } from '../utils/supabaseClient';
-import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3, Newspaper } from '../components/Icons';
+import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, ChevronRight, Users, FileText, PieChart as PieChartIcon, BarChart3, Newspaper, Copy, Check } from '../components/Icons';
 import { CaseStatus } from '../types';
 import { StatusDonut } from '../components/StatusDonut';
 import { AreaBars } from '../components/AreaBars';
+import { getInitials } from '../utils/textUtils';
+import { getAvatarColorStyles } from '../utils/styleUtils';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBorder, subtext, onClick }: any) => {
   const { theme } = useStore();
@@ -182,6 +184,14 @@ const LegalNewsCard = () => {
 
 export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setPage }) => {
   const { theme, isDarkMode, currentUser, setPendingAction, cases, clients, deadlines, appointments, teamMembers } = useStore();
+  const [copiedDeadlineId, setCopiedDeadlineId] = React.useState<string | null>(null);
+
+  const handleCopyProcess = (e: React.MouseEvent, processNum: string, deadlineId: string) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText(processNum);
+    setCopiedDeadlineId(deadlineId);
+    setTimeout(() => setCopiedDeadlineId(prev => (prev === deadlineId ? null : prev)), 1500);
+  };
 
   // --- Metrics Calculation ---
   const activeCases = cases.filter(c => c.status === CaseStatus.Active).length;
@@ -635,7 +645,7 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
                 </div>
               )}
 
-              <div className="space-y-2.5">
+              <div className="space-y-3.5">
                 {upcomingDeadlines.length === 0 ? (
                   <div className="text-center py-8">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
@@ -645,69 +655,203 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
                     </div>
                     <p className={`text-sm ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Tudo em dia!</p>
                   </div>
-                ) : (
-                  upcomingDeadlines.map(deadline => {
-                    const [y, m, d] = deadline.dueDate.split('-').map(Number);
-                    const isUrgent = deadline.priority === 'High';
-                    const isToday = deadline.dueDate === today;
+                ) : (() => {
+                  const SHORT_WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                  const now = new Date();
+                  const tomorrowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                  const tomorrow = tomorrowDate.toLocaleDateString('en-CA');
 
-                    const associatedCase = cases.find(c => c.id === deadline.caseId);
-                    const clientName = associatedCase ? associatedCase.clientName : (deadline.customerName || 'Avulso');
-                    const processNumber = associatedCase ? associatedCase.number : '';
+                  // End of current calendar week (Sunday) & end of next calendar week (following Sunday)
+                  const dayOfWeek = now.getDay(); // 0=Sun..6=Sat
+                  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+                  const thisWeekEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
+                  const thisWeekEnd = thisWeekEndDate.toLocaleDateString('en-CA');
+                  const nextWeekEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday + 7);
+                  const nextWeekEnd = nextWeekEndDate.toLocaleDateString('en-CA');
 
-                    const renderContent = (isActive: boolean) => (
-                      <>
-                        <div className={`w-1.5 h-1.5 mt-2 rounded-full flex-shrink-0 ${isUrgent ? 'bg-rose-500' : (theme === 'hybrid' && !isActive ? 'bg-[#00a884]' : 'bg-amber-500')}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <p className={`text-sm font-bold truncate pr-2 transition-colors ${
-                              theme === 'hybrid' && !isActive
-                                ? 'text-[#e9edef] group-hover:text-[#00a884]' 
-                                : (theme === 'hybrid' && isActive ? 'text-slate-900 group-hover:text-amber-600' : 'text-slate-900 dark:text-white group-hover:text-primary-500')
-                            }`} title={deadline.title}>
-                              {deadline.title}
-                            </p>
-                          </div>
-                          <p className={`text-xs font-semibold mt-1 line-clamp-2 ${theme === 'hybrid' && !isActive ? 'text-[#d1d7db]' : (theme === 'hybrid' && isActive ? 'text-slate-600' : 'text-slate-600 dark:text-slate-400')}`} title={clientName}>
-                            {clientName}
-                          </p>
-                          {processNumber && (
-                            <p className={`text-[11px] mt-0.5 truncate ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>
-                              Nº {processNumber}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right flex flex-col items-end min-w-[42px] flex-shrink-0 ml-1">
-                          {isToday && (
-                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter shadow-sm mb-1 ${isActive ? 'bg-amber-500 text-white shadow-amber-500/20' : 'opacity-0'}`}>
-                              Hoje
-                            </span>
-                          )}
-                          <p className={`text-xs font-bold ${theme === 'hybrid' && !isActive ? 'text-[#e9edef]' : (theme === 'hybrid' && isActive ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300')}`}>{d}/{m}</p>
-                          <p className={`text-[10px] font-medium mt-0.5 ${theme === 'hybrid' && !isActive ? 'text-[#aebac1]' : (theme === 'hybrid' && isActive ? 'text-slate-500' : 'text-slate-400')}`}>{(deadline.startTime || '09:00').slice(0, 5)}</p>
-                        </div>
-                      </>
-                    );
+                  const groups = [
+                    {
+                      key: 'today',
+                      label: `Hoje • ${SHORT_WEEKDAYS[now.getDay()]}`,
+                      hideDate: true,
+                      isTodayGroup: true,
+                      barClass: 'border-l-amber-500',
+                      headerClass: theme === 'hybrid' ? 'text-amber-300' : 'text-amber-600',
+                      dotClass: 'bg-amber-500',
+                      items: upcomingDeadlines.filter(d => d.dueDate === today),
+                    },
+                    {
+                      key: 'tomorrow',
+                      label: `Amanhã • ${SHORT_WEEKDAYS[tomorrowDate.getDay()]}`,
+                      hideDate: true,
+                      isTodayGroup: false,
+                      barClass: 'border-l-blue-500',
+                      headerClass: theme === 'hybrid' ? 'text-blue-300' : 'text-blue-600',
+                      dotClass: 'bg-blue-500',
+                      items: upcomingDeadlines.filter(d => d.dueDate === tomorrow),
+                    },
+                    {
+                      key: 'thisWeek',
+                      label: 'Esta semana',
+                      hideDate: false,
+                      isTodayGroup: false,
+                      barClass: theme === 'hybrid' ? 'border-l-[#00a884]' : 'border-l-emerald-500',
+                      headerClass: theme === 'hybrid' ? 'text-[#00a884]' : 'text-emerald-600',
+                      dotClass: theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-emerald-500',
+                      items: upcomingDeadlines.filter(d => d.dueDate > tomorrow && d.dueDate <= thisWeekEnd),
+                    },
+                    {
+                      key: 'nextWeek',
+                      label: 'Próxima semana',
+                      hideDate: false,
+                      isTodayGroup: false,
+                      barClass: theme === 'hybrid' ? 'border-l-[#00a884]' : 'border-l-emerald-500',
+                      headerClass: theme === 'hybrid' ? 'text-[#00a884]' : 'text-emerald-600',
+                      dotClass: theme === 'hybrid' ? 'bg-[#00a884]' : 'bg-emerald-500',
+                      items: upcomingDeadlines.filter(d => d.dueDate > thisWeekEnd && d.dueDate > tomorrow && d.dueDate <= nextWeekEnd),
+                    },
+                    {
+                      key: 'later',
+                      label: 'Mais adiante',
+                      hideDate: false,
+                      isTodayGroup: false,
+                      barClass: theme === 'hybrid' ? 'border-l-[#8696a0]' : 'border-l-slate-300',
+                      headerClass: theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500',
+                      dotClass: 'bg-slate-400',
+                      items: upcomingDeadlines.filter(d => d.dueDate > nextWeekEnd),
+                    },
+                  ].filter(g => g.items.length > 0);
 
-                    return (
-                      <div
-                        key={deadline.id}
-                        onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
-                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer group border transition-colors ${
-                          isToday
-                            ? (theme === 'hybrid'
-                                ? 'bg-amber-50 border-amber-200'
-                                : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800')
-                            : (theme === 'hybrid'
-                                ? 'bg-[#354751] border-[#00a884]/30 hover:border-[#00a884]/50'
-                                : 'bg-slate-50 dark:bg-dark-900/50 border-slate-100 dark:border-slate-700/50 hover:border-primary-500/30')
-                        }`}
-                      >
-                        {renderContent(isToday)}
+                  return groups.map(group => (
+                    <div key={group.key}>
+                      <div className="flex items-center justify-between mb-1.5 px-0.5">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${group.headerClass}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${group.dotClass}`} />
+                          {group.label}
+                        </span>
+                        <span className={`text-[10px] font-semibold tabular-nums ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>
+                          {group.items.length}
+                        </span>
                       </div>
-                    );
-                  })
-                )}
+                      <div className="space-y-1.5">
+                        {group.items.map(deadline => {
+                          const [y, m, d] = deadline.dueDate.split('-');
+                          const itemDateObj = new Date(Number(y), Number(m) - 1, Number(d));
+                          const shortDay = !isNaN(itemDateObj.getTime()) ? SHORT_WEEKDAYS[itemDateObj.getDay()] : '';
+                          const isUrgent = deadline.priority === 'High';
+                          const associatedCase = cases.find(c => c.id === deadline.caseId);
+                          const clientName = associatedCase ? associatedCase.clientName : (deadline.customerName || 'Avulso');
+                          const processNumber = associatedCase ? associatedCase.number : '';
+                          const timeStr = (deadline.startTime || '09:00').slice(0, 5);
+                          const assignedList = (deadline.assignedIds && deadline.assignedIds.length > 0
+                            ? deadline.assignedIds
+                            : deadline.assignedTo ? [deadline.assignedTo] : []
+                          )
+                            .map(id => teamMembers.find(t => t.id === id))
+                            .filter(Boolean) as typeof teamMembers;
+
+                          return (
+                            <div
+                              key={deadline.id}
+                              onClick={() => setPendingAction(`editDeadline:${deadline.id}`)}
+                              className={`flex items-stretch justify-between gap-2 pl-2.5 pr-2.5 py-2 rounded-lg border-l-[3px] cursor-pointer group transition-colors ${
+                                isUrgent ? 'border-l-rose-500' : group.barClass
+                              } ${
+                                group.isTodayGroup
+                                  ? (theme === 'hybrid'
+                                      ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                                      : 'bg-amber-50/75 hover:bg-amber-50 dark:bg-amber-900/15 dark:hover:bg-amber-900/25')
+                                  : (theme === 'hybrid'
+                                      ? 'bg-[#202c33]/70 hover:bg-[#354751]'
+                                      : 'bg-slate-50/80 hover:bg-slate-100/90 dark:bg-dark-900/50 dark:hover:bg-dark-900')
+                              }`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className={`text-[13px] font-bold truncate leading-snug transition-colors ${
+                                    theme === 'hybrid'
+                                      ? 'text-[#e9edef] group-hover:text-[#00a884]'
+                                      : 'text-slate-900 dark:text-white group-hover:text-blue-600'
+                                  }`}
+                                  title={deadline.title}
+                                >
+                                  {deadline.title}
+                                </p>
+                                <p
+                                  className={`text-xs font-medium truncate mt-0.5 ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-600 dark:text-slate-400'}`}
+                                  title={clientName}
+                                >
+                                  {clientName}
+                                </p>
+                                {processNumber && (
+                                  <div className="flex items-center gap-1 mt-0.5 min-w-0">
+                                    <span className={`text-[10.5px] truncate tabular-nums ${theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400'}`}>
+                                      {processNumber}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleCopyProcess(e, processNumber, deadline.id)}
+                                      title="Copiar número do processo"
+                                      className={`shrink-0 p-0.5 rounded transition-colors ${
+                                        copiedDeadlineId === deadline.id
+                                          ? 'text-emerald-600'
+                                          : theme === 'hybrid'
+                                            ? 'text-[#8696a0] hover:text-[#e9edef]'
+                                            : 'text-slate-400 hover:text-slate-700'
+                                      }`}
+                                    >
+                                      {copiedDeadlineId === deadline.id ? <Check size={11} strokeWidth={3} /> : <Copy size={11} />}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col items-end justify-between shrink-0 tabular-nums">
+                                <div className="text-right">
+                                  {!group.hideDate ? (
+                                    <p className={`text-[11px] font-bold leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700 dark:text-slate-300'}`}>
+                                      {shortDay ? `${shortDay}, ` : ''}{d}/{m}
+                                    </p>
+                                  ) : null}
+                                  <p className={`text-[10.5px] font-semibold leading-tight ${
+                                    group.hideDate
+                                      ? (theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-700 dark:text-slate-300')
+                                      : (theme === 'hybrid' ? 'text-[#8696a0]' : 'text-slate-400')
+                                  }`}>
+                                    {timeStr}
+                                  </p>
+                                </div>
+                                {assignedList.length > 0 && (
+                                  <div className="flex -space-x-1.5 items-center mt-1">
+                                    {assignedList.slice(0, 2).map(member => (
+                                      <div
+                                        key={member.id}
+                                        title={member.name}
+                                        className={`w-5 h-5 rounded-full border flex items-center justify-center text-[8px] font-bold overflow-hidden shadow-sm ${getAvatarColorStyles(member.avatarColor || 'blue')}`}
+                                      >
+                                        {member.photo ? (
+                                          <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          getInitials(member.name, member.initials)
+                                        )}
+                                      </div>
+                                    ))}
+                                    {assignedList.length > 2 && (
+                                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-[8px] font-bold ${
+                                        theme === 'hybrid' ? 'bg-[#111b21] border-[#354751] text-[#aebac1]' : 'bg-slate-100 border-slate-200 text-slate-600'
+                                      }`}>
+                                        +{assignedList.length - 2}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
