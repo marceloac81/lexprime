@@ -127,6 +127,22 @@ export const Clients: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
+    const [headerHeight, setHeaderHeight] = useState(96);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+        const updateHeight = () => setHeaderHeight(el.offsetHeight);
+        updateHeight();
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver(updateHeight);
+            observer.observe(el);
+            return () => observer.disconnect();
+        }
+        window.addEventListener('resize', updateHeight);
+        return () => window.removeEventListener('resize', updateHeight);
+    }, []);
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
         e.stopPropagation();
@@ -640,79 +656,109 @@ export const Clients: React.FC = () => {
     return (
         <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+            <div ref={headerRef} className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
                 : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex flex-col gap-1">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                    <div className="flex flex-col shrink-0">
                         <div className="flex items-center gap-3">
                             <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Clientes e Partes</h1>
-                            <p className={`text-xs font-bold px-2 py-1 rounded-full ${theme === 'hybrid' ? 'text-[#aebac1] bg-[#202c33]' : 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-dark-900'}`}>{clients.length}</p>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full tabular-nums ${theme === 'hybrid' ? 'text-[#aebac1] bg-[#2a3942]' : 'text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-dark-900'}`}>{clients.length}</span>
                         </div>
                         <p className={`text-sm mt-1 shrink-0 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>
                             Gerencie sua base de contatos e visualize os processos vinculados.
                         </p>
                     </div>
-                    <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end">
-                        <button onClick={handleOpenNew} className={`px-5 py-2.5 rounded-lg font-medium shadow-lg flex items-center gap-2 transform active:scale-95 transition-all whitespace-nowrap ${theme === 'hybrid'
-                            ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
-                            : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
-                            }`}>
-                            <Plus size={20} /> Novo Contato
+
+                    <div className="flex flex-wrap items-center gap-2 flex-1 xl:justify-end">
+                        {/* Search Input */}
+                        <div className={`relative flex-1 min-w-[200px] xl:max-w-[300px] flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                            theme === 'hybrid'
+                                ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]'
+                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            <Search size={16} className={theme === 'hybrid' ? 'text-[#aebac1] shrink-0' : 'text-slate-400 shrink-0'} />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nome, documento, email ou grupo..."
+                                className={`flex-1 min-w-0 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white placeholder:text-slate-400'}`}
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-slate-400 hover:text-slate-600"
+                                    title="Limpar busca"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Type Filter Pills */}
+                        <div className={`inline-flex items-center p-1 rounded-lg border ${
+                            theme === 'hybrid'
+                                ? 'bg-[#2a3942] border-[#354751]'
+                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            {['all', 'Pessoa Física', 'Pessoa Jurídica', 'Espólio'].map(t => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setTypeFilter(t as any)}
+                                    className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all whitespace-nowrap ${typeFilter === t
+                                        ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-sm' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm')
+                                        : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
+                                    }`}
+                                >
+                                    {t === 'all' ? 'Todos' : t === 'Pessoa Física' ? 'PF' : t === 'Pessoa Jurídica' ? 'PJ' : 'Espólio'}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* View Mode Toggle */}
+                        <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} hidden md:inline-flex p-1 rounded-lg border shrink-0 transition-colors`}>
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('grid')}
+                                title="Visualização em grade"
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'grid'
+                                    ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400')
+                                    : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <LayoutGrid size={16} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('list')}
+                                title="Visualização em lista"
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'list'
+                                    ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400')
+                                    : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <List size={16} />
+                            </button>
+                        </div>
+
+                        {/* New Contact Button */}
+                        <button
+                            type="button"
+                            onClick={handleOpenNew}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold shadow-md flex items-center gap-1.5 transform active:scale-95 transition-all whitespace-nowrap shrink-0 ${theme === 'hybrid'
+                                ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
+                                : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
+                            }`}
+                        >
+                            <Plus size={18} /> Novo Contato
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 md:px-8 pt-2">
-
-                <div className="flex flex-col xl:flex-row gap-2 md:gap-4 mb-3 md:mb-6">
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} p-2 md:p-4 rounded-xl border flex-1 flex items-center gap-2 md:gap-3 transition-colors`}>
-                        <Search size={16} md:size={20} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
-                        <input
-                            placeholder="Buscar por nome, documento, email ou grupo..."
-                            className={`flex-1 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white'}`}
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} flex gap-2 overflow-x-auto no-scrollbar items-center p-2 rounded-xl border transition-colors`}>
-                        <Filter size={18} className={`${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} ml-2 mr-2 shrink-0`} />
-                        {['all', 'Pessoa Física', 'Pessoa Jurídica', 'Espólio'].map(t => (
-                            <button
-                                key={t}
-                                onClick={() => setTypeFilter(t as any)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all duration-300 active:scale-90 whitespace-nowrap ${typeFilter === t
-                                    ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-lg' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg')
-                                    : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
-                                    }`}
-                            >
-                                {t === 'all' ? 'Todos' : t === 'Pessoa Física' ? 'PF' : t === 'Pessoa Jurídica' ? 'PJ' : 'Espólio'}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} hidden md:flex p-1.5 rounded-xl border shrink-0 transition-colors`}>
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' 
-                                ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400') 
-                                : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <LayoutGrid size={20} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' 
-                                ? (theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-slate-100 dark:bg-dark-700 text-primary-600 dark:text-primary-400') 
-                                : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <List size={20} />
-                        </button>
-                    </div>
-                </div>
+            <div className="px-4 md:px-8 pt-4">
 
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-20 custom-scrollbar">
@@ -806,11 +852,11 @@ export const Clients: React.FC = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} rounded-xl shadow-sm border overflow-hidden flex-1 flex flex-col transition-colors`}>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[600px]">
-                                <thead>
-                                    <tr className={`border-b ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]/50' : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50'}`}>
+                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} rounded-xl shadow-sm border flex-1 flex flex-col transition-colors`}>
+                        <div>
+                            <table className="w-full text-left border-collapse">
+                                <thead className="sticky z-30 shadow-sm" style={{ top: Math.max(0, headerHeight - 1) }}>
+                                    <tr className={`border-b ${theme === 'hybrid' ? 'border-[#354751] bg-[#202c33]' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-900'}`}>
                                         <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${
                                                 theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'
                                             }`}
@@ -840,7 +886,7 @@ export const Clients: React.FC = () => {
                                             onDoubleClick={() => handleOpenDetails(client)}
                                             title="Clique duplo para ver detalhes"
                                         >
-                                            <td className="py-2.5 px-4">
+                                            <td className="py-2 px-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                                                         theme === 'hybrid' ? 'bg-[#202c33] text-[#e9edef]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -854,20 +900,20 @@ export const Clients: React.FC = () => {
                                                             {client.document && (
                                                                 <button
                                                                     onClick={(e) => handleCopy(e, client.document, client.id + '-table-doc')}
-                                                                    className={`shrink-0 flex items-center justify-center p-0.5 rounded transition-all ${
-                                                                        copiedId === client.id + '-table-doc' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'
+                                                                    className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${
+                                                                        copiedId === client.id + '-table-doc' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-80 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-80 hover:opacity-100 hover:text-slate-700'
                                                                     }`}
-                                                                    title={copiedId === client.id + '-table-doc' ? "Copiado!" : "Copiar documento"}
+                                                                    title="Copiar documento"
                                                                 >
-                                                                    {copiedId === client.id + '-table-doc' ? <Check size={11} strokeWidth={3} /> : <Copy size={11} />}
+                                                                    {copiedId === client.id + '-table-doc' ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
                                                                 </button>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-2.5 px-4">
-                                                <div className={`text-sm flex flex-col gap-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            <td className="py-2 px-4">
+                                                <div className={`text-sm flex flex-col gap-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-300'}`}>
                                                     <div className="flex items-center gap-2">
                                                         <Mail size={14} className={theme === 'hybrid' ? 'text-[#aebac1]/50' : 'text-slate-400'} />
                                                         {client.email || '-'}
@@ -888,7 +934,7 @@ export const Clients: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-2.5 px-4">
+                                            <td className="py-2 px-4">
                                                 {client.group ? (
                                                     <span className={`text-xs font-medium px-2 py-1 rounded ${
                                                         theme === 'hybrid' ? 'bg-[#202c33] text-[#aebac1]' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -897,7 +943,7 @@ export const Clients: React.FC = () => {
                                                     </span>
                                                 ) : '-'}
                                             </td>
-                                            <td className="py-2.5 px-4">
+                                            <td className="py-2 px-4">
                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded 
                                         ${client.type === 'Pessoa Física' ? (theme === 'hybrid' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300') : ''}
                                         ${client.type === 'Pessoa Jurídica' ? (theme === 'hybrid' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300') : ''}
@@ -906,7 +952,7 @@ export const Clients: React.FC = () => {
                                                     {client.type === 'Pessoa Física' ? 'PF' : client.type === 'Pessoa Jurídica' ? 'PJ' : 'ESP'}
                                                 </span>
                                             </td>
-                                            <td className="py-2.5 px-4">
+                                            <td className="py-2 px-4">
                                                 <ChevronRight size={20} className={`${theme === 'hybrid' ? 'text-[#354751] group-hover:text-[#00a884]' : 'text-slate-300 group-hover:text-primary-500'} transition-colors`} />
                                             </td>
                                         </tr>
