@@ -179,7 +179,7 @@ const LegalNewsCard = () => {
 };
 
 export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setPage }) => {
-  const { theme, isDarkMode, currentUser, setPendingAction, cases, clients, deadlines, appointments } = useStore();
+  const { theme, isDarkMode, currentUser, setPendingAction, cases, clients, deadlines, appointments, teamMembers } = useStore();
 
   // --- Metrics Calculation ---
   const activeCases = cases.filter(c => c.status === CaseStatus.Active).length;
@@ -265,6 +265,39 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
     .slice(0, 12);
 
+  // --- Greeting, User Name & Personal Deadlines ---
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? 'Bom dia' : currentHour < 18 ? 'Boa tarde' : 'Boa noite';
+  const rawFirstName = currentUser?.name?.trim().split(/\s+/)[0] || '';
+  const displayFirstName = rawFirstName && rawFirstName.toLowerCase() !== 'usuário' ? rawFirstName : '';
+
+  const myTeamIds = new Set<string>();
+  if (currentUser?.id) myTeamIds.add(currentUser.id);
+  if (currentUser) {
+    const userEmail = currentUser.email?.trim().toLowerCase();
+    const userName = currentUser.name?.trim().toLowerCase();
+    for (const member of teamMembers) {
+      if (
+        member.id === currentUser.id ||
+        (userEmail && member.email?.trim().toLowerCase() === userEmail) ||
+        (userName && member.name?.trim().toLowerCase() === userName)
+      ) {
+        myTeamIds.add(member.id);
+      }
+    }
+  }
+
+  const isAssignedToMe = (d: (typeof deadlines)[number]) => {
+    if (d.assignedIds && d.assignedIds.length > 0) {
+      return d.assignedIds.some(id => myTeamIds.has(id));
+    }
+    return Boolean(d.assignedTo && myTeamIds.has(d.assignedTo));
+  };
+
+  const myOpenDeadlines = openDeadlines.filter(isAssignedToMe);
+  const myTodayDeadlinesCount = myOpenDeadlines.filter(d => d.dueDate === today).length;
+  const myOverdueDeadlinesCount = myOpenDeadlines.filter(d => d.dueDate < today).length;
+
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]
     .sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime())
@@ -277,46 +310,75 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
           ? 'bg-[#202c33] border-emerald-500/20'
           : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
           }`}>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
             <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Dashboard</h1>
-            <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>Bem-vindo(a).</p>
-          </div>
-          <div className="text-left md:text-right">
-            <p className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>Hoje</p>
-            <p className={`text-lg font-bold capitalize leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
-              {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>
+              {timeGreeting}{displayFirstName ? `, ${displayFirstName}` : ''} —{' '}
+              {myTodayDeadlinesCount > 0 || myOverdueDeadlinesCount > 0 ? (
+                <>
+                  você tem{' '}
+                  {myTodayDeadlinesCount > 0 && (
+                    <span className={`font-semibold ${theme === 'hybrid' ? 'text-amber-300' : 'text-amber-600'}`}>
+                      {myTodayDeadlinesCount} {myTodayDeadlinesCount === 1 ? 'prazo hoje' : 'prazos hoje'}
+                    </span>
+                  )}
+                  {myTodayDeadlinesCount > 0 && myOverdueDeadlinesCount > 0 && ' e '}
+                  {myOverdueDeadlinesCount > 0 && (
+                    <span className={`font-semibold ${theme === 'hybrid' ? 'text-rose-300' : 'text-rose-600'}`}>
+                      {myOverdueDeadlinesCount} {myOverdueDeadlinesCount === 1 ? 'atrasado' : 'atrasados'}
+                    </span>
+                  )}
+                  .
+                </>
+              ) : (
+                'seus prazos estão em dia.'
+              )}
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+            {/* Compact Quick Actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingAction('newCase')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all active:scale-95"
+              >
+                <Briefcase size={14} />
+                <span>Novo Processo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingAction('newClient')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 transition-all active:scale-95"
+              >
+                <Users size={14} />
+                <span>Novo Contato</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingAction('newDeadline')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-sm shadow-amber-500/20 transition-all active:scale-95"
+              >
+                <Clock size={14} />
+                <span>Novo Prazo</span>
+              </button>
+            </div>
+
+            <div className={`hidden sm:block h-8 w-px ${theme === 'hybrid' ? 'bg-[#354751]' : 'bg-slate-200 dark:bg-slate-800'}`} />
+
+            <div className="text-left sm:text-right">
+              <p className={`text-[10px] font-bold uppercase tracking-wider leading-none mb-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'}`}>Hoje</p>
+              <p className={`text-sm font-bold capitalize leading-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="p-4 md:px-7 pt-4 pb-10 flex-1 flex flex-col">
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-          <button onClick={() => setPendingAction('newCase')} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl shadow-md shadow-blue-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white/20 rounded-lg"><Briefcase size={18} /></div>
-              <span className="font-bold text-sm">Novo Processo</span>
-            </div>
-            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
-          </button>
-          <button onClick={() => setPendingAction('newClient')} className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl shadow-md shadow-emerald-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white/20 rounded-lg"><Users size={18} /></div>
-              <span className="font-bold text-sm">Novo Contato</span>
-            </div>
-            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
-          </button>
-          <button onClick={() => setPendingAction('newDeadline')} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-3 px-4 rounded-xl shadow-md shadow-amber-500/15 flex items-center justify-between group transition-all transform hover:scale-[1.01]">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white/20 rounded-lg"><Clock size={18} /></div>
-              <span className="font-bold text-sm">Novo Prazo</span>
-            </div>
-            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform opacity-80" />
-          </button>
-        </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
