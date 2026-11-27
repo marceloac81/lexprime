@@ -6,6 +6,7 @@ import { Briefcase, AlertCircle, CheckCircle2, TrendingUp, Clock, CalendarIcon, 
 import { CaseStatus } from '../types';
 import { StatusDonut } from '../components/StatusDonut';
 import { AreaBars } from '../components/AreaBars';
+import { DeadlinesLoadChart, DeadlineDayDatum } from '../components/DeadlinesLoadChart';
 import { getInitials } from '../utils/textUtils';
 import { getAvatarColorStyles } from '../utils/styleUtils';
 
@@ -323,6 +324,26 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
   const myOpenDeadlines = openDeadlines.filter(isAssignedToMe);
   const myTodayDeadlinesCount = myOpenDeadlines.filter(d => d.dueDate === today).length;
   const myOverdueDeadlinesCount = myOpenDeadlines.filter(d => d.dueDate < today).length;
+
+  const next14DaysData: DeadlineDayDatum[] = (() => {
+    const shortWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const base = new Date();
+    return Array.from({ length: 14 }, (_, idx) => {
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + idx);
+      const dateKey = d.toLocaleDateString('en-CA');
+      const dayOfWeek = d.getDay();
+      return {
+        dateKey,
+        dayNum: String(d.getDate()).padStart(2, '0'),
+        monthNum: String(d.getMonth() + 1).padStart(2, '0'),
+        weekdayShort: shortWeekdays[dayOfWeek],
+        isToday: idx === 0,
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+        count: openDeadlines.filter(dl => dl.dueDate === dateKey).length,
+      };
+    });
+  })();
+  const totalNext14Days = next14DaysData.reduce((sum, item) => sum + item.count, 0);
 
   // --- Recent Activity Logic (Real Data) ---
   const recentCases = [...cases]
@@ -855,6 +876,24 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
               </div>
             </div>
 
+            {/* 14-Day Deadlines Load Chart */}
+            <div className={`rounded-xl shadow-sm border p-4 md:p-5 flex flex-col ${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'}`}>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className={`text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>
+                  <BarChart3 size={16} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} /> Carga • Próx. 14 Dias
+                </h3>
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tabular-nums ${
+                  theme === 'hybrid' ? 'bg-[#00a884]/15 text-[#00a884]' : 'bg-blue-50 text-blue-700'
+                }`}>
+                  {totalNext14Days} {totalNext14Days === 1 ? 'prazo' : 'prazos'}
+                </span>
+              </div>
+              <DeadlinesLoadChart
+                days={next14DaysData}
+                theme={theme}
+                onNavigate={setPage ? () => setPage('deadlines') : undefined}
+              />
+            </div>
 
           </div>
         </div>
