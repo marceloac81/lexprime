@@ -9,11 +9,12 @@ import { AreaBars } from '../components/AreaBars';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBorder, subtext, onClick }: any) => {
   const { theme } = useStore();
+  const isPositive = trend?.startsWith('+');
   const trendClasses =
     trendTone === 'danger'
       ? (theme === 'hybrid' ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400')
-      : trend?.startsWith('+')
-        ? (theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400')
+      : isPositive
+        ? (theme === 'hybrid' ? 'bg-[#00a884]/20 text-[#00a884]' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400')
         : (theme === 'hybrid' ? 'bg-[#354751] text-[#e9edef]' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400');
 
   return (
@@ -39,7 +40,8 @@ const StatCard = ({ title, value, icon: Icon, trend, trendTone, color, accentBor
         <h3 className={`text-2xl md:text-[28px] leading-none font-bold tracking-tight tabular-nums shrink-0 ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{value}</h3>
         <div className="flex items-center gap-1.5 min-w-0 text-xs font-medium">
           {trend && (
-            <span className={`px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${trendClasses}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${trendClasses}`}>
+              {isPositive && <TrendingUp size={11} />}
               {trend}
             </span>
           )}
@@ -204,6 +206,20 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
     ...appointments.filter(a => a.date.startsWith(today))
   ].length;
   const totalClients = clients.length;
+
+  // --- Trends (Real Data) ---
+  const nowDate = new Date();
+  const currentMonthPrefix = today.slice(0, 7); // YYYY-MM
+  const sevenDaysAgoKey = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate() - 7).toLocaleDateString('en-CA');
+
+  const newCasesThisMonth = cases.filter(c => (c.createdAt || '').startsWith(currentMonthPrefix)).length;
+  const doneDeadlinesLast7Days = deadlines.filter(
+    d => (d.isDone || d.status === 'Done') && ((d.updatedAt || d.dueDate || '').slice(0, 10) >= sevenDaysAgoKey)
+  ).length;
+  const weekAgendaItemsCount =
+    openDeadlines.filter(d => d.dueDate >= today && d.dueDate <= nextWeek).length +
+    appointments.filter(a => a.date.slice(0, 10) >= today && a.date.slice(0, 10) <= nextWeek).length;
+  const newClientsThisMonth = clients.filter(c => (c.createdAt || '').startsWith(currentMonthPrefix)).length;
 
   // --- Chart 1: Status (Active vs Archived only) ---
   const statusData = [
@@ -386,7 +402,7 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
             title="Processos Ativos"
             value={activeCases}
             icon={Briefcase}
-            trend="Carteira"
+            trend={newCasesThisMonth > 0 ? `+${newCasesThisMonth} mês` : 'Carteira'}
             color="bg-blue-500 text-blue-600"
             accentBorder="border-l-blue-500"
             subtext="Em andamento"
@@ -396,28 +412,38 @@ export const Dashboard: React.FC<{ setPage?: (page: string) => void }> = ({ setP
             title="Prazos Pendentes"
             value={pendingDeadlines}
             icon={AlertCircle}
-            trend={overdueDeadlinesCount > 0 ? `${overdueDeadlinesCount} Atrasados` : (urgentDeadlines > 0 ? `${urgentDeadlines} Urgentes` : 'Em dia')}
+            trend={
+              overdueDeadlinesCount > 0
+                ? `${overdueDeadlinesCount} ${overdueDeadlinesCount === 1 ? 'Atrasado' : 'Atrasados'}`
+                : doneDeadlinesLast7Days > 0
+                  ? `+${doneDeadlinesLast7Days} feitos`
+                  : (urgentDeadlines > 0 ? `${urgentDeadlines} Urgentes` : 'Em dia')
+            }
             trendTone={overdueDeadlinesCount > 0 ? 'danger' : undefined}
             color={overdueDeadlinesCount > 0 ? 'bg-rose-500 text-rose-600' : 'bg-amber-500 text-amber-600'}
             accentBorder={overdueDeadlinesCount > 0 ? 'border-l-rose-500' : 'border-l-amber-500'}
-            subtext={todayDeadlinesCount > 0 ? `${todayDeadlinesCount} vencem hoje` : 'Próximos dias'}
+            subtext={
+              doneDeadlinesLast7Days > 0 && overdueDeadlinesCount > 0
+                ? `${doneDeadlinesLast7Days} feitos (7d)`
+                : (todayDeadlinesCount > 0 ? `${todayDeadlinesCount} hoje` : 'Próximos dias')
+            }
             onClick={() => setPage?.('deadlines')}
           />
           <StatCard
             title="Calendário Hoje"
             value={todayItems}
             icon={CalendarIcon}
-            trend={todayItems > 0 ? 'Ocupado' : 'Livre'}
+            trend={weekAgendaItemsCount > 0 ? `${weekAgendaItemsCount} na semana` : 'Livre'}
             color="bg-purple-500 text-purple-600"
             accentBorder="border-l-purple-500"
-            subtext="Compromissos e Prazos"
+            subtext="Próx. 7 dias"
             onClick={() => setPage?.('calendario')}
           />
           <StatCard
             title="Total de Contatos"
             value={totalClients}
             icon={Users}
-            trend="Base"
+            trend={newClientsThisMonth > 0 ? `+${newClientsThisMonth} mês` : 'Base'}
             color="bg-emerald-500 text-emerald-600"
             accentBorder="border-l-emerald-500"
             subtext="Clientes e partes"
