@@ -96,6 +96,22 @@ export const Team: React.FC = () => {
     } as any);
 
     const fileRef = useRef<HTMLInputElement>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
+    const [headerHeight, setHeaderHeight] = useState(96);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+        const updateHeight = () => setHeaderHeight(el.offsetHeight);
+        updateHeight();
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver(updateHeight);
+            observer.observe(el);
+            return () => observer.disconnect();
+        }
+        window.addEventListener('resize', updateHeight);
+        return () => window.removeEventListener('resize', updateHeight);
+    }, []);
 
     // Filter members
     const filteredMembers = teamMembers.filter(m => {
@@ -293,11 +309,11 @@ export const Team: React.FC = () => {
         panel: isHybrid ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700',
         input: isHybrid ? 'bg-[#202c33] border-[#354751] text-[#e9edef] focus:ring-[#00a884]/50 focus:border-[#00a884]' : 'bg-slate-50 dark:bg-dark-900 border-slate-200 dark:border-slate-700 focus:ring-primary-500 text-slate-900 dark:text-white',
         inputIcon: isHybrid ? 'text-[#aebac1]' : 'text-slate-400',
-        tableHeader: isHybrid ? 'border-[#354751] bg-[#202c33]/50' : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50',
-        tableHeaderCell: `p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${isHybrid ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'}`,
-        tableHeaderCellNoHover: `p-4 text-xs font-semibold uppercase tracking-wider ${isHybrid ? 'text-[#aebac1]' : 'text-slate-500'}`,
+        tableHeader: isHybrid ? 'border-[#354751] bg-[#202c33]' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-900',
+        tableHeaderCell: `py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors select-none ${isHybrid ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700'}`,
+        tableHeaderCellNoHover: `py-2.5 px-4 text-xs font-semibold uppercase tracking-wider ${isHybrid ? 'text-[#aebac1]' : 'text-slate-500'}`,
         tableDivider: isHybrid ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700',
-        tableRow: `transition-colors group ${isHybrid ? 'hover:bg-[#354751] hover:shadow-lg' : 'hover:bg-slate-50 dark:hover:bg-slate-700'}`,
+        tableRow: `transition-colors group ${isHybrid ? 'hover:bg-[#354751]' : 'hover:bg-slate-50 dark:hover:bg-slate-700'}`,
         textPrimary: isHybrid ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white',
         textSecondary: isHybrid ? 'text-[#aebac1]' : 'text-slate-600 dark:text-slate-300',
         textMuted: isHybrid ? 'text-[#8696a0]' : 'text-slate-400',
@@ -325,21 +341,21 @@ export const Team: React.FC = () => {
     return (
         <div className={classes.container}>
             {/* Header - Sticky */}
-            <div className={classes.headerContainer}>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-4">
+            <div ref={headerRef} className={classes.headerContainer}>
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                    <div className="shrink-0">
+                        <div className="flex items-center gap-3">
                             <h1 className={classes.pageTitle}>Equipe</h1>
 
                             {/* Animated Badge */}
-                            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 px-3 py-1.5 rounded-full animate-badge-entrance">
+                            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 px-3 py-1 rounded-full animate-badge-entrance">
                                 <div className="relative flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                 </div>
                                 <div className="flex items-center gap-1.5 whitespace-nowrap">
                                     <Users size={14} className="text-blue-600 dark:text-blue-400" />
-                                    <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
                                         <AnimatedCounter target={teamMembers.length} /> Ativos
                                     </span>
                                 </div>
@@ -354,36 +370,51 @@ export const Team: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="flex gap-2 md:gap-3 w-full md:w-auto mt-3 md:mt-0">
+                    <div className="flex flex-wrap items-center gap-2 flex-1 xl:justify-end">
+                        {/* Search Input */}
+                        <div className={`relative flex-1 min-w-[200px] xl:max-w-[320px] flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                            isHybrid
+                                ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]'
+                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            <Search size={16} className={`${classes.inputIcon} shrink-0`} />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nome, cargo ou email..."
+                                className={`flex-1 min-w-0 bg-transparent outline-none text-sm ${isHybrid ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white placeholder:text-slate-400'}`}
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-slate-400 hover:text-slate-600"
+                                    title="Limpar busca"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+
                         <button
+                            type="button"
                             onClick={handleOpenNew}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap ${isHybrid ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 ${isHybrid ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'}`}
                         >
-                            <Plus size={20} /> Novo Membro
+                            <Plus size={18} /> Novo Membro
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 md:px-8 pt-6 flex-1 flex flex-col">
-
-                {/* Filter Bar */}
-                <div className={`p-2 md:p-4 rounded-xl border mb-3 md:mb-6 flex items-center gap-2 md:gap-3 shadow-sm transition-colors ${classes.panel}`}>
-                    <Search size={16} md:size={20} className={classes.inputIcon} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome, cargo ou email..."
-                        className={`flex-1 bg-transparent outline-none text-sm ${isHybrid ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white'}`}
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                </div>
+            <div className="px-4 md:px-8 pt-4 flex-1 flex flex-col">
 
                 {/* List Content */}
-                <div className={`rounded-xl shadow-sm border overflow-hidden flex-1 flex flex-col ${classes.panel}`}>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
+                <div className={`rounded-xl shadow-sm border flex-1 flex flex-col ${classes.panel}`}>
+                    <div>
+                        <table className="w-full text-left border-collapse">
+                            <thead className="sticky z-30 shadow-sm" style={{ top: Math.max(0, headerHeight - 1) }}>
                                 <tr className={`border-b ${classes.tableHeader}`}>
                                     <th
                                         className={classes.tableHeaderCell}
@@ -408,9 +439,9 @@ export const Team: React.FC = () => {
                             <tbody className={`divide-y ${classes.tableDivider}`}>
                                 {sortedMembers.map(member => (
                                     <tr key={member.id} className={classes.tableRow}>
-                                        <td className="p-4">
+                                        <td className="py-2 px-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border ${getAvatarColorStyles(member.avatarColor || 'blue')}`}>
+                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden border ${member.photo ? 'bg-white border-slate-200 dark:border-slate-600' : getAvatarColorStyles(member.avatarColor || 'blue')}`}>
                                                     {member.photo ? (
                                                         <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
                                                     ) : (
@@ -422,8 +453,8 @@ export const Team: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">
-                                            <div className={`text-sm space-y-1.5 ${classes.textSecondary}`}>
+                                        <td className="py-2 px-4">
+                                            <div className={`text-sm space-y-0.5 ${classes.textSecondary}`}>
                                                 <div className="flex items-center gap-2">
                                                     <Mail size={14} className={classes.textMuted} />
                                                     <span className="truncate">{member.email}</span>
@@ -440,18 +471,18 @@ export const Team: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="py-2 px-4">
                                             <span className={classes.badge}>
                                                 {member.role}
                                             </span>
                                         </td>
-                                        <td className={`p-4 text-sm font-mono ${classes.textSecondary}`}>
+                                        <td className={`py-2 px-4 text-sm font-mono ${classes.textSecondary}`}>
                                             {member.oab ? `OAB ${member.oab}` : member.cpf || '-'}
                                         </td>
-                                        <td className={`p-4 text-sm ${classes.textSecondary}`}>
+                                        <td className={`py-2 px-4 text-sm ${classes.textSecondary}`}>
                                             {member.addressCity ? `${member.addressCity}/${member.addressState}` : '-'}
                                         </td>
-                                        <td className="p-4 text-right">
+                                        <td className="py-2 px-4 text-right">
                                             <button onClick={() => handleOpenEdit(member)} className={classes.iconButton}>
                                                 <Edit size={18} />
                                             </button>
