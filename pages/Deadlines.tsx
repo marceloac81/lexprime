@@ -48,6 +48,22 @@ export const Deadlines: React.FC = () => {
     const [showCalculator, setShowCalculator] = useState(false);
     const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
     const [pendingProcessNumber, setPendingProcessNumber] = useState<string | null>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
+    const [headerHeight, setHeaderHeight] = useState(100);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+        const updateHeight = () => setHeaderHeight(el.offsetHeight);
+        updateHeight();
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver(updateHeight);
+            observer.observe(el);
+            return () => observer.disconnect();
+        }
+        window.addEventListener('resize', updateHeight);
+        return () => window.removeEventListener('resize', updateHeight);
+    }, []);
 
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -390,7 +406,7 @@ export const Deadlines: React.FC = () => {
     return (
         <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+            <div ref={headerRef} className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
                 : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
@@ -528,7 +544,7 @@ export const Deadlines: React.FC = () => {
             <div className="px-4 md:px-8 pt-4">
                 <div className="hidden md:block bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 relative">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-800 dark:bg-dark-950 text-white transition-all">
+                        <thead className="bg-slate-800 dark:bg-dark-950 text-white transition-all sticky z-30 shadow-sm" style={{ top: Math.max(0, headerHeight - 1) }}>
                             <tr>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider w-24">Prazo</th>
                                 <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider">Atividade</th>
