@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
 import { Search, Filter, Plus, ChevronRight, X, Briefcase, Clock, FileText, CalendarIcon, User as UserIcon, AlertCircle, Shield, Edit, Trash2, CheckCircle2, GitBranch, ChevronDown, Printer, Copy, Check } from '../components/Icons';
 import { CaseStatus, Case, Deadline } from '../types';
@@ -42,6 +42,23 @@ export const Cases: React.FC = () => {
     const { theme, cases, addCase, updateCase, deleteCase, clearCases, clients, deadlines, pendingAction, setPendingAction, addNotification, setIsLoading, isLoading, currentUser, addDeadline, holidays, teamMembers } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [areaFilter, setAreaFilter] = useState<string>('all');
+    const headerRef = useRef<HTMLDivElement>(null);
+    const [headerHeight, setHeaderHeight] = useState(96);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+        const updateHeight = () => setHeaderHeight(el.offsetHeight);
+        updateHeight();
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver(updateHeight);
+            observer.observe(el);
+            return () => observer.disconnect();
+        }
+        window.addEventListener('resize', updateHeight);
+        return () => window.removeEventListener('resize', updateHeight);
+    }, []);
     const [showNewCaseModal, setShowNewCaseModal] = useState(false);
     const [selectedCase, setSelectedCase] = useState<Case | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -51,7 +68,7 @@ export const Cases: React.FC = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, statusFilter, pageSize]);
+    }, [searchTerm, statusFilter, areaFilter, pageSize]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
@@ -103,7 +120,8 @@ export const Cases: React.FC = () => {
             normalizeText(c.number).includes(normalizedTerm) ||
             normalizeText(c.clientName).includes(normalizedTerm);
         const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const matchesArea = areaFilter === 'all' || (c.area || 'Outros') === areaFilter;
+        return matchesSearch && matchesStatus && matchesArea;
     }).sort((a, b) => {
         if (!sortConfig) return 0;
         const { key, direction } = sortConfig;
@@ -243,12 +261,12 @@ export const Cases: React.FC = () => {
     return (
         <div className={`animate-fade-in pb-20 relative min-h-full ${theme === 'hybrid' ? 'bg-[#222e35]' : ''}`}>
             {/* Header - Sticky */}
-            <div className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
+            <div ref={headerRef} className={`sticky top-0 z-40 md:z-50 px-4 md:px-8 pt-4 md:pt-6 pb-4 border-b transition-colors shadow-sm no-print ${theme === 'hybrid'
                 ? 'bg-[#202c33] border-emerald-500/20'
                 : 'bg-slate-50 dark:bg-dark-950 border-slate-200 dark:border-slate-800'
                 }`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                    <div className="shrink-0">
                         <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>Processos</h1>
                         <p className={`text-sm mt-1 ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500 dark:text-slate-400'}`}>
                             {cases.length === 0 ? "Nenhum processo cadastrado." :
@@ -258,103 +276,144 @@ export const Cases: React.FC = () => {
                             }
                         </p>
                     </div>
-                    <div className="flex gap-2 w-full md:w-auto mt-3 md:mt-0">
+
+                    <div className="flex flex-wrap items-center gap-2 flex-1 xl:justify-end">
+                        {/* Search Input */}
+                        <div className={`relative flex-1 min-w-[200px] xl:max-w-[300px] flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                            theme === 'hybrid'
+                                ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]'
+                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            <Search size={16} className={theme === 'hybrid' ? 'text-[#aebac1] shrink-0' : 'text-slate-400 shrink-0'} />
+                            <input
+                                type="text"
+                                placeholder="Buscar processos, partes ou número..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className={`flex-1 min-w-0 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white placeholder:text-slate-400'}`}
+                            />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-slate-400 hover:text-slate-600"
+                                    title="Limpar busca"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Status Filter Pills */}
+                        <div className={`inline-flex items-center p-1 rounded-lg border ${
+                            theme === 'hybrid'
+                                ? 'bg-[#2a3942] border-[#354751]'
+                                : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            {['all', CaseStatus.Active, CaseStatus.Archived].map(status => (
+                                <button
+                                    key={status}
+                                    type="button"
+                                    onClick={() => setStatusFilter(status)}
+                                    className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all whitespace-nowrap ${statusFilter === status
+                                        ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-sm' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm')
+                                        : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
+                                    }`}
+                                >
+                                    {status === 'all' ? 'Todos' : status}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Area Filter Select */}
+                        <select
+                            value={areaFilter}
+                            onChange={(e) => setAreaFilter(e.target.value)}
+                            aria-label="Filtrar por área"
+                            className={`px-2.5 py-2 rounded-lg text-xs md:text-sm font-semibold outline-none cursor-pointer border transition-colors ${
+                                theme === 'hybrid'
+                                    ? 'bg-[#2a3942] text-[#e9edef] border-[#354751] focus:border-[#00a884]'
+                                    : 'bg-white text-slate-700 border-slate-200 focus:border-blue-500 dark:bg-dark-800 dark:text-slate-200 dark:border-slate-700'
+                            }`}
+                        >
+                            <option value="all">Todas as áreas</option>
+                            {Array.from(new Set(cases.map(c => c.area || 'Outros'))).sort((a, b) => a.localeCompare(b, 'pt-BR')).map(area => (
+                                <option key={area} value={area}>{area}</option>
+                            ))}
+                        </select>
+
+                        {/* Print Button (compact icon, matching Deadlines) */}
                         <button
+                            type="button"
                             onClick={handlePrint}
-                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-sm active:scale-95 no-print border ${theme === 'hybrid'
-                                ? 'bg-[#202c33] hover:bg-[#2a3942] text-[#e9edef] border-[#202c33]'
+                            title="Imprimir lista de processos"
+                            className={`p-2 rounded-lg flex items-center justify-center transition-all shadow-sm active:scale-95 no-print border ${theme === 'hybrid'
+                                ? 'bg-[#2a3942] hover:bg-[#354751] text-[#e9edef] border-[#354751]'
                                 : 'bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
                                 }`}
                         >
-                            <Printer size={20} /> Imprimir
+                            <Printer size={18} />
                         </button>
+
+                        {/* New Case Button */}
                         <button
+                            type="button"
                             onClick={handleOpenNew}
-                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition-all shadow-lg transform active:scale-95 no-print ${theme === 'hybrid'
+                            className={`px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 text-sm font-semibold transition-all shadow-md transform active:scale-95 no-print shrink-0 ${theme === 'hybrid'
                                 ? 'bg-[#00a884] hover:bg-[#008f6f] text-white shadow-[#00a884]/20'
                                 : 'bg-primary-600 hover:bg-primary-700 text-white shadow-primary-500/20'
                                 }`}
                         >
-                            <Plus size={20} /> Novo Processo
+                            <Plus size={18} /> Novo Processo
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 md:px-8 pt-2">
-
-                {/* Filters Bar - Standardized to match Clients.tsx */}
-                <div className="flex flex-col xl:flex-row gap-2 md:gap-4 mb-3 md:mb-6">
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751] text-[#e9edef]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} p-2 md:p-4 rounded-xl border flex-1 flex items-center gap-2 md:gap-3 shadow-sm transition-colors`}>
-                        <Search size={16} md:size={20} className={theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} />
-                        <input
-                            type="text"
-                            placeholder="Buscar processos, partes ou número..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className={`flex-1 bg-transparent outline-none text-sm ${theme === 'hybrid' ? 'text-[#e9edef] placeholder:text-[#aebac1]/50' : 'text-slate-900 dark:text-white'}`}
-                        />
-                    </div>
-                    
-                    <div className={`${theme === 'hybrid' ? 'bg-[#2a3942] border-[#354751]' : 'bg-white dark:bg-dark-800 border-slate-200 dark:border-slate-700'} flex gap-2 overflow-x-auto no-scrollbar items-center p-2 rounded-xl border shadow-sm transition-colors`}>
-                        <Filter size={18} className={`${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-400'} ml-2 mr-2 shrink-0`} />
-                        {['all', CaseStatus.Active, CaseStatus.Archived].map(status => (
-                            <button
-                                key={status}
-                                onClick={() => setStatusFilter(status)}
-                                className={`px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold uppercase transition-all duration-300 active:scale-90 whitespace-nowrap ${statusFilter === status
-                                    ? (theme === 'hybrid' ? 'bg-[#00a884] text-white shadow-lg' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg')
-                                    : (theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-700')
-                                }`}
-                            >
-                                {status === 'all' ? 'Todos' : status}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+            <div className="px-4 md:px-8 pt-4">
 
                 {/* Responsive List Container */}
-                <div className={`flex-1 overflow-hidden flex flex-col ${
+                <div className={`flex-1 flex flex-col ${
                     theme === 'hybrid' 
                         ? 'bg-transparent md:bg-[#2a3942] md:rounded-xl md:shadow-sm md:border md:border-[#354751]' 
                         : 'bg-transparent md:bg-white md:dark:bg-dark-800 md:rounded-xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-700'
                 }`}>
 
                     {/* DESKTOP TABLE VIEW (Hidden on Mobile) */}
-                    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                    <div className="hidden md:block">
                         <table className="w-full text-left border-collapse">
-                            <thead>
+                            <thead className="sticky z-30 shadow-sm" style={{ top: Math.max(0, headerHeight - 1) }}>
                                 <tr className={`border-b ${
                                     theme === 'hybrid' 
-                                        ? 'border-[#354751] bg-[#202c33]/50' 
-                                        : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-dark-900/50'
+                                        ? 'border-[#354751] bg-[#202c33]'
+                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-900'
                                 }`}>
-                                    <th onClick={() => handleSort('number')} className={`p-4 text-xs font-semibold uppercase tracking-wider w-[30%] cursor-pointer transition-colors ${
+                                    <th onClick={() => handleSort('number')} className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider w-[26%] cursor-pointer transition-colors ${
                                         theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
                                     }`}>
                                         <div className="flex items-center gap-1">Processo nº {sortConfig?.key === 'number' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('clientName')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                    <th onClick={() => handleSort('clientName')} className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
                                         theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
                                     }`}>
                                         <div className="flex items-center gap-1">Partes {sortConfig?.key === 'clientName' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('court')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                    <th onClick={() => handleSort('court')} className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
                                         theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
                                     }`}>
                                         <div className="flex items-center gap-1">Local {sortConfig?.key === 'court' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('status')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                    <th onClick={() => handleSort('status')} className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
                                         theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
                                     }`}>
                                         <div className="flex items-center gap-1">Status {sortConfig?.key === 'status' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th onClick={() => handleSort('folderNumber')} className={`p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
+                                    <th onClick={() => handleSort('folderNumber')} className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors ${
                                         theme === 'hybrid' ? 'text-[#aebac1] hover:bg-[#202c33]' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-dark-900'
                                     }`}>
                                         <div className="flex items-center gap-1">Pasta {sortConfig?.key === 'folderNumber' && (sortConfig.direction === 'asc' ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}</div>
                                     </th>
-                                    <th className={`p-4 text-xs font-semibold uppercase tracking-wider text-right ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
+                                    <th className={`py-2.5 px-4 text-xs font-semibold uppercase tracking-wider text-right ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>Ações</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${theme === 'hybrid' ? 'divide-[#354751]' : 'divide-slate-100 dark:divide-slate-700'}`}>
@@ -362,35 +421,32 @@ export const Cases: React.FC = () => {
                                     <tr
                                         key={c.id}
                                         onDoubleClick={() => setSelectedCase(c)}
-                                        className={`transition-all cursor-pointer group ${
+                                        className={`transition-colors cursor-pointer group ${
                                             theme === 'hybrid'
-                                                ? 'hover:bg-[#354751] hover:shadow-lg'
-                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-md'
+                                                ? 'hover:bg-[#354751]'
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700'
                                         }`}
                                         title="Clique duplo para ver detalhes"
                                     >
-                                        <td className="p-4">
+                                        <td className="py-2 px-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${
+                                                <div className={`p-1.5 rounded-lg ${
                                                     theme === 'hybrid' ? 'bg-[#202c33] text-[#00a884]' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
                                                 }`}>
-                                                    <Briefcase size={18} />
+                                                    <Briefcase size={16} />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-1.5">
                                                         <div className={`font-bold text-sm ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.number}</div>
                                                         <button
                                                             onClick={(e) => handleCopy(e, c.number, c.id + '-desktop')}
-                                                            className={`shrink-0 flex items-center justify-center gap-1 px-1 py-0.5 rounded transition-all min-w-[20px] ${copiedId === c.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-40 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-40 hover:opacity-100 hover:text-slate-700'}`}
-                                                            title={copiedId === c.id + '-desktop' ? "Processo copiado!" : "Copiar número"}
+                                                            className={`group relative shrink-0 flex items-center justify-center rounded transition-all w-6 h-6 ${copiedId === c.id + '-desktop' ? 'text-green-500 opacity-100 bg-green-500/10' : theme === 'hybrid' ? 'text-[#aebac1] opacity-80 hover:opacity-100 hover:text-[#e9edef]' : 'text-slate-400 opacity-80 hover:opacity-100 hover:text-slate-700'}`}
+                                                            title="Copiar número"
                                                         >
                                                             {copiedId === c.id + '-desktop' ? (
-                                                                <>
-                                                                    <Check size={11} strokeWidth={3} />
-                                                                    <span className="text-[9px] font-bold">Copiado</span>
-                                                                </>
+                                                                <Check size={14} strokeWidth={3} />
                                                             ) : (
-                                                                <Copy size={11} />
+                                                                <Copy size={14} />
                                                             )}
                                                         </button>
                                                     </div>
@@ -403,29 +459,29 @@ export const Cases: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">
-                                            <div className="flex flex-col gap-1">
+                                        <td className="py-2 px-4">
+                                            <div className="flex flex-col gap-0.5">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`w-2 h-2 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : c.clientPosition === 'Passivo' ? 'bg-rose-500' : 'bg-blue-500'}`} />
-                                                    <span className={`text-sm font-medium truncate max-w-[150px] ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`}>{c.clientName}</span>
+                                                    <span className={`w-2 h-2 shrink-0 rounded-full ${c.clientPosition === 'Ativo' ? 'bg-green-500' : c.clientPosition === 'Passivo' ? 'bg-rose-500' : 'bg-blue-500'}`} />
+                                                    <span className={`text-sm font-medium truncate max-w-[260px] ${theme === 'hybrid' ? 'text-[#e9edef]' : 'text-slate-900 dark:text-white'}`} title={c.clientName}>{c.clientName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-slate-300" />
-                                                    <span className={`text-xs truncate max-w-[150px] ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>vs {c.opposingParty}</span>
+                                                    <span className="w-2 h-2 shrink-0 rounded-full bg-slate-300" />
+                                                    <span className={`text-xs truncate max-w-[260px] ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`} title={c.opposingParty}>vs {c.opposingParty}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="py-2 px-4">
                                             <div className={`text-sm ${theme === 'hybrid' ? 'text-[#d1d7db]' : 'text-slate-700 dark:text-slate-300'}`}>{c.court}</div>
                                             <div className={`text-xs ${theme === 'hybrid' ? 'text-[#aebac1]' : 'text-slate-500'}`}>{c.city} - {c.uf}</div>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="py-2 px-4">
                                             <StatusBadge status={c.status} />
                                         </td>
-                                        <td className="p-4 text-sm font-mono text-slate-500">
+                                        <td className="py-2 px-4 text-sm font-mono text-slate-500">
                                             {c.folderNumber || '-'}
                                         </td>
-                                        <td className="p-4 text-right">
+                                        <td className="py-2 px-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 {(currentUser?.isAdmin || c.createdBy === currentUser?.id) && (
                                                     <button
